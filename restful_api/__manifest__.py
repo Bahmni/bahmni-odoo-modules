@@ -11,7 +11,7 @@
     """,
 
     'author': "Hari",
-    'website': "https://www.kgisl.com",
+    'website': "https://www.bahmni.org",
     'category': 'API',
     'version': '0.1',
 

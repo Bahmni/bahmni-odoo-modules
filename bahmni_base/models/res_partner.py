@@ -9,10 +9,7 @@ class ResPartner(models.Model):
     _sql_constraints = [('unique_ref', 'unique(ref)',
                          'Internal Reference for Customer should be unique!')]
 
-    #village_id = fields.Many2one('village.village', string="Village")
     village = fields.Char(string="Village")
-    tehsil_id = fields.Many2one('district.tehsil', string="Tehsil")
-    #district_id = fields.Many2one('state.district', string="District
     district = fields.Char(string="District")
     local_name = fields.Char(string="Local Name")
     uuid = fields.Char(string = "UUID")

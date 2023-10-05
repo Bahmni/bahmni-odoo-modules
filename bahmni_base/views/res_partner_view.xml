@@ -9,10 +9,6 @@
 			<xpath expr="//div[@class='o_address_format']/field[@name='street2']" position="after">
 				<field name="village" placeholder="Village.." 
 					class="o_address_state" style="width:30% !important"/>
-<!--
-				<field name="tehsil_id" placeholder="Tehsil.." class="o_address_state"
-					style="width:31% !important"/>
--->
 				<field name="district" placeholder="District.." class="o_address_state"/>
 				<br/>
 			</xpath>

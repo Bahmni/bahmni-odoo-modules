@@ -32,62 +32,50 @@ class AccessToken(http.Controller):
         self._token = request.env["api.access_token"]
         self._expires_in = request.env.ref(expires_in).sudo().value
 
-    @http.route("/api/login", methods=["POST","OPTIONS"], type="http", auth="none", csrf=False, cors='*')
+    @http.route("/api/login", methods=["POST","OPTIONS"], type="json", auth="none", csrf=False, cors='*')
     def token(self, **post):
-        input_user_name = post.get("username"),
-        input_password = post.get("password"),
-
-        if input_user_name[0] != None:
-
-            res_usersss = request.env['res.users'].sudo().search([
-                ('active','=',True),
-                ('login','=',input_user_name)])
-            
-            
-            if res_usersss:
-                request.env.company_id = 1  ###set company_id based logic users 
-                exp = datetime.datetime.utcnow() + datetime.timedelta(days=30)
-
-                rbytes = os.urandom(64)
-                random_pass = str(hashlib.sha256(rbytes).hexdigest())
-
-                token_values = request.env['api.access_token'].sudo().create({
-                            'user_id': res_usersss.id,
-                            'expires': exp.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                            'token': str(random_pass)})
-
-                token_key_visible = {
-                                        "status":200,
-                                        "message":"Success",
-                                        "data":[
-                                            {
-                                                    "user_id": res_usersss.id,    
-                                                    "username": input_user_name[0],
-                                                    "access_token": str(random_pass),
-                                            }]
-                                    }
-            
+        try:
+            input_user_name = post.get("data").get("username"),
+            input_password = post.get("data").get("password")
+            if input_user_name[0] != None:
+                res_usersss = request.env['res.users'].sudo().search([
+                    ('active','=',True),
+                    ('login','=',input_user_name)])
                 
                 
-                return werkzeug.wrappers.Response(
-                status=200,
-                content_type="application/json; charset=utf-8",
-                headers=[("Cache-Control", "no-store"),('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token, charset'),('Access-Control-Allow-Methods','POST, GET, OPTIONS, DELETE, PUT'), ('Access-Control-Allow-Origin', '*'), ("Pragma", "no-cache")],
-                response=json.dumps(token_key_visible, default=default),)
-        
-            else:
-                return werkzeug.wrappers.Response(
-                    status=401,
-                    content_type="application/json; charset=utf-8",
-                    headers=[("Cache-Control", "no-store"),('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token, charset'),('Access-Control-Allow-Methods','POST, GET, OPTIONS, DELETE, PUT'), ('Access-Control-Allow-Origin', 'http://localhost:8069'), ("Pragma", "no-cache")],
-                    response=json.dumps({'status':401,'message':'Wrong Username & Password. Check the account is in ERP once and try again.'}, default=default),)
-        else :
-            return werkzeug.wrappers.Response(
-            status=401,
-            content_type="application/json; charset=utf-8",
-            headers=[("Cache-Control", "no-store"),('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token, charset'),('Access-Control-Allow-Methods','POST, GET, OPTIONS, DELETE, PUT'), ('Access-Control-Allow-Origin', 'http://localhost:8069'), ("Pragma", "no-cache")],
-            response=json.dumps({'status':401,'message':'Username & Password is must'}, default=default),)
+                if res_usersss:
+                    request.env.company_id = 1  ###set company_id based logic users 
+                    exp = datetime.datetime.utcnow() + datetime.timedelta(days=30)
 
+                    rbytes = os.urandom(64)
+                    random_pass = str(hashlib.sha256(rbytes).hexdigest())
+
+                    token_values = request.env['api.access_token'].sudo().create({
+                                'user_id': res_usersss.id,
+                                'expires': exp.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                                'token': str(random_pass)})
+
+                    token_key_visible = {
+                                            "status":200,
+                                            "message":"Success",
+                                            "data":
+                                                {
+                                                        "user_id": res_usersss.id,    
+                                                        "username": input_user_name[0],
+                                                        "access_token": str(random_pass),
+                                                }
+                                        }
+                
+                    
+                    return token_key_visible
+            
+                else:
+                    return {'status':401,'message':'Wrong Username & Password. Check the account is in ERP once and try again.'}
+            else :
+                return {'status':401,'message':'Username & Password is must'}
+
+        except Exception as e:
+            return {'error': 'An unexpected error occurred: ' + str(e)}
 ######################################################################################
 
 

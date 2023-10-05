@@ -95,7 +95,7 @@ class APIController(http.Controller):
                 return werkzeug.wrappers.Response(
                 status=200,
                 content_type="application/json; charset=utf-8",
-                headers=[("Cache-Control", "no-store"),('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token, charset'),('Access-Control-Allow-Methods','POST, GET, OPTIONS, DELETE, PUT'), ('Access-Control-Allow-Origin', 'http://localhost:8069'), ("Pragma", "no-cache")],
+                headers=[("Cache-Control", "no-store"),('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token, charset'),('Access-Control-Allow-Methods','POST, GET, OPTIONS, DELETE, PUT'), ('Access-Control-Allow-Origin'), ("Pragma", "no-cache")],
                 response=json.dumps(data, default=default),
    
             )                
@@ -104,14 +104,14 @@ class APIController(http.Controller):
                 return werkzeug.wrappers.Response(
                 status=200,
                 content_type="application/json; charset=utf-8",
-                headers=[("Cache-Control", "no-store"),('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token, charset'),('Access-Control-Allow-Methods','POST, GET, OPTIONS, DELETE, PUT'), ('Access-Control-Allow-Origin', 'http://localhost:8069'), ("Pragma", "no-cache")],
+                headers=[("Cache-Control", "no-store"),('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token, charset'),('Access-Control-Allow-Methods','POST, GET, OPTIONS, DELETE, PUT'), ('Access-Control-Allow-Origin'), ("Pragma", "no-cache")],
                 response=json.dumps(data, default=default),
    
             )  
         return werkzeug.wrappers.Response(
         status=401,
         content_type="application/json; charset=utf-8",
-        headers=[("Cache-Control", "no-store"),('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token, charset'),('Access-Control-Allow-Methods','POST, GET, OPTIONS, DELETE, PUT'), ('Access-Control-Allow-Origin', 'http://localhost:8069'), ("Pragma", "no-cache")],
+        headers=[("Cache-Control", "no-store"),('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token, charset'),('Access-Control-Allow-Methods','POST, GET, OPTIONS, DELETE, PUT'), ('Access-Control-Allow-Origin'), ("Pragma", "no-cache")],
         response=json.dumps(
             {
                 "status": 401,

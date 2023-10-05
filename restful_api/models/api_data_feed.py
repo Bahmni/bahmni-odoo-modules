@@ -21,7 +21,6 @@ def default(o):
 
 def validate_token(func):
     """."""
-
     @functools.wraps(func)
     def wrap(self, *args, **kwargs):
         """."""
@@ -54,8 +53,7 @@ class RestFullService(http.Controller):
         """  Atom data feed from bahmin to Odoo16 """
         try:
             if kw:
-                atom_rec = request.env['atom.event.worker'].process_event(kw.get('data'))
-                
+                atom_rec = request.env['api.event.worker'].process_event(kw.get('data'))
             return {'status':200,'message':'Customer Created Successfully'}
         except Exception as e:
             return {'error': 'An unexpected error occurred: ' + str(e)}

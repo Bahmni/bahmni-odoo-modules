@@ -11,7 +11,7 @@
     """,
 
     'author': "Hari",
-    'website': "https://www.kgisl.com",
+    'website': "https://www.bahmni.org",
 
     # Categories can be used to filter modules in modles listing
     # for the full list

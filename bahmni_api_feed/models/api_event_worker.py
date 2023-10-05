@@ -8,8 +8,8 @@ STATE_CODE_PREFIX = 'UNKNOWN-'
 _logger = logging.getLogger(__name__)
 
 
-class AtomEventWorker(models.Model):
-    _name = 'atom.event.worker'
+class ApiEventWorker(models.Model):
+    _name = 'api.event.worker'
     _auto = False
 
     @api.model
@@ -72,9 +72,6 @@ class AtomEventWorker(models.Model):
         
     def _create_or_update_person_attributes(self, cust_id, vals):
         attributes = json.loads(vals.get("attributes", "{}"))
-        attributes_list = ['landHolding', 'familyNameLocal', 'cluster', 'education', 'occupation','caste', 'isUrban', 'primaryRelative',
-                'familyIncome','secondaryContact','middleNameLocal','RationCard', 'givenNameLocal', 'distanceFromCenter',
-                'secondaryIdentifier', 'class', 'debt']
         customer = self.env['res.partner'].sudo().search([('id', '=', cust_id)])
         if vals['village']:
             customer.village = vals['village']
@@ -82,7 +79,7 @@ class AtomEventWorker(models.Model):
         for key in attributes:
             if key == 'email':
                customer.email = attributes[key]
-            if key in attributes_list:
+            if key in [key for key in attributes]:
                 column_dict = {'partner_id': cust_id}
                 existing_attribute = self.env['res.partner.attributes'].sudo().search([('partner_id', '=', cust_id),('name', '=', key)])
                 if any(existing_attribute):
