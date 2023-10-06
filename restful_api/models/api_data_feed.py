@@ -47,13 +47,13 @@ _routes = ["/api/<model>", "/api/<model>/<id>", "/api/<model>/<id>/<action>"]
 
 
 class RestFullService(http.Controller):
-    @http.route('/api/bahmni_data', type="json", auth="none", methods=["POST","OPTIONS"], csrf=False, cors='*')
-    #@validate_token
+    @http.route('/api/bahmni_data', type="json", auth="none", methods=["POST","OPTIONS"], csrf=True, cors='*')
+    @validate_token
     def bahmni_data_feed(self, **kw):
-        """  Atom data feed from bahmin to Odoo16 """
+        """  API data feed from bahmin to Odoo """
         try:
             if kw:
-                atom_rec = request.env['api.event.worker'].process_event(kw.get('data'))
+                rec = request.env['api.event.worker'].process_event(kw.get('data'))
             return {'status':200,'message':'Customer Created Successfully'}
         except Exception as e:
             return {'error': 'An unexpected error occurred: ' + str(e)}

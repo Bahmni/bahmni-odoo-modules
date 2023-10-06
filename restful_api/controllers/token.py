@@ -32,7 +32,7 @@ class AccessToken(http.Controller):
         self._token = request.env["api.access_token"]
         self._expires_in = request.env.ref(expires_in).sudo().value
 
-    @http.route("/api/login", methods=["POST","OPTIONS"], type="json", auth="none", csrf=False, cors='*')
+    @http.route("/api/login", methods=["POST","OPTIONS"], type="json", auth="none", csrf=True, cors='*')
     def token(self, **post):
         try:
             input_user_name = post.get("data").get("username"),
@@ -45,7 +45,7 @@ class AccessToken(http.Controller):
                 
                 if res_usersss:
                     request.env.company_id = 1  ###set company_id based logic users 
-                    exp = datetime.datetime.utcnow() + datetime.timedelta(days=30)
+                    exp = datetime.datetime.utcnow() + datetime.timedelta(days=1)
 
                     rbytes = os.urandom(64)
                     random_pass = str(hashlib.sha256(rbytes).hexdigest())
@@ -79,11 +79,11 @@ class AccessToken(http.Controller):
 ######################################################################################
 
 
-    @http.route("/api/login", methods=["DELETE"], type="http", auth="none", csrf=False, cors='*')
+    @http.route("/api/login", methods=["DELETE"], type="http", auth="none", csrf=True, cors='*')
     def delete(self, **post):
         """."""
         _token = request.env["api.access_token"]
-        access_token = request.httprequest.headers.get("Authorization")
+        access_token = post.get("Authorization")
         access_token = _token.search([("token", "=", access_token)])
         if not access_token:
             info = "No access token was provided in request!"

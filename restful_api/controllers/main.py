@@ -60,7 +60,7 @@ class APIController(http.Controller):
         self._model = "ir.model"
 
     @validate_token
-    @http.route(_routes, type="http", auth="none", methods=["GET","OPTIONS"], csrf=False, cors='*')
+    @http.route(_routes, type="http", auth="none", methods=["GET","OPTIONS"], csrf=True, cors='*')
     
     def get(self, model=None, id=None, **payload):
         ioc_name = model
@@ -122,7 +122,7 @@ class APIController(http.Controller):
     )  
 
     @validate_token
-    @http.route(_routes, type="http", auth="none", methods=["POST"], csrf=False, cors='*')
+    @http.route(_routes, type="http", auth="none", methods=["POST"], csrf=True, cors='*')
     def post(self, model=None, id=None, **payload):
         """Create a new record.
         Basic sage:
@@ -172,7 +172,7 @@ class APIController(http.Controller):
         )
 
     @validate_token
-    @http.route(_routes, type="http", auth="none", methods=["PUT"], csrf=False, cors='*')
+    @http.route(_routes, type="http", auth="none", methods=["PUT"], csrf=True, cors='*')
     def put(self, model=None, id=None, **payload):
         """."""
         try:
@@ -204,7 +204,7 @@ class APIController(http.Controller):
             )
 
     @validate_token
-    @http.route(_routes, type="http", auth="none", methods=["DELETE"], csrf=False, cors='*')
+    @http.route(_routes, type="http", auth="none", methods=["DELETE"], csrf=True, cors='*')
     def delete(self, model=None, id=None, **payload):
         """."""
         try:
@@ -229,7 +229,7 @@ class APIController(http.Controller):
             return valid_response("record %s has been successfully deleted" % record.id)
 
     @validate_token
-    @http.route(_routes, type="http", auth="none", methods=["PATCH"], csrf=False, cors='*')
+    @http.route(_routes, type="http", auth="none", methods=["PATCH"], csrf=True, cors='*')
     def patch(self, model=None, id=None, action=None, **payload):
         """."""
         try:
