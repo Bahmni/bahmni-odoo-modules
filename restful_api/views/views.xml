@@ -1,0 +1,8 @@
+<odoo>
+  <data>
+<!--
+    In Odoo, the API service view is a part of the application that defines 
+    how data is presented and structured when interacting with the API. 
+-->
+  </data>
+</odoo>
