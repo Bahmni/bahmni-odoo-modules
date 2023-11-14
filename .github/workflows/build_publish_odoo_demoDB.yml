@@ -10,9 +10,9 @@ on:
       - ".github/workflows/build_publish_odoo_demoDB.yml"
       - "package/resources/database/**"
       - "package/docker/demoDB/**"
-
   repository_dispatch:
     types: ["bahmni-scripts-trigger"]
+  workflow_dispatch:
 
 jobs:
   docker-build-publish:
