@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+		<menuitem
+		id="menu_syncable_units_mapping"
+		name="Syncable Units Mapping"
+		parent="bahmni_sale.menu_bahmni_masters"
+		action="bahmni_api_feed.action_syncable_units_mapping"
+		sequence="6"/>  
+		
+		<menuitem
+        id="menu_order_type"
+        name="Order Type"
+        parent="bahmni_sale.menu_bahmni_masters"
+        action="bahmni_api_feed.action_order_type"
+        sequence="7"/>  
+        
+       
+        <menuitem
+        id="menu_action_order_type_shop_mapping"
+        name="Order Type - Shop mapping"
+        parent="bahmni_sale.menu_bahmni_masters"
+        action="bahmni_api_feed.action_order_type_shop_mapping"
+        sequence="6"/> 
+        
+        <menuitem
+        id="menu_event_records"
+        name="Event Records"
+        parent="bahmni_sale.menu_bahmni_masters"
+        action="bahmni_api_feed.action_event_records"
+        sequence="9"/>
+
+
+</odoo>

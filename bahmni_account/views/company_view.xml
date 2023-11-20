@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	
+	<record id="inherit_view_res_company_settings" model="ir.ui.view">
+		<field name="name">inherit.view.company.view.settings</field>
+		<field name="model">res.company</field>
+		<field name="inherit_id" ref="base.view_company_form"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='website']" position="after">				
+
+					<label for="round_off_by"/>
+					<field name="round_off_by" nolabel="1" string = "Round Off By"/>
+				
+			</xpath>
+		</field>
+	</record>
+	
+</odoo>
