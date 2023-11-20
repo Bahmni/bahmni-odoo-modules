@@ -11,6 +11,7 @@ from os import urandom
 from odoo import http
 from odoo.addons.restful_api.common import invalid_response, valid_response
 from odoo.http import request
+from odoo.tools.config import config
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 import datetime
 
@@ -32,18 +33,35 @@ class AccessToken(http.Controller):
         self._token = request.env["api.access_token"]
         self._expires_in = request.env.ref(expires_in).sudo().value
 
-    @http.route("/api/login", methods=["POST","OPTIONS"], type="json", auth="none", csrf=True, cors='*')
+    @http.route("/api/odoo-login", methods=["POST","OPTIONS"], type="json", auth="none", csrf=True, cors='*')
     def token(self, **post):
         try:
             input_user_name = post.get("data").get("username"),
             input_password = post.get("data").get("password")
-            if input_user_name[0] != None:
+            if input_user_name[0] != None and input_user_name[0] != None:
                 res_usersss = request.env['res.users'].sudo().search([
                     ('active','=',True),
-                    ('login','=',input_user_name)])
-                
-                
+                    ('login','=',input_user_name[0])])
+
                 if res_usersss:
+                    assert input_password
+                    request.env.cr.execute(
+                        "SELECT COALESCE(password, '') FROM res_users WHERE id=%s",
+                        [res_usersss.id]
+                    )
+                    [hashed] = request.env.cr.fetchone()
+                    valid, replacement = res_usersss._crypt_context()\
+                        .verify_and_update(input_password, hashed)
+                    if replacement is not None:
+                        res_usersss._set_encrypted_password(res_usersss.id, replacement)
+                    if not valid:
+                        return {
+                                "error": {
+                                            "status":401,
+                                            "code": "invalid_credentials",
+                                            "message": "Incorrect password. Please provide the correct password."
+                                         }
+                               }
                     request.env.company_id = 1  ###set company_id based logic users 
                     exp = datetime.datetime.utcnow() + datetime.timedelta(days=1)
 
@@ -78,21 +96,3 @@ class AccessToken(http.Controller):
             return {'error': 'An unexpected error occurred: ' + str(e)}
 ######################################################################################
 
-
-    @http.route("/api/login", methods=["DELETE"], type="http", auth="none", csrf=True, cors='*')
-    def delete(self, **post):
-        """."""
-        _token = request.env["api.access_token"]
-        access_token = post.get("Authorization")
-        access_token = _token.search([("token", "=", access_token)])
-        if not access_token:
-            info = "No access token was provided in request!"
-            error = "no_access_token"
-            _logger.error(info)
-            return invalid_response(400, error, info)
-        for token in access_token:
-            token.unlink()
-        # Successful response:
-        return valid_response(200, {"desc": "Token successfully deleted", "delete": True})
-
-##########################################################################################
