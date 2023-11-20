@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	
+	<record id="form_syncable_units_mapping" model="ir.ui.view">
+		<field name="name">form.syncable.units.mapping</field>
+		<field name="model">syncable.units.mapping</field>
+		<field name="arch" type="xml">
+			<form string="Syncable Units"> 
+				<group>
+					<field name="name"/>
+					<field name="unit_of_measure" />
+				</group>
+			</form>
+		</field>
+	</record>
+	
+	<record id="tree_syncable_units_mapping" model="ir.ui.view">
+		<field name="name">tree.syncable.units.mapping</field>
+		<field name="model">syncable.units.mapping</field>
+		<field name="arch" type="xml">
+			<tree string="Syncable Units">
+				<field name="name"/>
+				<field name="unit_of_measure" />
+			</tree>
+		</field>
+	</record>
+	
+	<record id="action_syncable_units_mapping" model="ir.actions.act_window">
+		<field name="name">Syncable Units Mapping</field>
+		<field name="res_model">syncable.units.mapping</field>
+		<field name="view_mode">tree,form</field>
+	</record>
+		
+
+	
+</odoo>
