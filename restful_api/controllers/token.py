@@ -11,7 +11,6 @@ from os import urandom
 from odoo import http
 from odoo.addons.restful_api.common import invalid_response, valid_response
 from odoo.http import request
-from odoo.tools.config import config
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 import datetime
 
