@@ -85,3 +85,16 @@ class RestFullService(http.Controller):
                      "status":417,
                      'error': 'Expectation Failed: ' + str(e)
                    }
+
+    @http.route('/api/bahmni-radiology-test', type="json", auth="none", methods=["POST","OPTIONS"], csrf=True, cors='*')
+    @validate_token
+    def bahmni_rediology_test(self, **kw):
+        """  Rediology test API """
+        try:
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
+        except Exception as e:
+            return {
+                     "status":417,
+                     'error': 'Expectation Failed: ' + str(e)
+                   }

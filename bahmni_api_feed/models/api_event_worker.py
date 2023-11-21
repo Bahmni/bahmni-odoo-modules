@@ -28,6 +28,9 @@ class ApiEventWorker(models.Model):
             elif category == "create.drug":
                 self.env['drug.data.service'].create_or_update_drug(vals)
                 return "The drug have been successfully created / updated."
+            elif category == "create.radiology.test":
+                self.env['reference.data.service'].create_or_update_ref_data(vals, 'Radiology')
+                return "The rediology test have been successfully created / updated."
             else:
                 raise UserError("Integration process is not defined. Kindly contact ERP tech team for support.")
         except Exception as err:
