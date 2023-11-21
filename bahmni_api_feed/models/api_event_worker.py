@@ -34,6 +34,9 @@ class ApiEventWorker(models.Model):
             elif category == "create.lab.test":
                 self.env['reference.data.service'].create_or_update_ref_data(vals, 'Test')
                 return "The lab test have been successfully created / updated."
+            elif category == "create.lab.panel":
+                self.env['reference.data.service'].create_or_update_ref_data(vals, 'Panel')
+                return "The lab panel have been successfully created / updated."
             else:
                 raise UserError("Integration process is not defined. Kindly contact ERP tech team for support.")
         except Exception as err:
