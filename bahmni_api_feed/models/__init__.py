@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from . import api_event_worker
-from . import drug_data_service
 from . import res_company
 from . import res_users
 from . import order_type
