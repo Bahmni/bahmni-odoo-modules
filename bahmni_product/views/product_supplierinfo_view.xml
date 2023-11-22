@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-	
 	<record id="manufacturer_product_suppliernfo" model="ir.ui.view">
 		<field name="name">manufacturer.product.supplierinfo</field>
 		<field name="model">product.supplierinfo</field>
@@ -18,5 +17,4 @@
 			</xpath>
 		</field>
 	</record>
-	
 </odoo>

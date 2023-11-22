@@ -37,7 +37,7 @@ class ProductProduct(models.Model):
             domain_move_out += [('restrict_partner_id', '=', owner_id)]
         if package_id:
             domain_quant += [('package_id', '=', package_id)]
-#         if dates_in_the_past:
+        # if dates_in_the_past:
         domain_move_in_done = list(domain_move_out)
         domain_move_out_done = list(domain_move_in)
         domain_quant_actual_stock = copy(domain_quant)
@@ -60,7 +60,7 @@ class ProductProduct(models.Model):
         moves_out_res = dict((item['product_id'][0], item['product_qty']) for item in Move.read_group(domain_move_out_todo, ['product_id', 'product_qty'], ['product_id'], orderby='id'))
         quants_res = dict((item['product_id'][0], item['quantity']) for item in Quant.read_group(domain_quant, ['product_id', 'quantity'], ['product_id'], orderby='id'))
         quants_res_actual_stock = dict((item['product_id'][0], item['quantity']) for item in Quant.read_group(domain_quant_actual_stock, ['product_id', 'quantity'], ['product_id'], orderby='id'))
-#         if dates_in_the_past:
+        # if dates_in_the_past:
         # Calculate the moves that were done before now to calculate back in time (as most questions will be recent ones)
         if to_date:
             domain_move_in_done = [('state', '=', 'done'), ('date', '>', to_date)] + domain_move_in_done
@@ -135,7 +135,6 @@ class ProductProduct(models.Model):
             categ_name = self.browse(r[0]).categ_id.name
             result.append((r[0], r[1] + ' ('+categ_name+')'))
         return result
-
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
