@@ -5,7 +5,6 @@ from dateutil import tz
 from odoo import models, fields, api
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 
-
 class StockMove(models.Model):
     _inherit = 'stock.move'
     
