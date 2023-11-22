@@ -47,13 +47,93 @@ _routes = ["/api/<model>", "/api/<model>/<id>", "/api/<model>/<id>/<action>"]
 
 
 class RestFullService(http.Controller):
-    @http.route('/api/bahmni_data', type="json", auth="none", methods=["POST","OPTIONS"], csrf=True, cors='*')
+    @http.route('/api/bahmni-saleorder', type="json", auth="none", methods=["POST","OPTIONS"], csrf=True, cors='*')
     @validate_token
-    def bahmni_data_feed(self, **kw):
-        """  API data feed from bahmin to Odoo """
+    def bahmni_saleorder_creation(self, **kw):
+        """  API Sale order creation from bahmin to Odoo """
         try:
             if kw:
-                rec = request.env['api.event.worker'].process_event(kw.get('data'))
-            return {'status':200,'message':'Customer Created Successfully'}
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
         except Exception as e:
-            return {'error': 'An unexpected error occurred: ' + str(e)}
+            return {
+                     "status":417,
+                     'error': 'Expectation Failed: ' + str(e)
+                   }
+
+    @http.route('/api/bahmni-customer', type="json", auth="none", methods=["POST","OPTIONS"], csrf=True, cors='*')
+    @validate_token
+    def bahmni_customer_feed(self, **kw):
+        """  API customer feed from bahmin to Odoo """
+        try:
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
+        except Exception as e:
+            return {
+                     "status":417,
+                     'error': 'Expectation Failed: ' + str(e)
+                   }
+
+    @http.route('/api/bahmni-drug', type="json", auth="none", methods=["POST","OPTIONS"], csrf=True, cors='*')
+    @validate_token
+    def bahmni_customer_feed(self, **kw):
+        """  API Drug feed from bahmin to Odoo """
+        try:
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
+        except Exception as e:
+            return {
+                     "status":417,
+                     'error': 'Expectation Failed: ' + str(e)
+                   }
+
+    @http.route('/api/bahmni-radiology-test', type="json", auth="none", methods=["POST","OPTIONS"], csrf=True, cors='*')
+    @validate_token
+    def bahmni_rediology_test(self, **kw):
+        """  Rediology test API """
+        try:
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
+        except Exception as e:
+            return {
+                     "status":417,
+                     'error': 'Expectation Failed: ' + str(e)
+                   }
+
+    @http.route('/api/bahmni-lab-test', type="json", auth="none", methods=["POST","OPTIONS"], csrf=True, cors='*')
+    @validate_token
+    def bahmni_lab_test(self, **kw):
+        """  Lab test API """
+        try:
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
+        except Exception as e:
+            return {
+                     "status":417,
+                     'error': 'Expectation Failed: ' + str(e)
+                   }
+
+    @http.route('/api/bahmni-lab-panel', type="json", auth="none", methods=["POST","OPTIONS"], csrf=True, cors='*')
+    @validate_token
+    def bahmni_lab_panel(self, **kw):
+        """  Lab Panel API """
+        try:
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
+        except Exception as e:
+            return {
+                     "status":417,
+                     'error': 'Expectation Failed: ' + str(e)
+                   }
+
+    @http.route('/api/bahmni-service-sale', type="json", auth="none", methods=["POST","OPTIONS"], csrf=True, cors='*')
+    @validate_token
+    def bahmni_service_sale(self, **kw):
+        """  Service Sale API """
+        try:
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
+        except Exception as e:
+            return {
+                     "status":417,
+                     'error': 'Expectation Failed: ' + str(e)
+                   }
