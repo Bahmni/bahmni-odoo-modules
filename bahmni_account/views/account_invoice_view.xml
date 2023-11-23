@@ -108,6 +108,7 @@
 						 <field name="discount" style="width:100% !important" context="{'readonly_by_pass': True}"
 						 	attrs="{'readonly': [('discount_type', '=', 'percentage')]}"/>
 					</div>
+<!--
 					<div class="col-xs-6 footer_label" 
 						attrs="{'invisible': [('discount_type', '=', 'none')]}">
 						<label for="disc_acc_id"  name="remove_display_prop"/> 
@@ -116,6 +117,7 @@
 						 <field name="disc_acc_id" 
 						 attrs="{'required': [('discount_type', 'in', ('fixed', 'percentage'))]}"/>
 					</div>
+-->
 					<group style="width: 100%; border-top: 1px solid #cacaca;
 								font-weight: bold; white-space:nowrap;">
 						<div class="col-xs-6 oe_right footer_label">
