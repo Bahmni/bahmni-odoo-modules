@@ -12,4 +12,6 @@ COPY bahmni_stock ${ADDON_PATH}/bahmni_stock/
 COPY jss_data_import ${ADDON_PATH}/jss_data_import/
 COPY restful_api ${ADDON_PATH}/restful_api/
 
-CMD ["odoo", "-u", "all", "-i", "sale_management,purchase,stock,point_of_sale,l10_generic_coa,restful_api", "--without-demo", "-d odoo"]
+RUN pip3 install python-decouple
+
+CMD ["odoo", "-u", "all", "-i", "sale_management,purchase,stock,point_of_sale,l10n_generic_coa,bahmni_account,bahmni_product,bahmni_sale,bahmni_stock,bahmni_purchase,restful_api,bahmni_api_feed", "--without-demo", "-d odoo"]
