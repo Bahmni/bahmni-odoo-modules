@@ -62,7 +62,7 @@ class RestFullService(http.Controller):
 
     @http.route('/api/bahmni-customer', type="json", auth="none", methods=["POST","OPTIONS"], csrf=True, cors='*')
     @validate_token
-    def bahmni_customer_feed(self, **kw):
+    def bahmni_customer_creation(self, **kw):
         """  API customer feed from bahmin to Odoo """
         try:
             if kw:
@@ -75,7 +75,7 @@ class RestFullService(http.Controller):
 
     @http.route('/api/bahmni-drug', type="json", auth="none", methods=["POST","OPTIONS"], csrf=True, cors='*')
     @validate_token
-    def bahmni_customer_feed(self, **kw):
+    def bahmni_drug_feed(self, **kw):
         """  API Drug feed from bahmin to Odoo """
         try:
             if kw:
