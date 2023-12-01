@@ -117,9 +117,6 @@ class ProductProduct(models.Model):
                     vals.update({'mrp': self.env['product.template'].browse(vals.get('product_tmpl_id')).mrp})
         product = super(ProductProduct, self.with_context(create_product_product=True,
                                                           mrp=vals.get('mrp'))).create(vals)
-        # When a unique variant is created from tmpl then the standard price is set by _set_standard_price
-        # ~ if not (self.env.context.get('create_from_tmpl') and len(product.product_tmpl_id.product_variant_ids) == 1):
-            # ~ product._set_standard_price(vals.get('standard_price') or 0.0)
         return product
 
     def write(self, vals):
@@ -153,11 +150,6 @@ class ProductTemplate(models.Model):
             template.actual_stock = res[template.id]['actual_stock']
 
     def _compute_quantities_dict(self):
-        # TDE FIXME: why not using directly the function fields ?
-        # ~ variants_available = self.mapped('product_variant_ids')._product_available()
-        # ~ variants_available = self._compute_quantities_dict(self._context.get('lot_id'), self._context.get('owner_id'), self._context.get('package_id'), self._context.get('from_date'), self._context.get('to_date'))
-        # ~ print("variants_available",variants_available)
-        
         variants_available = {
             p['id']: p for p in self.product_variant_ids._origin.read(['qty_available', 'virtual_available', 'incoming_qty', 'outgoing_qty','actual_stock'])
         }
