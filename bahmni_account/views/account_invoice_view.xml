@@ -8,23 +8,45 @@
 		<field name="arch" type="xml">
 			<xpath expr="//field[@name='tax_totals']" position="after">
 				
-				<field name="amount_untaxed"/>
-				<field name="amount_tax"/>
+				
+				
+			
+				<field name="amount_untaxed" widget='monetary'
+					   options="{'currency_field': 'currency_id'}"/>
+				<field name="amount_tax" widget='monetary'
+					   options="{'currency_field': 'currency_id'}"/>
 				<field name="discount_type" required="1"/>
-				<field name="round_off_amount"/>
-				<field name="discount_percentage" />
-				 <field name="discount" style="width:100% !important" context="{'readonly_by_pass': True}"
-						 	attrs="{'readonly': [('discount_type', '=', 'percentage')]}"/>
-
-						 
-				<field name="amount_total" />	
 				
-				<field name="amount_residual_signed" />	
+				<field name="discount_percentage" widget='monetary'
+					   options="{'currency_field': 'currency_id'}"
+					   attrs="{'readonly': [('discount_type', '=', 'fixed')],'invisible': [('discount_type', 'in', ('fixed','none'))]}"/>
+					   
+				<field name="discount" widget='monetary'
+					   options="{'currency_field': 'currency_id'}"
+					   attrs="{'readonly': [('discount_type', '=', 'percentage')],'invisible': [('discount_type', 'in', ('none'))]}"/>
 				
-				<button name="button_dummy" states="draft,sent" string="(update)" 
-							type="object" class="oe_edit_only oe_link"/> 
-						 
-		
+				<field name="disc_acc_id"                                    
+					   attrs="{'required': [('discount', '!=', 0.0)],'invisible': ['|', ('discount_type', '=', 'none'),('discount', '=', 0.0)]}"/>
+				
+				<field name="round_off_amount" widget='monetary'
+					   options="{'currency_field': 'currency_id'}"/>
+					   
+										  
+				<div class="oe_subtotal_footer_separator oe_inline o_td_label">
+					<label for="amount_total"/>
+					<button name="button_dummy"
+							states="draft,sent" string="(update)"
+							type="object"
+							class="oe_edit_only oe_link"/>
+				</div>
+				<field name="amount_total" nolabel="1"
+					   class="oe_subtotal_footer_separator"
+					   widget='monetary'
+					   options="{'currency_field': 'currency_id'}"/>
+					   
+			   
+			
+				
 
 			</xpath>
 		</field>
@@ -59,78 +81,6 @@
 	</record>
 
 	
-<!--Supplier Form-->
-	<record id="inherit_invoice_supplier_form" model="ir.ui.view">
-		<field name="name">inherit.invoice.supplier.form</field>
-		<field name="model">account.move</field>
-		<field name="inherit_id" ref="account.view_move_form"/>
-		<field name="arch" type="xml">
-			<xpath expr="//group[@name='sale_info_group']/field[@name='invoice_user_id']" position="after">
-				<div class="col-xs-5 pull-right text-right" style="padding-right:0px">
-					<div class="col-xs-6 footer_label" style="min-height: 28px;">
-						<label for="amount_untaxed" />
-					</div>
-					<div class="col-xs-6 footer_field" style="min-height: 28px;">
-						 <field name="amount_untaxed"/>
-					</div>
-					<div class="col-xs-6 footer_label" style="min-height: 28px;">
-						<label for="amount_tax"/>
-					</div>
-					<div class="col-xs-6 footer_field" style="min-height: 28px;">
-						 <field name="amount_tax"/>
-					</div>
-					<div class="col-xs-6 footer_label" style="min-height: 28px;">
-						<label for="discount_type"/>
-					</div>
-					<div class="col-xs-6 footer_field"  style="min-height: 28px;">
-						 <field name="discount_type" required="1"/>
-					</div>
-					<div class="col-xs-6 footer_label" style="min-height: 28px;">
-						<label for="round_off_amount"/>
-					</div>
-					<div class="col-xs-6 footer_field" style="min-height: 28px;">
-						<field name="round_off_amount"/>
-					</div>
-					<div class="col-xs-6 footer_label" style="min-height: 28px;" 
-						attrs="{'invisible': [('discount_type', '!=', 'percentage')]}">
-						<label for="discount_percentage" />
-					</div>
-					<div class="col-xs-6 footer_field" style="white-space:nowrap;padding-right:15px"
-						attrs="{'invisible': [('discount_type', '!=', 'percentage')]}" >
-						 <field name="discount_percentage" /> <b style="padding-left:2px">%</b>
-					</div>
-					<div class="col-xs-6 footer_label" style="min-height:33px;" 
-						attrs="{'invisible': [('discount_type', '=', 'none')]}">
-						<label for="discount" /> 
-					</div>
-					<div class="col-xs-6 footer_field" style="min-height:33px;"
-						attrs="{'invisible': [('discount_type', '=', 'none')]}">
-						 <field name="discount" style="width:100% !important" context="{'readonly_by_pass': True}"
-						 	attrs="{'readonly': [('discount_type', '=', 'percentage')]}"/>
-					</div>
-<!--
-					<div class="col-xs-6 footer_label" 
-						attrs="{'invisible': [('discount_type', '=', 'none')]}">
-						<label for="disc_acc_id"  name="remove_display_prop"/> 
-					</div>
-					<div class="col-xs-6 footer_field" attrs="{'invisible': [('discount_type', '=', 'none')]}">
-						 <field name="disc_acc_id" 
-						 attrs="{'required': [('discount_type', 'in', ('fixed', 'percentage'))]}"/>
-					</div>
--->
-					<group style="width: 100%; border-top: 1px solid #cacaca;
-								font-weight: bold; white-space:nowrap;">
-						<div class="col-xs-6 oe_right footer_label">
-							<label for="amount_total" />
 
-						</div>
-						<div class="col-xs-6 footer_field footer_text_bold" >
-							<field name="amount_total" />
-						</div>
-					</group>
-				</div>
-			</xpath>
-		</field>
-	</record>
 	
 </odoo>

@@ -22,7 +22,6 @@
                     <label for="auto_invoice_dispensed"/>
 
                 </div>
-<!--                <field name="auto_convert_dispensed" widget="radio"/-->
                 
                 <div name="validate_delivery_feature">
                     <field name="validate_picking" class="oe_inline" />

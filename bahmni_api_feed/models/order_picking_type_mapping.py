@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from odoo import models, fields, api
 
 
@@ -10,20 +9,6 @@ class OrderType(models.Model):
     _sql_constraints = [('unique_name', 'unique(name)',
                          'Order type with this name already exists!')]
 
-'''    @api.model
-    def create(self, vals):
-        if vals.get('name'):
-            name = vals['name'].capitalize()
-            vals.update({'name': name})
-        return super(OrderType, self).create(vals)
-
-   
-    def write(self, vals):
-        if vals.get('name'):
-            name = vals['name'].capitalize()
-            vals.update({'name': name})
-        return super(OrderType, self).write(vals)
-'''
 
 class OrderPickingTypeMapping(models.Model):
     _name = 'order.picking.type.mapping'

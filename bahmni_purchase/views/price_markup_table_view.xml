@@ -19,6 +19,5 @@
 		<field name="view_mode">tree,form</field>
 	</record>
 
-	<menuitem id="menu_price_markup_table" action="action_price_markup_table"
-		parent="purchase.menu_purchase_config"/>
+	
 </odoo>

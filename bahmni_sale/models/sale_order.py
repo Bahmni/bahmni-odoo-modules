@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from datetime import datetime, date
 from lxml import etree
 
@@ -16,7 +15,7 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
     @api.depends('order_line.price_total', 'discount', 'chargeable_amount')
-    def _amount_all(self):
+    def _compute_amounts(self):
         """
         Compute the total amounts of the SO.
         """
@@ -32,24 +31,44 @@ class SaleOrder(models.Model):
                 else:
                     amount_tax += line.price_tax
             amount_total = amount_untaxed + amount_tax
+          
+            if self.discount_percentage:
+                tot_discount = amount_total * self.discount_percentage / 100
+            else:
+                tot_discount = self.discount           
+            
             if order.chargeable_amount > 0.0:
                 discount = amount_total - order.chargeable_amount
             else:
-                discount = order.discount
+                discount = tot_discount
             amount_total = amount_total - discount
-            round_off_amount = self.env['rounding.off'].round_off_value_to_nearest(amount_total)
+            round_off_amount = self.env['rounding.off'].round_off_value_to_nearest(amount_total)            
+            if order.pricelist_id:
+                amt_untax = order.pricelist_id.currency_id.round(amount_untaxed)
+                amt_tax = order.pricelist_id.currency_id.round(amount_tax)
+            else:
+                amt_untax = 0.00
+                amt_tax = 0.00
+
+            total_receivable = order._total_receivable()
+
             
+            order.prev_outstanding_balance = total_receivable
+            order.total_outstanding_balance = total_receivable + amount_total + round_off_amount
+                
+                       
             order.update({
-                'amount_untaxed': order.pricelist_id.currency_id.round(amount_untaxed),
-                'amount_tax': order.pricelist_id.currency_id.round(amount_tax),
+                'amount_untaxed': amt_untax,
+                'amount_tax': amt_tax,
                 'amount_total': amount_total + round_off_amount,
                 'round_off_amount': round_off_amount,
-                'total_outstanding_balance': order.prev_outstanding_balance + amount_total + round_off_amount
+                'discount': tot_discount,                
+                
             })
 
     
     def button_dummy(self):
-        return self._amount_all()
+        return self._compute_amounts()
     
     @api.depends('partner_id')
     def _calculate_balance(self):
@@ -60,16 +79,15 @@ class SaleOrder(models.Model):
             if (total_receivable - order.amount_total) < 0:
                 prev_outstanding_amt = 0
             else:
-                prev_outstanding_amt = total_receivable - order.amount_total
-                
+                prev_outstanding_amt = total_receivable - order.amount_total                
             order.prev_outstanding_balance = prev_outstanding_amt
             order.total_outstanding_balance = total_receivable
     
     def _total_receivable(self):
         receivable = 0.0
         if self.partner_id:
-            self._cr.execute("""select sum(amount_unpaid) from sale_order where 
-                          amount_unpaid > 0 and partner_id = %s
+            self._cr.execute("""select sum(amount_residual) from account_move where 
+                          amount_residual > 0 and partner_id = %s
                           """, (self.partner_id.id,))
             outstaning_value = self._cr.fetchall()
             if outstaning_value[0][0] != None: 
@@ -103,7 +121,7 @@ class SaleOrder(models.Model):
     disc_acc_id = fields.Many2one('account.account', string="Discount Account Head")
     round_off_amount = fields.Float(string="Round Off Amount")
     prev_outstanding_balance = fields.Monetary(string="Previous Outstanding Balance",
-                                               compute=_calculate_balance)
+                                               )
     total_outstanding_balance = fields.Monetary(string="Total Outstanding Balance"
                                                 )
     chargeable_amount = fields.Float(string="Chargeable Amount")
@@ -118,6 +136,7 @@ class SaleOrder(models.Model):
     def onchange_order_line(self):
         '''Calculate discount amount, when discount is entered in terms of %'''
         amount_total = self.amount_untaxed + self.amount_tax
+        print("Level one test")
         if self.discount_type == 'fixed':
             self.discount_percentage = self.discount/amount_total * 100
         elif self.discount_type == 'percentage':
@@ -126,6 +145,7 @@ class SaleOrder(models.Model):
     @api.onchange('discount', 'discount_percentage', 'discount_type', 'chargeable_amount')
     def onchange_discount(self):
         amount_total = self.amount_untaxed + self.amount_tax
+        print("Level two test")
         if self.chargeable_amount:
             if self.discount_type == 'none' and self.chargeable_amount:
                 self.discount_type = 'fixed'
@@ -135,6 +155,7 @@ class SaleOrder(models.Model):
             if self.discount_type == 'none':
                 self.discount_percentage = 0
                 self.discount = 0
+                self.disc_acc_id = False
             if self.discount:
                 self.discount_percentage = (self.discount / amount_total) * 100
             if self.discount_percentage:
@@ -167,6 +188,12 @@ class SaleOrder(models.Model):
         a clean extension chain).
         """
         self.ensure_one()
+        amount_total = self.amount_untaxed + self.amount_tax
+        if self.discount_percentage:
+            tot_discount = amount_total * self.discount_percentage / 100
+        else:
+            tot_discount = self.discount
+		
         invoice_vals = {
             'name': self.client_order_ref or '',
             'ref': self.client_order_ref or '',
@@ -186,7 +213,8 @@ class SaleOrder(models.Model):
             'discount_type': self.discount_type,
             'discount_percentage': self.discount_percentage,
             'disc_acc_id': self.disc_acc_id.id,
-            'discount': self.discount,
+            'discount': tot_discount,
+            'round_off_amount': self.round_off_amount,
         }
         return invoice_vals
 

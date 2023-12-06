@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import json
 import logging
 
@@ -53,6 +52,8 @@ class ReferenceDataService(models.Model):
     def _get_category_hierarchy(self, category):
         if category == 'Radiology':
             return ["Services", "All Products"]
+        elif category == 'Test':
+            return ["Lab", "Services", "All Products"]
         elif category == 'Panel':
             return ["Lab", "Services", "All Products"]
         else:

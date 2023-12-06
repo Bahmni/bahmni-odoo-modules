@@ -38,14 +38,15 @@
                                    
                             <field name="discount" widget='monetary'
                                    options="{'currency_field': 'currency_id'}"
-                                   attrs="{'readonly': [('discount_type', '=', 'percentage')],'invisible': [('discount_type', 'in', ('percentage','none'))]}"/>
+                                   attrs="{'readonly': [('discount_type', '=', 'percentage')],'invisible': [('discount_type', 'in', ('none'))]}"/>
+                            
+                            <field name="disc_acc_id"                                    
+                                   attrs="{'required': [('discount', '!=', 0.0)],'invisible': ['|', ('discount_type', '=', 'none'),('discount', '=', 0.0)]}"/>
                             
                             <field name="round_off_amount" widget='monetary'
                                    options="{'currency_field': 'currency_id'}"/>
                                    
-                            <field name="default_quantity" widget='monetary'
-                                   options="{'currency_field': 'currency_id'}"/>
-                            
+                                                      
                             <div class="oe_subtotal_footer_separator oe_inline o_td_label">
                                 <label for="amount_total"/>
                                 <button name="button_dummy"
@@ -155,11 +156,7 @@ as discount fields are readonly in case of chargable amount is editable-->
         </field>
     </record>
     
-<!--
-    <menuitem id="sale.menu_sale_quotations"
-                action="sale.action_quotations" parent="sales_team.menu_sales"
-                sequence="11"/>
--->
+
 
 
 	<record id="inherit_quotation_tree_view_shop" model="ir.ui.view">

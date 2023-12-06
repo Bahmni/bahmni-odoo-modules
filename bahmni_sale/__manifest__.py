@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Bahmni Sale',
     'version': '1.0',

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from . import village_master
 from . import res_partner
 from . import sale_order

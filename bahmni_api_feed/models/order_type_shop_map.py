@@ -1,4 +1,3 @@
-
 from odoo import fields, models, api, _
 
 class order_type_shop_map(models.Model):

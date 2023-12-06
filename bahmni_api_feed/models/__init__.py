@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from . import api_event_worker
 from . import event_records
 from . import reference_data_service

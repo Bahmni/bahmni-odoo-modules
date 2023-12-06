@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from datetime import datetime
 import json
 from itertools import groupby
@@ -77,6 +76,8 @@ class OrderSaveService(models.Model):
             #return False, False
             order_type = self.env['order.type'].sudo().search([('name', '=', orderType)], limit=1)
             location_rec = self.env['stock.location'].sudo().search([('name', '=', location_name)], limit=1)
+            if not location_rec:
+                raise UserError("Location(Sales shop) does not exist in ERP")
             shop_list_with_order_type = OrderTypeShopMap.sudo().create({
                 "order_type": order_type.id if order_type else self.env['order.type'].sudo().create({'name': OrderType}),
                 "location_name": location_name,

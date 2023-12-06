@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from copy import copy
 from datetime import datetime, date
 
@@ -149,6 +148,7 @@ class ProductTemplate(models.Model):
             template.actual_stock = res[template.id]['actual_stock']
 
     def _compute_quantities_dict(self):
+        
         variants_available = {
             p['id']: p for p in self.product_variant_ids._origin.read(['qty_available', 'virtual_available', 'incoming_qty', 'outgoing_qty','actual_stock'])
         }
