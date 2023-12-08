@@ -13,7 +13,7 @@ Bahmni Purchase
     'images': [],
     'depends': ['purchase', 'bahmni_product', 'bahmni_stock'],
     'data': [
-	     'views/purchase_views.xml',
+			 'views/purchase_views.xml',
              'views/product_view.xml',
              'views/price_markup_table_view.xml'],
     'demo': [],
