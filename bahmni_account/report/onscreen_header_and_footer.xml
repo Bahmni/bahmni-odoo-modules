@@ -1,0 +1,39 @@
+<t t-name="web.external_layout_standard">
+<div t-attf-class="header o_company_#{company.id}_layout" t-att-style="report_header_style">
+<div style="width: 55%;float: left;">
+<address>
+<p style="margin-bottom: -5px;padding: 1px;"><span t-field="company.company_details"/></p>
+<p style="margin-bottom: 2px;">Phone : <span t-field="o.company_id.phone"/></p>
+</address>
+</div>
+<div style="width: 25%;float: right;">
+<img t-att-src="image_data_uri(o.company_id.logo)"/></div>
+</div>
+ 
+        <div t-attf-class="article o_report_layout_standard o_company_#{company.id}_layout {{  'o_report_layout_background' if company.layout_background in ['Geometric', 'Custom']  else  '' }}" t-attf-style="background-image: url({{ 'data:image/png;base64,%s' % company.layout_background_image.decode('utf-8') if company.layout_background_image and company.layout_background == 'Custom' else '/base/static/img/bg_background_template.jpg' if company.layout_background == 'Geometric' else ''}});" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+<div class="pt-5">
+<!-- This div ensures that the address is not cropped by the header. -->
+<t t-call="web.address_layout"/>
+</div>
+<t t-out="0"/>
+</div>
+ 
+        <div t-attf-class="footer o_standard_footer o_company_#{company.id}_layout">
+<div class="text-center" style="border-top: 1px solid black;">
+<ul class="list-inline mb4">
+<div style="width: 65%;float: right;">
+   <!--Page: <span class="page"/> of <span class="topage"/>--> 
+</div>
+<div style="width: 35%;float: left;" t-if="report_type == 'pdf'"> 
+<span t-field="user.name"/> - <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y %H:%M:%S')"/>                     
+</div>
+</ul>
+                <div t-if="report_type == 'pdf'" style="width: 30%; float: left;">
+                    Page: <span class="page"/> of <span class="topage"/>
+</div>
+<div t-if="report_type == 'pdf' and display_name_in_footer" class="text-muted">
+<span t-field="o.name"/>
+</div>
+</div>
+</div>
+</t>

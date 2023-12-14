@@ -104,4 +104,6 @@ class VillageVillage(models.Model):
                 domain.update({'tehsil_id': [('id', 'in', tehsil_ids)]})
             self.country_id = self.state_id.country_id.id
             domain = [('id', '=', self.state_id.country_id.id)]
+        else:
+            domain = [('id', '=', self.state_id.country_id.id)]
         return {'domain': {'country_id': domain}}

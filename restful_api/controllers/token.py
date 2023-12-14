@@ -35,8 +35,9 @@ class AccessToken(http.Controller):
     @http.route("/api/odoo-login", methods=["POST","OPTIONS"], type="json", auth="none", csrf=True, cors='*')
     def token(self, **post):
         try:
-            input_user_name = post.get("data").get("username"),
-            input_password = post.get("data").get("password")
+            json_data = json.loads(request.httprequest.data)
+            input_user_name = json_data.get("username"),
+            input_password = json_data.get("password")
             if input_user_name[0] != None and input_user_name[0] != None:
                 res_usersss = request.env['res.users'].sudo().search([
                     ('active','=',True),

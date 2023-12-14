@@ -25,7 +25,6 @@ class OrderSaveService(models.Model):
     
     @api.model
     def _get_warehouse_id(self, location, order_type_ref):
-        _logger.info("\n identifying warehouse for warehouse %s, location %s", order_type_ref, location)
         if location:
             operation_types = self.env['stock.picking.type'].search([('default_location_src_id', '=', location.id)])
             if operation_types:
@@ -43,37 +42,24 @@ class OrderSaveService(models.Model):
                 if warehouse:
                     return warehouse.id
                 else:
-                    _logger.warning("Location is neither mapped to warehouse nor to any Operation type, "
-                                    "hence sale order creation failed!")
                     return
         else:
-            _logger.warning("Location with name '%s' does not exists in the system")
+            ...
 
        
     @api.model 
     def _get_shop_and_location_id(self, orderType, location_name, order_type_record):
-        _logger.info("\n _get_shop_and_location_id().... Called.....")
-        _logger.info("orderType %s",orderType)
-        _logger.info("location_name %s", location_name)
         OrderTypeShopMap = self.env['order.type.shop.map']
         SaleShop = self.env['sale.shop']
         shop_list_with_order_type = None
         if location_name:
             shop_list_with_order_type = OrderTypeShopMap.sudo().search(
                 [('order_type', '=', order_type_record.id), ('location_name', '=', location_name)])
-            _logger.info("\nFor specified order location name [%s], shop_list_with_orderType : %s",
-                         location_name, shop_list_with_order_type)
         if not shop_list_with_order_type:
-            _logger.info("\nCouldn't identify OrderType-Shop mapping for specified order location name [%s], "
-                         "searching for default OrderType-Shop map", location_name)
             shop_list_with_order_type = OrderTypeShopMap.sudo().search(
                 [('order_type', '=', order_type_record.id), ('location_name', '=', None)])
-            _logger.info("\nOrderType-Shop mappings without order location name specified: %s",
-                         shop_list_with_order_type)
 
         if not shop_list_with_order_type:
-            _logger.info("\nCouldn't identify OrderType-Shop mapping for Order Type [%s]", orderType)
-            #return False, False
             order_type = self.env['order.type'].sudo().search([('name', '=', orderType)], limit=1)
             location_rec = self.env['stock.location'].sudo().search([('name', '=', location_name)], limit=1)
             if not location_rec:
@@ -85,7 +71,6 @@ class OrderSaveService(models.Model):
                 "location_id": location_rec.id})
 
         order_shop_map_object = shop_list_with_order_type[0]
-        _logger.info("Identified Order Shop mapping %s", order_shop_map_object)    
         if order_shop_map_object.shop_id:
             shop_id = order_shop_map_object.shop_id.id
         else:
@@ -97,7 +82,6 @@ class OrderSaveService(models.Model):
         else:
             location_id = SaleShop.sudo().search([('id','=',shop_id)]).location_id.id
 
-        _logger.info("\n__get_shop_and_location_id() returning shop_id: %s, location_id: %s", shop_id, location_id)
         return shop_id, location_id
 
     @api.model
@@ -105,9 +89,6 @@ class OrderSaveService(models.Model):
         customer_id = vals.get("customer_id")
         location_name = vals.get("locationName")
         all_orders = self._get_openerp_orders(vals)
-
-        if not all_orders:
-            return ""
 
         customer_ids = self.env['res.partner'].sudo().search([('ref', '=', customer_id)])
         if customer_ids:
@@ -118,7 +99,6 @@ class OrderSaveService(models.Model):
                 order_type_def = self.env['order.type'].sudo().search([('name','=',orderType)])
                 if (not order_type_def):
                     self.env['order.type'].sudo().create({"name" : orderType})
-                    _logger.info("\nOrder Type is not defined. Ignoring %s for Customer %s",orderType,cus_id)
                     #continue
 
                 orders = list(ordersGroup)
@@ -127,13 +107,11 @@ class OrderSaveService(models.Model):
                 # will return order line data for products which exists in the system, either with productID passed
                 # or with conceptName
                 unprocessed_orders = self._filter_processed_orders(orders)
-                _logger.info("\n DEBUG: Unprocessed Orders: %s", unprocessed_orders)
                 shop_id, location_id = self._get_shop_and_location_id(orderType, location_name, order_type_def)
                 # shop_id = tup[0]
                 # location_id = tup[1]
                 if (not shop_id):
                     err_message = "Can not process order. Order type:{} - should be matched to a shop".format(orderType)
-                    _logger.info(err_message)
                     raise Warning(err_message)
                     
                 
@@ -143,7 +121,6 @@ class OrderSaveService(models.Model):
                 else:
                     return "location Name Invalid."
                 warehouse_id = shop_obj.warehouse_id.id
-                _logger.warning("warehouse_id: %s"%(warehouse_id))
 
                 #Adding both the ids to the unprocessed array of orders, Separating to dispensed and non-dispensed orders
                 unprocessed_dispensed_order = []
@@ -156,7 +133,6 @@ class OrderSaveService(models.Model):
                     else:
                         unprocessed_non_dispensed_order.append(unprocessed_order)
                 if(len(unprocessed_non_dispensed_order) > 0):
-                    _logger.debug("\n Processing Unprocessed non dispensed Orders: %s", list(unprocessed_non_dispensed_order))
                     sale_order_ids = self.env['sale.order'].sudo().search([('partner_id', '=', cus_id.id),
                                                                     ('shop_id', '=', shop_id),#shop_id),
                                                                     ('state', '=', 'draft'),
@@ -164,7 +140,6 @@ class OrderSaveService(models.Model):
                     if(not sale_order_ids):
                         # Non Dispensed New
                         # replaced create_sale_order method call
-                        _logger.debug("\n No existing sale order for Unprocessed non dispensed Orders. Creating .. ")
                         sale_order_vals = {'partner_id': cus_id.id,
                                            'location_id': unprocessed_non_dispensed_order[0]['location_id'],
                                            'warehouse_id': unprocessed_non_dispensed_order[0]['warehouse_id'],
@@ -182,7 +157,6 @@ class OrderSaveService(models.Model):
                         if shop_obj.pricelist_id:
                             sale_order_vals.update({'pricelist_id': shop_obj.pricelist_id.id})
                         sale_order = self.env['sale.order'].sudo().create(sale_order_vals)
-                        _logger.debug("\n Created a new Sale Order for non dispensed orders. ID: %s. Processing order lines ..", sale_order.id)
                         for rec in unprocessed_non_dispensed_order:
                             self._process_orders(sale_order, unprocessed_non_dispensed_order, rec)
                     else:
@@ -196,7 +170,6 @@ class OrderSaveService(models.Model):
                             break
 
                 if (len(unprocessed_dispensed_order) > 0):
-                    _logger.debug("\n Processing Unprocessed dispensed Orders: %s", list(unprocessed_dispensed_order))
                     auto_convert_dispensed = self.env['ir.values'].search([('model', '=', 'sale.config.settings'),
                                                                            ('name', '=', 'convert_dispensed')]).value
                     auto_invoice_dispensed = self.env.ref('bahmni_sale.auto_register_invoice_payment_for_dispensed').value
@@ -208,7 +181,6 @@ class OrderSaveService(models.Model):
                                                                     ('origin', '=', 'API FEED SYNC')])
 
                     if any(sale_order_ids):
-                        _logger.debug("\n For exsiting sale orders for the shop, trying to unlink any openmrs order if any")
                         self._unlink_sale_order_lines_and_remove_empty_orders(sale_order_ids,unprocessed_dispensed_order)
 
                     sale_order_ids_for_dispensed = self.env['sale.order'].search([('partner_id', '=', cus_id.id),
@@ -218,7 +190,6 @@ class OrderSaveService(models.Model):
                                                                                   ('origin', '=', 'API FEED SYNC')])
 
                     if not sale_order_ids_for_dispensed:
-                        _logger.debug("\n Could not find any sale_order at specified shop and stock location. Creating a new Sale order for dispensed orders")
 
                         sale_order_dict = {'partner_id': cus_id.id,
                                            'location_id': location_id,
@@ -236,28 +207,23 @@ class OrderSaveService(models.Model):
                         if shop_obj.pricelist_id:
                             sale_order_dict.update({'pricelist_id': shop_obj.pricelist_id.id})
                         new_sale_order = self.env['sale.order'].create(sale_order_dict)
-                        _logger.debug("\n Created a new Sale Order. ID: %s. Processing order lines ..", new_sale_order.id)
                         for line in unprocessed_dispensed_order:
                             self._process_orders(new_sale_order, unprocessed_dispensed_order, line)
 
                         if auto_convert_dispensed:
-                            _logger.debug("\n Confirming delivery and payment for the newly created sale order..")
                             new_sale_order.auto_validate_delivery()
                             if auto_invoice_dispensed == '1':
                                 new_sale_order.validate_payment()
 
                     else:
-                        _logger.debug("\n There are other sale_orders at specified shop and stock location.")
                         sale_order_to_process = None
                         if not auto_convert_dispensed:
                             # try to find an existing sale order to add the openmrs orders to
                             if any(sale_order_ids_for_dispensed):
-                                _logger.debug("\n Found a sale order to append dispensed lines. ID : %s",sale_order_ids_for_dispensed[0].id)
                                 sale_order_to_process = sale_order_ids_for_dispensed[0]
 
                         if not sale_order_to_process:
                             # create new sale order
-                            _logger.debug("\n Post unlinking of order lines. Could not find  a sale order to append dispensed lines. Creating .. ")
                             sales_order_obj = {'partner_id': cus_id.id,
                                                'location_id': location_id,
                                                'warehouse_id': warehouse_id,
@@ -275,14 +241,11 @@ class OrderSaveService(models.Model):
                             if shop_obj.pricelist_id:
                                 sales_order_obj.update({'pricelist_id': shop_obj.pricelist_id.id})
                             sale_order_to_process = self.env['sale.order'].sudo().create(sales_order_obj)
-                            _logger.info("\n DEBUG: Created a new Sale Order. ID: %s", sale_order_to_process.id)
 
-                        _logger.debug("\n Processing dispensed lines. Appending to Order ID %s", sale_order_to_process.id)
                         for line in unprocessed_dispensed_order:
                             self._process_orders(sale_order_to_process, unprocessed_dispensed_order, line)
 
                         if auto_convert_dispensed and sale_order_to_process:
-                            _logger.debug("\n Confirming delivery and payment ..")
                             sale_order_to_process.auto_validate_delivery()
                             if auto_invoice_dispensed == '1':
                                 sale_order_to_process.validate_payment()
@@ -380,8 +343,6 @@ class OrderSaveService(models.Model):
             comments = " ".join([str(actual_quantity), str(order.get('quantityUnits', None))])
 
             default_quantity_total = self.env['res.config.settings'].group_default_quantity
-            _logger.info("DEFAULT QUANTITY TOTAL")
-            _logger.info(default_quantity_total)
             default_quantity_value = 1
             if default_quantity_total and len(default_quantity_total.users) > 0:
                 default_quantity_value = -1
@@ -469,7 +430,6 @@ class OrderSaveService(models.Model):
             return False
         elif any(existing_order_line):  ###HARI
             sale_order = self.env['sale.order'].sudo().search([('id', '=', existing_order_line[0].order_id.id)])
-            _logger.info("\n Checking for order line's parent Order state")
             if sale_order.state not in  ['draft']:
                 return False
             return existing_order_line[0].dispensed == dispensed
@@ -501,12 +461,10 @@ class OrderSaveService(models.Model):
     @api.model
     def _unlink_sale_order_lines_and_remove_empty_orders(self, sale_orders, openmrs_orders):
         for existing_sale_order in sale_orders:
-            _logger.info("\n DEBUG: checking existing sale order for any older order_lines. ID : %s", existing_sale_order.id)
             # Remove existing sale order line
             if not any(self._remove_existing_sale_order_line(existing_sale_order, openmrs_orders)):
                 continue
             # Removing existing empty sale order
             exisiting_sale_order_lines = self.env['sale.order.line'].search([('order_id', '=', existing_sale_order.id)])
             if not exisiting_sale_order_lines or not any(exisiting_sale_order_lines):
-                _logger.info("\n DEBUG: Removing Empty Sale Order. ID : %s", existing_sale_order.id)
                 existing_sale_order.unlink()

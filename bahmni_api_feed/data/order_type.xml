@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="order_type_drug" model="order.type">
+            <field name="name">Drug Order</field>            
+        </record>
+        <record id="order_type_lab" model="order.type">
+            <field name="name">Lab Order</field>            
+        </record>
+        <record id="order_type_radiology" model="order.type">
+            <field name="name">Radiology Order</field>            
+        </record>        
+    </data>
+</odoo>

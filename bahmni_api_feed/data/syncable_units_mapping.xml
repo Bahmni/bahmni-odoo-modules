@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="syncable_units_mapping" model="syncable.units.mapping">
+            <field name="name">Unit</field>    
+            <field name="unit_of_measure" ref="uom.product_uom_unit"/>                 
+        </record>               
+    </data>
+</odoo>
