@@ -18,7 +18,12 @@ class DrugDataService(models.Model):
         parent_categ = self.env["product.category"].sudo().search([('name', '=', "Drug")], limit=1)
         updated_categ = self._fill_drug_category(drug_categ, parent_categ.id)
         if exist_categ:
+            _logger.info("\nupdated : drug_category :\n")
+            _logger.info(updated_categ)
+            _logger.info(exist_categ.id)
             return exist_categ.write(updated_categ)
+        _logger.info("\ninserted : drug_category :\n")
+        _logger.info(updated_categ)
         return self.env['product.category'].create(updated_categ)
 
     @api.model
@@ -30,6 +35,8 @@ class DrugDataService(models.Model):
         if parent_id is not None:
             drug_categ["parent_id"] = parent_id
 
+        _logger.info("drug categ in fill")
+        _logger.info(drug_categ)
         return drug_categ
 
     @api.model

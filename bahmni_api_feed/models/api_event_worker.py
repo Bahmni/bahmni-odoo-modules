@@ -14,6 +14,7 @@ class ApiEventWorker(models.Model):
     @api.model
     def process_event(self, vals):
         '''Method getting triggered from Bahmni side'''
+        _logger.info("Payload:" ,vals)
         category = vals.get("category")
         try:
             if category == "create.customer":

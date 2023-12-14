@@ -42,6 +42,9 @@ class ProductUomService(models.Model):
         if object_ids:
             return object_ids.write(uom)
 
+        _logger.info("\ninserted : uom :\n")
+        _logger.info(object_ids)
+        _logger.info(uom)
         return self.env['product.uom'].create(uom)
 
     @api.model
@@ -54,6 +57,10 @@ class ProductUomService(models.Model):
                                                           limit=1)
 
         if object_ids:
+            _logger.info("\nupdated : uom_categ:\n")
+            _logger.info(uom_categ)
             return object_ids.write(uom_categ)
 
+        _logger.info("\ninserted : uom_categ:\n")
+        _logger.info(uom_categ)
         return self.env['product.uom.categ'].create(uom_categ)
