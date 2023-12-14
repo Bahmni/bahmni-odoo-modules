@@ -5,10 +5,6 @@
 		<field name="model">purchase.order</field>
 		<field name="inherit_id" ref="purchase.purchase_order_form"/>
 		<field name="arch" type="xml">
-			
-			<xpath expr="//field[@name='partner_id']" position="after">
-				<field name="partner_id" domain="[('supplier_rank', '>', 0)]" invisible="1"/>
-			</xpath>
 			<xpath expr="//tree/field[@name='price_unit']" position="after">
 				<field name="mrp"/>
 			</xpath>

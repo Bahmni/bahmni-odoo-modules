@@ -12,7 +12,6 @@
 				<field name="provider_name"/>
 			</xpath>
 			<xpath expr="//field[@name='partner_id']" position="after">
-				<field name="partner_id" domain="[('customer_rank', '>', 0)]" invisible="1"/>
 				<field name="partner_uuid" invisible="1"/>
 			</xpath>
 			<xpath expr="//field[@name='payment_term_id']" position="after">

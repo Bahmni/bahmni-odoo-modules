@@ -28,6 +28,7 @@ class ReferenceDataService(models.Model):
         specified_product_category = vals.get("product_category")
         if specified_product_category:
             category_name = specified_product_category
+        _logger.info("\n******* Creating Product with Category: %s, hierarchy: %s", category_name, category_hierarchy)
         category_obj = self.env['product.category'].sudo().search([('name', '=', category_name)])
         if category_obj.read():
             category_from_db = category_obj.read()[0]
@@ -60,6 +61,7 @@ class ReferenceDataService(models.Model):
 
     @api.model
     def _create_category_in_hierarchy(self, category_name, category_hierarchy):
+        _logger.info("\n creating product category %s, under hierarchy %s", category_name, category_hierarchy)
         if len(category_hierarchy) > 0:
             category_ids = self.env['product.category'].sudo().search([('name', '=', category_hierarchy[0])]).ids
             if len(category_ids) > 0:

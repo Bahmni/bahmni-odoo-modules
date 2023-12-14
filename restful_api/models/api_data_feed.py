@@ -51,10 +51,9 @@ class RestFullService(http.Controller):
     @validate_token
     def bahmni_saleorder_creation(self, **kw):
         """  API Sale order creation from bahmin to Odoo """
-        json_data = json.loads(request.httprequest.data)
         try:
-            if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
         except Exception as e:
             return {
                      "status":417,
@@ -65,10 +64,9 @@ class RestFullService(http.Controller):
     @validate_token
     def bahmni_customer_feed(self, **kw):
         """  API customer feed from bahmin to Odoo """
-        json_data = json.loads(request.httprequest.data)
         try:
-            if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
         except Exception as e:
             return {
                      "status":417,
@@ -79,10 +77,9 @@ class RestFullService(http.Controller):
     @validate_token
     def bahmni_drug_feed(self, **kw):
         """  API Drug feed from bahmin to Odoo """
-        json_data = json.loads(request.httprequest.data)
         try:
-            if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
         except Exception as e:
             return {
                      "status":417,
@@ -93,10 +90,9 @@ class RestFullService(http.Controller):
     @validate_token
     def bahmni_rediology_test(self, **kw):
         """  Rediology test API """
-        json_data = json.loads(request.httprequest.data)
         try:
-            if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
         except Exception as e:
             return {
                      "status":417,
@@ -107,10 +103,9 @@ class RestFullService(http.Controller):
     @validate_token
     def bahmni_lab_test(self, **kw):
         """  Lab test API """
-        json_data = json.loads(request.httprequest.data)
         try:
-            if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
         except Exception as e:
             return {
                      "status":417,
@@ -121,10 +116,9 @@ class RestFullService(http.Controller):
     @validate_token
     def bahmni_lab_panel(self, **kw):
         """  Lab Panel API """
-        json_data = json.loads(request.httprequest.data)
         try:
-            if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
         except Exception as e:
             return {
                      "status":417,
@@ -135,10 +129,9 @@ class RestFullService(http.Controller):
     @validate_token
     def bahmni_service_sale(self, **kw):
         """  Service Sale API """
-        json_data = json.loads(request.httprequest.data)
         try:
-            if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+            if kw:
+               return {'status':200,'message': request.env['api.event.worker'].process_event(kw.get('data'))}
         except Exception as e:
             return {
                      "status":417,
