@@ -105,7 +105,6 @@ class SaleOrder(models.Model):
                             group by 1,2
                       """)
         total_discount_value = self._cr.fetchall()
-        print("total_discount_value",total_discount_value)              
         return total_discount_value
 
     @api.depends('partner_id')
@@ -148,7 +147,6 @@ class SaleOrder(models.Model):
     def onchange_order_line(self):
         '''Calculate discount amount, when discount is entered in terms of %'''
         amount_total = self.amount_untaxed + self.amount_tax
-        print("Level one test")
         if self.discount_type == 'fixed':
             self.discount_percentage = self.discount/amount_total * 100
         elif self.discount_type == 'percentage':
@@ -157,7 +155,6 @@ class SaleOrder(models.Model):
     @api.onchange('discount', 'discount_percentage', 'discount_type', 'chargeable_amount')
     def onchange_discount(self):
         amount_total = self.amount_untaxed + self.amount_tax
-        print("Level two test")
         if self.chargeable_amount:
             if self.discount_type == 'none' and self.chargeable_amount:
                 self.discount_type = 'fixed'

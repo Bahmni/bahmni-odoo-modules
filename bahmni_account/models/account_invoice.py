@@ -62,18 +62,14 @@ class AccountInvoice(models.Model):
     def action_post(self):
         
         for inv in self: 
-            print("inv",inv.discount,inv.round_off_amount,inv.amount_total) 
             
             find_val = (inv.amount_total - inv.discount ) + inv.round_off_amount
             
-            print("find_val",find_val)
             differnece_vals = inv.amount_total - find_val
-            print("differnece_vals",differnece_vals)
             
                       
             for move_line in inv.line_ids:
                 update = False
-                print("move_line",move_line.display_type)
                 if move_line.display_type =='payment_term':
                     move_line.debit = move_line.debit - differnece_vals
 
