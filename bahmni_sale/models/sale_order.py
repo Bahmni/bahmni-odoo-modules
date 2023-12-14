@@ -95,6 +95,18 @@ class SaleOrder(models.Model):
             else:
                 receivable = 0.00                
         return receivable
+	
+    def total_discount_heads(self):
+        
+        
+        self._cr.execute("""select acc.code,acc.name,sum(sale.discount) from sale_order sale 
+                            left join account_account acc on (acc.id = sale.disc_acc_id)
+                            where sale.disc_acc_id is not null
+                            group by 1,2
+                      """)
+        total_discount_value = self._cr.fetchall()
+        print("total_discount_value",total_discount_value)              
+        return total_discount_value
 
     @api.depends('partner_id')
     def _get_partner_details(self):
@@ -215,6 +227,8 @@ class SaleOrder(models.Model):
             'disc_acc_id': self.disc_acc_id.id,
             'discount': tot_discount,
             'round_off_amount': self.round_off_amount,
+            'order_id': self.id,
+            'amount_total': self.amount_total,
         }
         return invoice_vals
 

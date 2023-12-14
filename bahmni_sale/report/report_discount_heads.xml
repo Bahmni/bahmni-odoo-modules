@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+     <data> 
+	
+      
+	<template id="report_discount_heads_summarized">
+	   <t t-call="web.html_container">
+	       <t t-foreach="docs" t-as="o">
+		   <t t-call="web.external_layout">
+			<div class="page">
+				<head>
+				   <title>Label and Answer Example</title>
+				    <style>
+					/* CSS for styling */
+					.answer {
+					    font-weight: bold;
+					    /* You can add more styles as needed */
+					    }
+					 .blue-border {
+					    border: 2px solid black;
+					    padding: 10px;
+					    }
+					.bordered-box {
+					    border-bottom: 2px solid black; /* Bottom border */
+					    border-left: 2px solid black;   /* Left border */
+					    border-right: 2px solid black;  /* Right border */
+					    padding: 10px;
+					    }
+					.blue-line {
+					    border: none; /* Remove the default border */
+					    height: 2px; /* Set the height/thickness of the line */
+					    background-color: black; /* Set the line color */
+					    }
+					.space-tab {
+					    margin-right: 20px; /* Adjust the value as needed */
+					    }
+					th{
+					  padding-top: 10px;
+					  padding-bottom: 5px;
+					  padding-left: 10px;
+					  padding-right: 10px;
+					}					    
+				    </style>
+				</head>
+			     <div class="oe_structure"/>
+			       </div>
+			       <div style="width: 55%;float: right;">
+				       <h5 class="answer">Discount Heads Summary</h5><br></br>
+			       </div>
+			       <div class="row" style="width: 60%;float: left;">
+				  
+			     </div>
+			     <div style="width: 58%;float: right;">
+			     </div>
+			     <div style="width: 100%; float: right; margin-bottom: 30px;">
+			    </div>
+			    <div style="width: 100%; float: right;margin-bottom: 20px;">
+				<table style="width:100%">
+				    <tr>
+					    <th style="width:5%; height: 30px;">S.No</th>
+					    <th style="width:50%; height: 30px;">Discount Heads</th>				
+					    <th style="width:25%; height: 30px;">Total</th>						
+				    </tr>
+			            <t t-set="serial" t-value="1"/>		    
+				    <t t-foreach="o.total_discount_heads()" t-as="item">
+				    <tr>
+        				<td style="width:10%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:20px;padding-right: 20px;">
+				         <t t-esc="serial"/>
+			    		</td>
+        				<td style="width:50%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:20px;padding-right: 20px;">
+				         <t t-esc="item[1]"/>
+			    		</td>
+					
+        				<td style="width:10%;height:20px;padding-top:10px;padding-bottom:5px;padding-left:20px;padding-right: 10px;">
+             				   <t t-esc="(item[2])"/>
+				        </td>
+			            	<t t-set="serial" t-value="serial+1"/>		    
+				    </tr>
+				    </t>
+			        </table>
+			    </div>
+			    
+		   </t>
+	       </t>
+	   </t>
+       </template>
+    </data>
+</odoo>
