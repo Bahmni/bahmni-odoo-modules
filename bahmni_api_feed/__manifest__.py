@@ -20,6 +20,7 @@ Bahmni API Feed
          'views/order_type_shop_map_view.xml',
          'views/res_users_view.xml',
          'data/mrs_person_attributes_data.xml',
+	 'views/menus.xml',
          #'data/order_type.xml',
          'data/sale_shop.xml',
          #'data/order_type_shop_map.xml',         
