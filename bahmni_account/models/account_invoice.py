@@ -10,7 +10,6 @@ _logger = logging.getLogger(__name__)
 class AccountInvoice(models.Model):
     _inherit = 'account.move'
 
-
     order_id = fields.Many2one('sale.order',string="Sale ID")
     
     discount_type = fields.Selection([('none', 'No Discount'),
@@ -22,8 +21,7 @@ class AccountInvoice(models.Model):
     discount_percentage = fields.Float(string="Discount Percentage")
     disc_acc_id = fields.Many2one('account.account',
                                   string="Discount Account Head")
-    round_off_amount = fields.Monetary(string="Round Off Amount",
-                                       )
+    round_off_amount = fields.Monetary(string="Round Off Amount")
 
     @contextmanager
     def _check_balanced(self, container):
