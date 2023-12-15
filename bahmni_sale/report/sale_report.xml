@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+     <data>
+	<!-- QWeb Reports -->
+        
+        <record id="sale_summarized_discount_head" model="ir.actions.report">
+            <field name="name">Discount Heads Summary</field>
+            <field name="model">sale.order</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">bahmni_sale.report_discount_heads_summarized</field>
+            <field name="report_file">bahmni_sale.report_discount_heads_summarized</field>
+            <field name="print_report_name">(object._get_report_base_filename())</field>
+            <field name="attachment">((object.name or 'INV').replace('/','_')+'.pdf')</field>
+            <field name="binding_model_id" ref="model_sale_order"/>
+            <field name="binding_type">report</field>
+       </record>
+
+    </data>
+</odoo>

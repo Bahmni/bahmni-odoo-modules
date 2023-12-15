@@ -44,7 +44,6 @@ class StockProductionLot(models.Model):
                 context['location_id'] = 15
                 locations = self.env['stock.lot'].browse(context.get('location_id'))
             if locations[0]:
-                print("locations",type(locations))
                 self._cr.execute('''select
                         lot_id,
                         sum(quantity)
@@ -55,7 +54,6 @@ class StockProductionLot(models.Model):
                         group by lot_id''',
                         (tuple(locations.ids), lot.id,))
                 result = self._cr.dictfetchall()
-                print("result",result)
                 if result and result[0]:
                     lot.stock_forecast = result[0].get('sum')
 

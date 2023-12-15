@@ -14,8 +14,7 @@ class ApiEventWorker(models.Model):
     @api.model
     def process_event(self, vals):
         '''Method getting triggered from Bahmni side'''
-        _logger.info("vals")
-        _logger.info(vals)
+        _logger.info("Payload:" ,vals)
         category = vals.get("category")
         try:
             if category == "create.customer":
@@ -95,7 +94,7 @@ class ApiEventWorker(models.Model):
 
     @api.model
     def _find_country(self, address):
-        return self.env['res.company'].sudo().search([('id', '=', 2)]).partner_id.country_id
+        return self.env['res.company'].sudo().search([], limit=1).partner_id.country_id
 
     @api.model
     def _find_or_create_level3(self, state, district, level_name, auto_create_customer_address_levels):
@@ -125,24 +124,24 @@ class ApiEventWorker(models.Model):
     def _find_or_create_state(self, country, state_province_name, auto_create_customer_address_levels):
         states = self.env['res.country.state'].search([('name', '=ilike', state_province_name),
                                                       ('country_id', '=', country.id)])
-        if not states and auto_create_customer_address_levels == '1':
+        if not states and auto_create_customer_address_levels:
             state_code = STATE_CODE_PREFIX + str(uuid.uuid4())
             state = self.env['res.country.state'].create({'name': state_province_name,
                                                           'code': state_code,
                                                           'country_id': country.id})
         else:
-            state = False
+            return states
         return state
 
     def _get_customer_vals(self, vals):
         res = {}
         res.update({'ref': vals.get('ref'),
                     'name': vals.get('name'),
-                    'local_name': vals.get('local_name'),
+                    'local_name': vals.get('local_name') if vals.get('local_name') else False,
                     'uuid': vals.get('uuid')})
         address_data = vals.get('preferredAddress')
         # get validated address details
-        address_details = self._get_address_details(json.loads(address_data))
+        address_details = self._get_address_details(address_data)
         # update address details
         res.update(address_details)
         # update other details : for now there is only scope of updating contact.
@@ -151,16 +150,30 @@ class ApiEventWorker(models.Model):
         return res
         
     def _create_or_update_person_attributes(self, cust_id, vals):
-        attributes = json.loads(vals.get("attributes", "{}"))
-        if vals.get('village'):
+        attributes = vals.get("attributes", "{}")
+        address_data = vals.get('preferredAddress')
+        if address_data.get('cityVillage') and cust_id:
             village_master = self.env['village.village']
             customer_master = self.env['res.partner'].sudo().search([('id', '=', cust_id)])
-            identified_village = village_master.sudo().search([('name', '=', vals.get('village'))], limit=1)
+            identified_village = village_master.sudo().search([('name', '=', address_data.get('cityVillage'))], limit=1)
             if identified_village and customer_master:
                 customer_master.village_id = identified_village.id
             else:
-                created_village = village_master.sudo().create({'name': vals.get('village')})
+                created_village = village_master.sudo().create({'name': address_data.get('cityVillage')})
                 customer_master.village_id = created_village.id
+
+        if attributes['email'] and cust_id:
+            customer_master = self.env['res.partner'].sudo().search([('id', '=', cust_id)])
+            if customer_master:
+                customer_master.email = attributes['email']
+                customer_master.customer_rank = 1 ##Make a partner as a customer
+
+        if address_data.get('country') and cust_id:
+            country_master = self.env['res.country']
+            customer_master = self.env['res.partner'].sudo().search([('id', '=', cust_id)])
+            identified_country = country_master.sudo().search([('name', '=', address_data.get('country'))], limit=1)
+            if identified_country:
+                customer_master.country_id = identified_country.id
 
         for key in attributes:
             if key in [key for key in attributes]:

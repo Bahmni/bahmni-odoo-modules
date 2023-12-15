@@ -27,9 +27,9 @@ class OrderSaveService(models.Model):
     def _get_warehouse_id(self, location, order_type_ref):
         _logger.info("\n identifying warehouse for warehouse %s, location %s", order_type_ref, location)
         if location:
-            operation_types = self.env['stock.picking.type'].search([('default_location_src_id', '=', location.id)])
+            operation_types = self.env['stock.picking.type'].sudo().search([('default_location_src_id', '=', location.id)])
             if operation_types:
-                mapping = self.env['order.picking.type.mapping'].search([('order_type_id', '=', order_type_ref.id),
+                mapping = self.env['order.picking.type.mapping'].sudo().search([('order_type_id', '=', order_type_ref.id),
                                                                          ('picking_type_id', 'in', operation_types.ids)],
                                                                         limit=1)
                 if mapping:
@@ -39,7 +39,7 @@ class OrderSaveService(models.Model):
 
             else:
                 # either location should exist as stock location of a warehouse.
-                warehouse = self.env['stock.warehouse'].search([('lot_stock_id', '=', location.id)])
+                warehouse = self.env['stock.warehouse'].sudo().search([('lot_stock_id', '=', location.id)])
                 if warehouse:
                     return warehouse.id
                 else:
@@ -73,7 +73,6 @@ class OrderSaveService(models.Model):
 
         if not shop_list_with_order_type:
             _logger.info("\nCouldn't identify OrderType-Shop mapping for Order Type [%s]", orderType)
-            #return False, False
             order_type = self.env['order.type'].sudo().search([('name', '=', orderType)], limit=1)
             location_rec = self.env['stock.location'].sudo().search([('name', '=', location_name)], limit=1)
             if not location_rec:
@@ -81,7 +80,7 @@ class OrderSaveService(models.Model):
             shop_list_with_order_type = OrderTypeShopMap.sudo().create({
                 "order_type": order_type.id if order_type else self.env['order.type'].sudo().create({'name': OrderType}),
                 "location_name": location_name,
-                "shop_id": self.env['sale.shop'].search([('location_id', '=', location_rec.id)], limit=1).id,
+                "shop_id": self.env['sale.shop'].sudo().search([('location_id', '=', location_rec.id)], limit=1).id,
                 "location_id": location_rec.id})
 
         order_shop_map_object = shop_list_with_order_type[0]
@@ -105,9 +104,6 @@ class OrderSaveService(models.Model):
         customer_id = vals.get("customer_id")
         location_name = vals.get("locationName")
         all_orders = self._get_openerp_orders(vals)
-
-        if not all_orders:
-            return ""
 
         customer_ids = self.env['res.partner'].sudo().search([('ref', '=', customer_id)])
         if customer_ids:
@@ -235,7 +231,7 @@ class OrderSaveService(models.Model):
                                            'origin': 'API FEED SYNC'}
                         if shop_obj.pricelist_id:
                             sale_order_dict.update({'pricelist_id': shop_obj.pricelist_id.id})
-                        new_sale_order = self.env['sale.order'].create(sale_order_dict)
+                        new_sale_order = self.env['sale.order'].sudo().create(sale_order_dict)
                         _logger.debug("\n Created a new Sale Order. ID: %s. Processing order lines ..", new_sale_order.id)
                         for line in unprocessed_dispensed_order:
                             self._process_orders(new_sale_order, unprocessed_dispensed_order, line)
