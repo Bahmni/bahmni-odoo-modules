@@ -463,11 +463,13 @@ class OrderSaveService(models.Model):
         existing_order_line = self.env['sale.order.line'].sudo().search([('external_order_id', '=', external_order_id)])
         if not existing_order_line:
             return False
-        elif any(existing_order_line):  ###HARI
+        elif any(existing_order_line):
             sale_order = self.env['sale.order'].sudo().search([('id', '=', existing_order_line[0].order_id.id)])
             _logger.info("\n Checking for order line's parent Order state")
             if sale_order.state not in  ['draft']:
                 return False
+            else:
+                raise UserError("There are other sale orders[%s] at specified shop and stock location."%(sale_order.name))
             return existing_order_line[0].dispensed == dispensed
         else:
             return False

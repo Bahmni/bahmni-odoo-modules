@@ -26,16 +26,20 @@ def validate_token(func):
         """."""
         access_token = request.httprequest.headers.get("Authorization") 
         if not access_token:
-            return invalid_response(401, "Missing access token",)
+            return {
+                     "status":401,
+                     'error': 'Missing access token'
+                   }
         
         access_token_data = (request.env["api.access_token"].sudo().search([("token", "=", access_token)], order="id DESC", limit=1))
 
         if (access_token_data.find_one_or_create_token(user_id=access_token_data.user_id.id)
             != access_token):
 
-            return invalid_response(
-                401, "Missing access token", 
-            )
+            return {
+                     "status":401,
+                     'error': 'Invalid access token.'
+                   }
 
         request.session.uid = access_token_data.user_id.id
         request.id = access_token_data.user_id.id
@@ -54,7 +58,8 @@ class RestFullService(http.Controller):
         json_data = json.loads(request.httprequest.data)
         try:
             if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+               responce = request.env['api.event.worker'].process_event(json_data)
+               return  responce #{'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
         except Exception as e:
             return {
                      "status":417,
@@ -68,7 +73,8 @@ class RestFullService(http.Controller):
         json_data = json.loads(request.httprequest.data)
         try:
             if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+               responce = request.env['api.event.worker'].process_event(json_data)
+               return  responce 
         except Exception as e:
             return {
                      "status":417,
@@ -82,7 +88,8 @@ class RestFullService(http.Controller):
         json_data = json.loads(request.httprequest.data)
         try:
             if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+               responce = request.env['api.event.worker'].process_event(json_data)
+               return responce 
         except Exception as e:
             return {
                      "status":417,
@@ -96,7 +103,8 @@ class RestFullService(http.Controller):
         json_data = json.loads(request.httprequest.data)
         try:
             if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+               responce = request.env['api.event.worker'].process_event(json_data)
+               return  responce 
         except Exception as e:
             return {
                      "status":417,
@@ -110,7 +118,8 @@ class RestFullService(http.Controller):
         json_data = json.loads(request.httprequest.data)
         try:
             if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+               responce = request.env['api.event.worker'].process_event(json_data)
+               return  responce 
         except Exception as e:
             return {
                      "status":417,
@@ -124,7 +133,8 @@ class RestFullService(http.Controller):
         json_data = json.loads(request.httprequest.data)
         try:
             if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+               responce = request.env['api.event.worker'].process_event(json_data)
+               return  responce 
         except Exception as e:
             return {
                      "status":417,
@@ -138,7 +148,8 @@ class RestFullService(http.Controller):
         json_data = json.loads(request.httprequest.data)
         try:
             if json_data:
-               return {'status':200,'message': request.env['api.event.worker'].process_event(json_data)}
+               responce = request.env['api.event.worker'].process_event(json_data)
+               return  responce 
         except Exception as e:
             return {
                      "status":417,
