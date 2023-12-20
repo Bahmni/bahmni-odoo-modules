@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import UserError
 import logging
 import json
 import uuid
@@ -11,6 +12,29 @@ class ApiEventWorker(models.Model):
     _name = 'api.event.worker'
     _auto = False
 
+    def _key_validation(self, mandatory_keys,vals):
+        """ Checking the mandatory keys """
+        missing_mandatory_keys = [keys for keys in mandatory_keys if keys not in vals] ##ERROR_H
+        if missing_mandatory_keys:
+            raise UserError("%s is mandatory for %s in Odoo."%(missing_mandatory_keys[0], ' '.join(map(str, vals.get("category").split('.')))))
+        else:
+            ...
+        empty_mandatory_values = [key for key in vals.keys() if not vals.get(key) and key in mandatory_keys] ##ERROR_H    
+        if empty_mandatory_values:
+            raise UserError("%s field value is must for %s in Odoo."%(empty_mandatory_values[0], ' '.join(map(str, vals.get("category").split('.')))))
+        else:
+            ...
+
+    def _check_keys_saleorder(self, vals):
+        """ Check the keys for a sale order """
+        if vals.get("orders") and vals.get("orders")["openERPOrders"]:
+            mandatory_keys = vals.get("orders")["openERPOrders"]
+            for keys in mandatory_keys:
+                keys.update({'category' : "create.sale.order"})
+                self._key_validation(['orderId','encounterId','productId','productName','quantity','quantityUnits','visitId','visitType','type'],keys)
+
+        
+
     @api.model
     def process_event(self, vals):
         '''Method getting triggered from Bahmni side'''
@@ -18,26 +42,34 @@ class ApiEventWorker(models.Model):
         category = vals.get("category")
         try:
             if category == "create.customer":
+                self._key_validation(['uuid', 'name','category','ref'],vals)
                 self._create_or_update_customer(vals)
-                return "The customer have been successfully created / updated."
+                return { 'status':200,'message': "The customer have been successfully created / updated."}
             elif category == "create.sale.order":
+                self._key_validation(['locationName','category','orders','customer_id','encounter_id'],vals)
+                self._check_keys_saleorder(vals)
                 self.env['order.save.service'].create_orders(vals)
-                return "Sale order has been created successfully."
+                return { 'status':200,'message': "Sale order has been created successfully."}
             elif category == "create.drug":
+                self._key_validation(['uuid', 'name','dosageForm','category'],vals)
                 self.env['drug.data.service'].create_or_update_drug(vals)
-                return "The drug have been successfully created / updated."
+                return { 'status':200,'message': "The drug have been successfully created / updated."}
             elif category == "create.radiology.test":
+                self._key_validation(['uuid', 'name','category'],vals)
                 self.env['reference.data.service'].create_or_update_ref_data(vals, 'Radiology')
-                return "The rediology test have been successfully created / updated."
+                return { 'status':200,'message': "The rediology test have been successfully created / updated."}
             elif category == "create.lab.test":
+                self._key_validation(['uuid', 'name','category'],vals)
                 self.env['reference.data.service'].create_or_update_ref_data(vals, 'Test')
-                return "The lab test have been successfully created / updated."
+                return { 'status':200,'message': "The lab test have been successfully created / updated."}
             elif category == "create.lab.panel":
+                self._key_validation(['uuid', 'name','category'],vals)
                 self.env['reference.data.service'].create_or_update_ref_data(vals, 'Panel')
-                return "The lab panel have been successfully created / updated."
+                return { 'status':200,'message': "The lab panel have been successfully created / updated."}
             elif category == "create.service.saleable":
+                self._key_validation(['uuid', 'name','category'],vals)
                 self.env['reference.data.service'].create_or_update_ref_data(vals, 'Others')
-                return "The service saleable have been successfully created / updated."
+                return { 'status':200,'message': "The service saleable have been successfully created / updated."}
             else:
                 raise UserError("Integration process is not defined. Kindly contact ERP tech team for support.")
         except Exception as err:
