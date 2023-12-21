@@ -24,21 +24,21 @@ def validate_token(func):
     @functools.wraps(func)
     def wrap(self, *args, **kwargs):
         """."""
-        access_token = request.httprequest.headers.get("Authorization") 
-        if not access_token:
-            return invalid_response(401, "Missing access token",)
+        # access_token = request.httprequest.headers.get("Authorization") 
+        # if not access_token:
+        #     return invalid_response(401, "Missing access token",)
         
-        access_token_data = (request.env["api.access_token"].sudo().search([("token", "=", access_token)], order="id DESC", limit=1))
+        # access_token_data = (request.env["api.access_token"].sudo().search([("token", "=", access_token)], order="id DESC", limit=1))
 
-        if (access_token_data.find_one_or_create_token(user_id=access_token_data.user_id.id)
-            != access_token):
+        # if (access_token_data.find_one_or_create_token(user_id=access_token_data.user_id.id)
+        #     != access_token):
 
-            return invalid_response(
-                401, "Missing access token", 
-            )
+        #     return invalid_response(
+        #         401, "Missing access token", 
+        #     )
 
-        request.session.uid = access_token_data.user_id.id
-        request.id = access_token_data.user_id.id
+        # request.session.uid = access_token_data.user_id.id
+        # request.id = access_token_data.user_id.id
         return func(self, *args, **kwargs)
 
     return wrap
