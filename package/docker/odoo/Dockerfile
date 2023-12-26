@@ -13,4 +13,4 @@ COPY restful_api ${ADDON_PATH}/restful_api/
 
 RUN pip3 install python-decouple
 
-CMD ["odoo", "-i", "base,sale_management,purchase,stock,point_of_sale,l10n_generic_coa,bahmni_account,bahmni_product,bahmni_api_feed,bahmni_stock,bahmni_purchase,bahmni_sale,restful_api", "--without-demo", "-d odoo"]
+CMD ["odoo", "-u", "all", "-i", "sale_management,purchase,stock,point_of_sale,l10n_generic_coa,bahmni_account,bahmni_product,bahmni_api_feed,bahmni_stock,bahmni_purchase,bahmni_sale,restful_api", "--without-demo", "-d odoo"]
