@@ -25,7 +25,6 @@ class APIAccessToken(models.Model):
 
         access_token = (
             self.env["api.access_token"]
-            
             .search([("user_id", "=", user_id)], order="id DESC", limit=1)
         )
         if access_token:

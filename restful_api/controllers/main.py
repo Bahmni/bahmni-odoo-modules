@@ -33,7 +33,6 @@ def validate_token(func):
         
         access_token_data = (
                                 request.env["api.access_token"]
-                                
                                 .search([("token", "=", access_token)], order="id DESC", limit=1)
                             )
 
@@ -69,7 +68,6 @@ class APIController(http.Controller):
             domain, fields, offset, limit, order = extract_arguments(payload)
             data = (
                 request.env[model.model]
-                
                 .search_read(
                     domain=domain,
                     fields=fields,
@@ -82,7 +80,6 @@ class APIController(http.Controller):
                 domain = [("id", "=", int(id))]
                 data = (
                     request.env[model.model]
-                    
                     .search_read(
                         domain=domain,
                         fields=fields,
