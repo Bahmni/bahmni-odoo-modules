@@ -53,12 +53,12 @@ class ApiEventWorker(models.Model):
         for rec in customer_vals.keys():
             if not customer_vals[rec]:
                 del customer_vals[rec]
-        existing_customer = self.env['res.partner'].sudo().search([('ref', '=', patient_ref)])
+        existing_customer = self.env['res.partner'].search([('ref', '=', patient_ref)])
         if existing_customer:
             existing_customer.write(customer_vals)
             self._create_or_update_person_attributes(existing_customer.id,vals)
         else:
-            customer = self.env['res.partner'].sudo().create(customer_vals)
+            customer = self.env['res.partner'].create(customer_vals)
             self._create_or_update_person_attributes(customer.id,vals)
 
     @api.model
@@ -94,7 +94,7 @@ class ApiEventWorker(models.Model):
 
     @api.model
     def _find_country(self, address):
-        return self.env['res.company'].sudo().search([], limit=1).partner_id.country_id
+        return self.env['res.company'].search([], limit=1).partner_id.country_id
 
     @api.model
     def _find_or_create_level3(self, state, district, level_name, auto_create_customer_address_levels):
@@ -154,32 +154,32 @@ class ApiEventWorker(models.Model):
         address_data = vals.get('preferredAddress')
         if address_data.get('cityVillage') and cust_id:
             village_master = self.env['village.village']
-            customer_master = self.env['res.partner'].sudo().search([('id', '=', cust_id)])
-            identified_village = village_master.sudo().search([('name', '=', address_data.get('cityVillage'))], limit=1)
+            customer_master = self.env['res.partner'].search([('id', '=', cust_id)])
+            identified_village = village_master.search([('name', '=', address_data.get('cityVillage'))], limit=1)
             if identified_village and customer_master:
                 customer_master.village_id = identified_village.id
             else:
-                created_village = village_master.sudo().create({'name': address_data.get('cityVillage')})
+                created_village = village_master.create({'name': address_data.get('cityVillage')})
                 customer_master.village_id = created_village.id
 
         if attributes['email'] and cust_id:
-            customer_master = self.env['res.partner'].sudo().search([('id', '=', cust_id)])
+            customer_master = self.env['res.partner'].search([('id', '=', cust_id)])
             if customer_master:
                 customer_master.email = attributes['email']
                 customer_master.customer_rank = 1 ##Make a partner as a customer
 
         if address_data.get('country') and cust_id:
             country_master = self.env['res.country']
-            customer_master = self.env['res.partner'].sudo().search([('id', '=', cust_id)])
-            identified_country = country_master.sudo().search([('name', '=', address_data.get('country'))], limit=1)
+            customer_master = self.env['res.partner'].search([('id', '=', cust_id)])
+            identified_country = country_master.search([('name', '=', address_data.get('country'))], limit=1)
             if identified_country:
                 customer_master.country_id = identified_country.id
 
         for key in attributes:
             if key in [key for key in attributes]:
                 column_dict = {'partner_id': cust_id}
-                existing_attribute = self.env['res.partner.attributes'].sudo().search([('partner_id', '=', cust_id),('name', '=', key)])
+                existing_attribute = self.env['res.partner.attributes'].search([('partner_id', '=', cust_id),('name', '=', key)])
                 if any(existing_attribute):
                     existing_attribute.unlink()
                 column_dict.update({"name": key, "value" : attributes[key]})
-                self.env['res.partner.attributes'].sudo().create(column_dict)
+                self.env['res.partner.attributes'].create(column_dict)

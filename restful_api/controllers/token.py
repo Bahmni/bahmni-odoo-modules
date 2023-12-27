@@ -30,7 +30,7 @@ class AccessToken(http.Controller):
     def __init__(self):
 
         self._token = request.env["api.access_token"]
-        self._expires_in = request.env.ref(expires_in).sudo().value
+        self._expires_in = request.env.ref(expires_in).value
 
     @http.route("/api/odoo-login", methods=["POST","OPTIONS"], type="json", auth="none", csrf=True, cors='*')
     def token(self, **post):
@@ -39,7 +39,7 @@ class AccessToken(http.Controller):
             input_user_name = json_data.get("username"),
             input_password = json_data.get("password")
             if input_user_name[0] != None and input_user_name[0] != None:
-                res_usersss = request.env['res.users'].sudo().search([
+                res_usersss = request.env['res.users'].search([
                     ('active','=',True),
                     ('login','=',input_user_name[0])])
 
@@ -68,7 +68,7 @@ class AccessToken(http.Controller):
                     rbytes = os.urandom(64)
                     random_pass = str(hashlib.sha256(rbytes).hexdigest())
 
-                    token_values = request.env['api.access_token'].sudo().create({
+                    token_values = request.env['api.access_token'].create({
                                 'user_id': res_usersss.id,
                                 'expires': exp.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                                 'token': str(random_pass)})

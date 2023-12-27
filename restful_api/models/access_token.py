@@ -25,7 +25,7 @@ class APIAccessToken(models.Model):
 
         access_token = (
             self.env["api.access_token"]
-            .sudo()
+            
             .search([("user_id", "=", user_id)], order="id DESC", limit=1)
         )
         if access_token:
@@ -34,7 +34,7 @@ class APIAccessToken(models.Model):
                 access_token = None
         if not access_token and create:
             expires = datetime.now() + timedelta(
-                seconds=int(self.env.ref(expires_in).sudo().value)
+                seconds=int(self.env.ref(expires_in).value)
             )
 
         if not access_token:

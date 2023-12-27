@@ -17,7 +17,7 @@ class SaleConfigSettings(models.TransientModel):
     auto_create_customer_address_levels = fields.Boolean(string="Automatically create customer address for state, district, level3")
 
     def set_convert_dispensed(self):
-        return self.env['ir.values'].sudo().set_default(
+        return self.env['ir.values'].set_default(
             'sale.config.settings', 'convert_dispensed', self.convert_dispensed)
 
     @api.model

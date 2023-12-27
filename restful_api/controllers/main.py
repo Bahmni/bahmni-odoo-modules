@@ -33,7 +33,7 @@ def validate_token(func):
         
         access_token_data = (
                                 request.env["api.access_token"]
-                                .sudo()
+                                
                                 .search([("token", "=", access_token)], order="id DESC", limit=1)
                             )
 
@@ -64,12 +64,12 @@ class APIController(http.Controller):
     
     def get(self, model=None, id=None, **payload):
         ioc_name = model
-        model = request.env[self._model].sudo().search([("model", "=", model)], limit=1)
+        model = request.env[self._model].search([("model", "=", model)], limit=1)
         if model:
             domain, fields, offset, limit, order = extract_arguments(payload)
             data = (
                 request.env[model.model]
-                .sudo()
+                
                 .search_read(
                     domain=domain,
                     fields=fields,
@@ -82,7 +82,7 @@ class APIController(http.Controller):
                 domain = [("id", "=", int(id))]
                 data = (
                     request.env[model.model]
-                    .sudo()
+                    
                     .search_read(
                         domain=domain,
                         fields=fields,
@@ -153,10 +153,10 @@ class APIController(http.Controller):
 
         """
         ioc_name = model
-        model = request.env[self._model].sudo().search([("model", "=", model)], limit=1)
+        model = request.env[self._model].search([("model", "=", model)], limit=1)
         if model:
             try:
-                resource = request.env[model.model].sudo().create(payload)
+                resource = request.env[model.model].create(payload)
             except Exception as e:
                 return invalid_response("params", e)
             else:
@@ -182,7 +182,7 @@ class APIController(http.Controller):
                 "invalid object id", "invalid literal %s for id with base " % id
             )
         _model = (
-            request.env[self._model].sudo().search([("model", "=", model)], limit=1)
+            request.env[self._model].search([("model", "=", model)], limit=1)
         )
         if not _model:
             return invalid_response(
@@ -192,9 +192,9 @@ class APIController(http.Controller):
         try:
             if "data" in payload:
                 temp=json.loads(payload['data'].replace("\'", '"'))
-                request.env[_model.model].sudo().browse(_id).write(temp)
+                request.env[_model.model].browse(_id).write(temp)
             else:
-                request.env[_model.model].sudo().browse(_id).write(payload)
+                request.env[_model.model].browse(_id).write(payload)
                 
         except Exception as e:
             return invalid_response(payload, e)
@@ -214,7 +214,7 @@ class APIController(http.Controller):
                 "invalid object id", "invalid literal %s for id with base " % id
             )
         try:
-            record = request.env[model].sudo().search([("id", "=", _id)])
+            record = request.env[model].search([("id", "=", _id)])
             if record:
                 record.unlink()
             else:
@@ -239,7 +239,7 @@ class APIController(http.Controller):
                 "invalid object id", "invalid literal %s for id with base " % id
             )
         try:
-            record = request.env[model].sudo().search([("id", "=", _id)])
+            record = request.env[model].search([("id", "=", _id)])
             _callable = action in [
                 method for method in dir(record) if callable(getattr(record, method))
             ]
