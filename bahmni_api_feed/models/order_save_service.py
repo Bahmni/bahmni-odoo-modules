@@ -488,7 +488,8 @@ class OrderSaveService(models.Model):
         if order['productId']:
             prod_ids = self.env['product.product'].sudo().search([('uuid', '=', order['productId'])])
             if not prod_ids:
-               raise UserError ("Product does not exits in ERP or Inactivated in ERP master.")
+                #log message indicating this product/service was skipped, because it wasn’t found in Odoo.
+               _logger.warning("Product does not exist in ERP or Inactivated in ERP master.- %s(%s)"%(order['productName'],order['productId']))
         else:
             prod_ids = self.env['product.template'].sudo().search([('name', '=', order['conceptName'])])
         return prod_ids.ids
