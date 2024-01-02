@@ -60,7 +60,8 @@ class DrugDataService(models.Model):
             category_from_db = category.read([])[0]
             categ_id = category_from_db and category_from_db.get('id') or self._create_in_drug_category(category_name)
         else:
-            categ_id = self.env["product.category"].sudo().create({'name':category_name}).id
+            categ_parent_id = self.env['product.category'].sudo().search([('complete_name', '=', 'All / Saleable / Drugs')], limit=1).id
+            categ_id = self.env["product.category"].sudo().create({'name':category_name, 'parent_id': categ_parent_id}).id
         list_price = drug_ids_from_db and self.env['product.product'].sudo().browse(drug_ids_from_db[0]).list_price or 0.0
         drug["uuid"] = drug_from_feed.get("uuid")
         drug["name"] = drug_from_feed.get("name")
