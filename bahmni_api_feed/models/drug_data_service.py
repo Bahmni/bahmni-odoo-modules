@@ -14,8 +14,8 @@ class DrugDataService(models.Model):
     def create_or_update_drug_category(self, vals):
         '''Method to create or update the child product category, under drug category'''
         drug_categ = json.loads(vals.get("drug_category"))
-        exist_categ = self.env["product.category"].sudo().search([('uuid', '=', drug_categ.get("id"))])
-        parent_categ = self.env["product.category"].sudo().search([('name', '=', "Drug")], limit=1)
+        exist_categ = self.env["product.category"].search([('uuid', '=', drug_categ.get("id"))])
+        parent_categ = self.env["product.category"].search([('name', '=', "Drug")], limit=1)
         updated_categ = self._fill_drug_category(drug_categ, parent_categ.id)
         if exist_categ:
             _logger.info("\nupdated : drug_category :\n")
@@ -42,27 +42,27 @@ class DrugDataService(models.Model):
     @api.model
     def create_or_update_drug(self, vals):
         '''Method for creating/updating a new product under drug category'''
-        products = self.env['product.product'].sudo().search([('uuid', '=', vals.get("uuid"))])
+        products = self.env['product.product'].search([('uuid', '=', vals.get("uuid"))])
         updated_drug = self._fill_drug_object(vals, products.ids)
         if products:
-            product = self.env['product.product'].sudo().browse(products.ids[0:1])
-            product.sudo().write(updated_drug)
+            product = self.env['product.product'].browse(products.ids[0:1])
+            product.write(updated_drug)
         else:
-            self.env['product.product'].sudo().create(updated_drug)
+            self.env['product.product'].create(updated_drug)
 
     @api.model
     def _fill_drug_object(self, drug_from_feed, drug_ids_from_db):
         '''Method which returns the values for creation/updation of product under drug category'''
         drug = {}
         category_name = drug_from_feed.get("dosageForm")
-        category = self.env["product.category"].sudo().search([('name', '=', category_name)])
+        category = self.env["product.category"].search([('name', '=', category_name)])
         if category.read([]):
             category_from_db = category.read([])[0]
             categ_id = category_from_db and category_from_db.get('id') or self._create_in_drug_category(category_name)
         else:
-            categ_parent_id = self.env['product.category'].sudo().search([('complete_name', '=', 'All / Saleable / Drugs')], limit=1).id
-            categ_id = self.env["product.category"].sudo().create({'name':category_name, 'parent_id': categ_parent_id}).id
-        list_price = drug_ids_from_db and self.env['product.product'].sudo().browse(drug_ids_from_db[0]).list_price or 0.0
+            categ_parent_id = self.env['product.category'].search([('complete_name', '=', 'All / Saleable / Drugs')], limit=1).id
+            categ_id = self.env["product.category"].create({'name':category_name, 'parent_id': categ_parent_id}).id
+        list_price = drug_ids_from_db and self.env['product.product'].browse(drug_ids_from_db[0]).list_price or 0.0
         drug["uuid"] = drug_from_feed.get("uuid")
         drug["name"] = drug_from_feed.get("name")
         drug["default_code"] = drug_from_feed.get("shortName")
@@ -79,9 +79,9 @@ class DrugDataService(models.Model):
     @api.model
     def _create_in_drug_category(self, categ_name):
         '''Method to create a new category, while creating a product, if category does not exists'''
-        parent_categ = self.env["product.category"].sudo().search([('name', '=', "Drug")])
+        parent_categ = self.env["product.category"].search([('name', '=', "Drug")])
         category = {'name': categ_name}
         if(parent_categ):
             category['parent_id'] = parent_categ.id
-        return self.env['product.category'].sudo().create(category).id
+        return self.env['product.category'].create(category).id
 
