@@ -94,7 +94,7 @@ class ApiEventWorker(models.Model):
 
     @api.model
     def _find_country(self, address):
-        return self.env['res.company'].search([], limit=1).partner_id.country_id
+        return self.env['res.country'].search([('name', '=', address.get('country'))], limit=1)
 
     @api.model
     def _find_or_create_level3(self, state, district, level_name, auto_create_customer_address_levels):
@@ -138,7 +138,8 @@ class ApiEventWorker(models.Model):
         res.update({'ref': vals.get('ref'),
                     'name': vals.get('name'),
                     'local_name': vals.get('local_name') if vals.get('local_name') else False,
-                    'uuid': vals.get('uuid')})
+                    'uuid': vals.get('uuid'),
+                    'customer_rank':  1})
         address_data = vals.get('preferredAddress')
         # get validated address details
         address_details = self._get_address_details(address_data)
@@ -162,11 +163,10 @@ class ApiEventWorker(models.Model):
                 created_village = village_master.create({'name': address_data.get('cityVillage')})
                 customer_master.village_id = created_village.id
 
-        if attributes['email'] and cust_id:
+        if attributes.get('email') and cust_id:
             customer_master = self.env['res.partner'].search([('id', '=', cust_id)])
             if customer_master:
                 customer_master.email = attributes['email']
-                customer_master.customer_rank = 1 ##Make a partner as a customer
 
         if address_data.get('country') and cust_id:
             country_master = self.env['res.country']
