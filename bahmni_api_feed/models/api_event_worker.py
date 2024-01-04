@@ -94,7 +94,7 @@ class ApiEventWorker(models.Model):
 
     @api.model
     def _find_country(self, address):
-        return self.env['res.country'].sudo().search([('name', '=', address.get('country'))], limit=1)
+        return self.env['res.country'].search([('name', '=', address.get('country'))], limit=1)
 
     @api.model
     def _find_or_create_level3(self, state, district, level_name, auto_create_customer_address_levels):
