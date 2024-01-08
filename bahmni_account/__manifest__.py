@@ -10,7 +10,7 @@ Bahmni Account
     'category': 'Account',
     'website': '',
     'images': [],
-    'depends': ['account'],
+    'depends': ['account','account_payment','sale'],
     'data': [
              'views/account_invoice_view.xml',
              'views/company_view.xml',
