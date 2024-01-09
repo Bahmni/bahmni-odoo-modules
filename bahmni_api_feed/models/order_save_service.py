@@ -378,9 +378,7 @@ class OrderSaveService(models.Model):
             default_quantity_total = self.env['res.config.settings'].group_default_quantity
             _logger.info("DEFAULT QUANTITY TOTAL")
             _logger.info(default_quantity_total)
-            default_quantity_value = 1
-            if default_quantity_total and len(default_quantity_total.users) > 0:
-                default_quantity_value = -1
+            default_quantity_value = 0
 
             order['quantity'] = self._get_order_quantity(order, default_quantity_value)
             order_line_uom = self._get_order_line_uom(order, prod_obj.uom_id.id)
