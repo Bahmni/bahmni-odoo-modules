@@ -347,8 +347,12 @@ class OrderSaveService(models.Model):
         self._create_sale_order_line_function(sale_order, order)
         
     @api.model
-    def _get_order_quantity(self, order, default_quantity_value):
+    def _get_order_quantity(self, order, default_quantity_value, product_default_uom):
         if(not self.env['syncable.units.mapping'].search([('name', '=', order['quantityUnits'])])):
+            _logger.info("No syncable unit mapping found for unit: %s, while mapping order for %s\
+                    "%(order['quantityUnits'],order['productName']))
+            return default_quantity_value
+        if product_default_uom.id != self.env['syncable.units.mapping'].search([('name', '=', order['quantityUnits'])], limit=1).id:
             return default_quantity_value
         return order['quantity']
 
@@ -359,9 +363,11 @@ class OrderSaveService(models.Model):
         if(uom_ids):
             uom_id = uom_ids.ids[0]
             uom_obj = self.env['syncable.units.mapping'].browse(uom_id)
-            if(uom_obj.unit_of_measure):
+            if uom_obj.unit_of_measure.id == product_default_uom.id:
                 return uom_obj.unit_of_measure.id
-        return product_default_uom
+        _logger.info("%s uom expected %s, but found %s"\
+                %(order_line['productName'],order_line['quantityUnits'],product_default_uom.name))
+        return product_default_uom.id
 
     @api.model
     def _create_sale_order_line_function(self, sale_order, order):
@@ -380,8 +386,8 @@ class OrderSaveService(models.Model):
             _logger.info(default_quantity_total)
             default_quantity_value = 0
 
-            order['quantity'] = self._get_order_quantity(order, default_quantity_value)
-            order_line_uom = self._get_order_line_uom(order, prod_obj.uom_id.id)
+            order['quantity'] = self._get_order_quantity(order, default_quantity_value, prod_obj.uom_id)
+            order_line_uom = self._get_order_line_uom(order, prod_obj.uom_id)
             product_uom_qty = order['quantity']
             if(prod_lot != None and order['quantity'] > prod_lot.stock_forecast and prod_lot.stock_forecast > 0):
                 product_uom_qty = prod_lot.stock_forecast
