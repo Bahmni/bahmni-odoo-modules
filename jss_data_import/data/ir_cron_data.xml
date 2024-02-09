@@ -66,4 +66,17 @@
         <field name="code">model.product_data_feed()</field>
         <field name="state">code</field>
     </record>
+    
+    <record id="ir_cron_jss_data_import_product_updation" model="ir.cron">
+        <field name="name">JSS: Product Updation</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="nextcall" eval="(DateTime.now().replace(hour=2, minute=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')" />
+        <field name="doall" eval="False"/>
+        <field name="model_id" ref="model_jss_data_import"/>
+        <field name="code">model.product_update_feed()</field>
+        <field name="state">code</field>
+    </record>
+    
 </odoo>
