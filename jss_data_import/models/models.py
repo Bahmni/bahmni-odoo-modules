@@ -138,7 +138,7 @@ class jss_data_import(models.Model):
                         image,use_parent_address,active,street,supplier,city,user_id,zip,title,function,country_id,
                         parent_id,employee,type,email,vat,website,fax,street2,phone,credit_limit,date,tz,customer,
                         mobile,ref,is_company,state_id,notification_email_send,
-                        signup_type,signup_expiration,signup_token,last_reconciliation_date,debit_limit,village,
+                        signup_type,signup_expiration,signup_token,last_reconciliation_date,debit_limit,'' as village,
                         local_name,uuid from res_partner where supplier= 't' and id > %s and id < %s """ %(start_id, end_id)
                  result = self.execute_query(external_conn, query)
                  partner_to = self.env['res.partner']
@@ -232,6 +232,19 @@ class jss_data_import(models.Model):
                                                 "uuid": uom_cate_from[1] if uom_cate_from[1] else False})
              finally:
                 self.close_connection(external_conn)
+                
+     def product_update_feed(self):
+         """ Product Update in Odoo 16 """
+                  
+         self.env.cr.execute("""            
+            UPDATE product_template
+            SET active = 'f'
+            FROM product_product
+            WHERE product_product.active ='f' 
+            and product_product.product_tmpl_id = product_template.id             
+            """)
+         return True
+         
 
 
      def uom_data_feed(self):
@@ -247,12 +260,15 @@ class jss_data_import(models.Model):
                 uom_to = self.env['uom.uom']
                 if result:
                     for uom_from in result:
-                        if uom_to.search([("uuid", '=', uom_from[0] if uom_from[0] else False),"|", ('active', '=', True)\
+                        if uom_to.search([("uuid", '=', uom_from[0] if uom_from[0] else uom_from[7]),"|", ('active', '=', True)\
                                                 ,('active', '=', False)]):
+                                                    
+                            print("IF data ")
                             pass
                         else:
+                            print("Creation of data else")
                             uom_mapping = uom_to.create({
-                                                "uuid": uom_from[0] if uom_from[0] else False,
+                                                "uuid": uom_from[0] if uom_from[0] else uom_from[7],
                                                 "name": uom_from[1] if uom_from[1] else False, 
                                                 "uom_type": 'bigger', 
                                                 "rounding": uom_from[3] if uom_from[3] else False,
