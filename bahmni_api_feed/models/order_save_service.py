@@ -352,7 +352,8 @@ class OrderSaveService(models.Model):
             _logger.info("No syncable unit mapping found for unit: %s, while mapping order for %s\
                     "%(order['quantityUnits'],order['productName']))
             return default_quantity_value
-        if product_default_uom.id != self.env['syncable.units.mapping'].search([('name', '=', order['quantityUnits'])], limit=1).id:
+        uom_identified = self.env['syncable.units.mapping'].search([('name', '=', order['quantityUnits'])], limit=1)
+        if product_default_uom.id != uom_identified.unit_of_measure.id if uom_identified else False:
             return default_quantity_value
         return order['quantity']
 
@@ -365,6 +366,7 @@ class OrderSaveService(models.Model):
             uom_obj = self.env['syncable.units.mapping'].browse(uom_id)
             if uom_obj.unit_of_measure.id == product_default_uom.id:
                 return uom_obj.unit_of_measure.id
+        
         _logger.info("%s uom expected %s, but found %s"\
                 %(order_line['productName'],order_line['quantityUnits'],product_default_uom.name))
         return product_default_uom.id
