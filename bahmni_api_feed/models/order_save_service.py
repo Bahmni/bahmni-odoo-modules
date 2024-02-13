@@ -71,29 +71,15 @@ class OrderSaveService(models.Model):
             _logger.info("\nOrderType-Shop mappings without order location name specified: %s",
                          shop_list_with_order_type)
 
-        if not shop_list_with_order_type:
-            _logger.info("\nCouldn't identify OrderType-Shop mapping for Order Type [%s]", orderType)
-            order_type = self.env['order.type'].search([('name', '=', orderType)], limit=1)
-            location_rec = self.env['stock.location'].search([('name', '=', location_name)], limit=1)
-            if not location_rec:
-                raise UserError("Location(Sales shop) does not exist in ERP")
-            shop_list_with_order_type = OrderTypeShopMap.create({
-                "order_type": order_type.id if order_type else self.env['order.type'].create({'name': OrderType}),
-                "location_name": location_name,
-                "shop_id": self.env['sale.shop'].search([('location_id', '=', location_rec.id)], limit=1).id,
-                "location_id": location_rec.id})
-
-        order_shop_map_object = shop_list_with_order_type[0]
-        _logger.info("Identified Order Shop mapping %s", order_shop_map_object)    
-        if order_shop_map_object.shop_id:
-            shop_id = order_shop_map_object.shop_id.id
+        if shop_list_with_order_type:
+            shop_id = shop_list_with_order_type[0].shop_id.id
+            location_id = shop_list_with_order_type[0].location_id.id
+            
         else:
+            _logger.info("Unable to find OrderType-Shop mapping for order type %s. So using first shop entry", orderType)
             shop_records = SaleShop.search([])
             first_shop = shop_records[0]
             shop_id = first_shop.id
-        if order_shop_map_object.location_id:
-            location_id = order_shop_map_object.location_id.id
-        else:
             location_id = SaleShop.search([('id','=',shop_id)]).location_id.id
 
         _logger.info("\n__get_shop_and_location_id() returning shop_id: %s, location_id: %s", shop_id, location_id)
@@ -113,9 +99,8 @@ class OrderSaveService(models.Model):
 
                 order_type_def = self.env['order.type'].search([('name','=',orderType)])
                 if (not order_type_def):
-                    self.env['order.type'].create({"name" : orderType})
                     _logger.info("\nOrder Type is not defined. Ignoring %s for Customer %s",orderType,cus_id)
-                    #continue
+                    continue
 
                 orders = list(ordersGroup)
                 care_setting = orders[0].get('visitType').lower()
@@ -125,19 +110,8 @@ class OrderSaveService(models.Model):
                 unprocessed_orders = self._filter_processed_orders(orders)
                 _logger.info("\n DEBUG: Unprocessed Orders: %s", unprocessed_orders)
                 shop_id, location_id = self._get_shop_and_location_id(orderType, location_name, order_type_def)
-                # shop_id = tup[0]
-                # location_id = tup[1]
-                if (not shop_id):
-                    err_message = "Can not process order. Order type:{} - should be matched to a shop".format(orderType)
-                    _logger.info(err_message)
-                    raise Warning(err_message)
-                    
-                
+
                 shop_obj = self.env['sale.shop'].search([('id','=',shop_id)])
-                if shop_obj:
-                    pass
-                else:
-                    return "location Name Invalid."
                 warehouse_id = shop_obj.warehouse_id.id
                 _logger.warning("warehouse_id: %s"%(warehouse_id))
 
