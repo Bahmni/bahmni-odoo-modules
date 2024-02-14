@@ -1,80 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="ir_cron_jss_data_import_customer" model="ir.cron">
-	<field name="name">JSS: Customer creation</field>
+    <record id="ir_cron_openerp7_data_import_customer" model="ir.cron">
+	    <field name="name">OpenERP 7: Customer migration</field>
+        <field name="active">0</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
         <field name="nextcall" eval="(DateTime.now().replace(hour=2, minute=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')" />
         <field name="doall" eval="False"/>
-        <field name="model_id" ref="model_jss_data_import"/>
-	<field name="code"> model.customer_data_feed(1, 10)</field>
+        <field name="model_id" ref="model_openerp7_data_import"/>
+	    <field name="code"> model.customer_data_feed(1, 10)</field>
         <field name="state">code</field>
     </record>
-    <record id="ir_cron_jss_data_import_supplier" model="ir.cron">
-	<field name="name">JSS: Supplier creation</field>
+    <record id="ir_cron_openerp7_data_import_supplier" model="ir.cron">
+	    <field name="name">OpenERP 7: Supplier migration</field>
+        <field name="active">0</field>
+        <field name="active">0</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
         <field name="nextcall" eval="(DateTime.now().replace(hour=2, minute=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')" />
         <field name="doall" eval="False"/>
-        <field name="model_id" ref="model_jss_data_import"/>
-	<field name="code"> model.supplier_data_feed(1, 10)</field>
+        <field name="model_id" ref="model_openerp7_data_import"/>
+	    <field name="code"> model.supplier_data_feed(1, 10)</field>
         <field name="state">code</field>
     </record>
-    <record id="ir_cron_jss_data_import_uom_category" model="ir.cron">
-        <field name="name">JSS: UOM Category creation</field>
+    <record id="ir_cron_openerp7_data_import_uom_category" model="ir.cron">
+        <field name="name">OpenERP 7: UOM Category migration</field>
+        <field name="active">0</field>
+        <field name="active">0</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
         <field name="nextcall" eval="(DateTime.now().replace(hour=2, minute=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')" />
         <field name="doall" eval="False"/>
-        <field name="model_id" ref="model_jss_data_import"/>
+        <field name="model_id" ref="model_openerp7_data_import"/>
         <field name="code">model.uom_category_data_feed()</field>
         <field name="state">code</field>
     </record>
-    <record id="ir_cron_jss_data_import_uom" model="ir.cron">
-        <field name="name">JSS: UOM creation</field>
+    <record id="ir_cron_openerp7_data_import_uom" model="ir.cron">
+        <field name="name">OpenERP 7: UOM migration</field>
+        <field name="active">0</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
         <field name="nextcall" eval="(DateTime.now().replace(hour=2, minute=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')" />
         <field name="doall" eval="False"/>
-        <field name="model_id" ref="model_jss_data_import"/>
+        <field name="model_id" ref="model_openerp7_data_import"/>
         <field name="code">model.uom_data_feed()</field>
         <field name="state">code</field>
     </record>
-    <record id="ir_cron_jss_data_import_product_category" model="ir.cron">
-        <field name="name">JSS: Product category creation</field>
+    <record id="ir_cron_openerp7_data_import_product_category" model="ir.cron">
+        <field name="name">OpenERP 7: Product category migration</field>
+        <field name="active">0</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
         <field name="nextcall" eval="(DateTime.now().replace(hour=2, minute=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')" />
         <field name="doall" eval="False"/>
-        <field name="model_id" ref="model_jss_data_import"/>
+        <field name="model_id" ref="model_openerp7_data_import"/>
         <field name="code">model.product_category_data_feed()</field>
         <field name="state">code</field>
     </record>
-    <record id="ir_cron_jss_data_import_product" model="ir.cron">
-        <field name="name">JSS: Product creation</field>
+    <record id="ir_cron_openerp7_data_import_product" model="ir.cron">
+        <field name="name">OpenERP 7: Product migration</field>
+        <field name="active">0</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
         <field name="nextcall" eval="(DateTime.now().replace(hour=2, minute=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')" />
         <field name="doall" eval="False"/>
-        <field name="model_id" ref="model_jss_data_import"/>
+        <field name="model_id" ref="model_openerp7_data_import"/>
         <field name="code">model.product_data_feed()</field>
         <field name="state">code</field>
     </record>
     
-    <record id="ir_cron_jss_data_import_product_updation" model="ir.cron">
-        <field name="name">JSS: Product Updation</field>
+    <record id="ir_cron_openerp7_data_import_product_updation" model="ir.cron">
+        <field name="name">OpenERP 7: Product Update Inactive products</field>
+        <field name="active">0</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
         <field name="nextcall" eval="(DateTime.now().replace(hour=2, minute=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')" />
         <field name="doall" eval="False"/>
-        <field name="model_id" ref="model_jss_data_import"/>
+        <field name="model_id" ref="model_openerp7_data_import"/>
         <field name="code">model.product_update_feed()</field>
         <field name="state">code</field>
     </record>

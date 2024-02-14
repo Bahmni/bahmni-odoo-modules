@@ -6,19 +6,19 @@ import threading
 import time
 
 
-class jss_data_import(models.Model):
-     _name = 'jss_data_import'
-     _description = 'JSS Data Import'
+class openerp7_data_import(models.Model):
+     _name = 'openerp7_data_import'
+     _description = 'OpenERP 7 Data Import'
 
      def connect_to_external_db(self):
         """ To connect the external database """
         try:
             conn = psycopg2.connect(
-                dbname= config('JSS_DB_NAME'),
-                user= config('JSS_DB_USER'),
-                password= config('JSS_DB_PASSWORD'),
-                host= config('JSS_DB_HOST'),
-                port= config('JSS_DB_PORT')
+                dbname= config('OPENERP_DB_NAME'),
+                user= config('OPENERP_DB_USER'),
+                password= config('OPENERP_DB_PASSWORD'),
+                host= config('OPENERP_DB_HOST'),
+                port= config('OPENERP_DB_PORT')
             )
             return conn
         except Exception as e:

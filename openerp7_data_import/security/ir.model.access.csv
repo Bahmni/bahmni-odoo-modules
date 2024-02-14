@@ -1,4 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_jss_data_import_jss_data_import,jss_data_import.jss_data_import,model_jss_data_import_jss_data_import,base.group_user,1,1,1,1a
+access_openerp7_data_import_openerp7_data_import,openerp7_data_import.openerp7_data_import,model_openerp7_data_import_openerp7_data_import,base.group_user,1,1,1,1a
 # Allow access to module.button_immediate_install
 access_module_button_install,access_module_button_install,model_module_button_install,base.group_user,1,1,0,0,admin
