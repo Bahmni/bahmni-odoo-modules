@@ -310,7 +310,7 @@ class jss_data_import(models.Model):
                     pp.drug,pp.use_time,pp.life_time,pp.removal_time,pp.alert_time,
                     pt.list_price,pt.description,pt.weight,pt.weight_net,
                     pu.name,pt.description_purchase,pt.cost_method,pc.name,pt.volume,pt.sale_ok,pt.description_sale,
-                    pu1.name,pt.sale_delay,pt.purchase_ok,pp.id
+                    pu1.name,pt.sale_delay,pt.purchase_ok,pp.id,pp.default_code
                     from product_product pp left join product_template pt on pt.id = pp.product_tmpl_id 
                     left join product_category pc on pt.categ_id = pc.id 
                     left join product_uom pu on pt.uom_id = pu.id 
@@ -352,6 +352,8 @@ class jss_data_import(models.Model):
                                                 "description_sale": product_from[20] if product_from[20] else False,
                                                 "uom_po_id": self.env['uom.uom'].search([('name', '=', product_from[21])], limit=1).id,
                                                 "sale_delay": product_from[22] if product_from[22] else False,
-                                                "purchase_ok": product_from[23] if product_from[23] else False})
+                                                "purchase_ok": product_from[23] if product_from[23] else False,
+                                                "default_code": product_from[25] if product_from[25] else False}),
+
              finally:
                 self.close_connection(external_conn)

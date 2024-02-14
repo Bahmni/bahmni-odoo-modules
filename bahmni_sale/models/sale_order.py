@@ -32,10 +32,10 @@ class SaleOrder(models.Model):
                     amount_tax += line.price_tax
             amount_total = amount_untaxed + amount_tax
           
-            if self.discount_percentage:
-                tot_discount = amount_total * self.discount_percentage / 100
+            if order.discount_percentage:
+                tot_discount = amount_total * order.discount_percentage / 100
             else:
-                tot_discount = self.discount           
+                tot_discount = order.discount
             
             if order.chargeable_amount > 0.0:
                 discount = amount_total - order.chargeable_amount
