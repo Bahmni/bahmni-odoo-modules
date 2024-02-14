@@ -392,7 +392,7 @@ class OrderSaveService(models.Model):
             product_uom_qty = order['quantity']
             if(prod_lot != None and order['quantity'] > prod_lot.stock_forecast and prod_lot.stock_forecast > 0):
                 product_uom_qty = prod_lot.stock_forecast
-            description = " ".join([str(actual_quantity), str(order.get('quantityUnits', None))])
+            description = " ".join([prod_obj.name, "-", str(actual_quantity), str(order.get('quantityUnits', None))])
             order_line_dispensed = True if order.get('dispensed') == 'true' or (order.get('dispensed') and order.get('dispensed') != 'false') else False
             sale_order_line = {
                 'product_id': prod_id[0],
