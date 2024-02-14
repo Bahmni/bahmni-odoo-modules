@@ -83,7 +83,7 @@ class OrderSaveService(models.Model):
         customer_id = vals.get("customer_id")
         location_name = vals.get("locationName")
         all_orders = self._get_openerp_orders(vals)
-        _logger.info("Processing %s orders for customer %s", len(all_orders), customer_id)
+        _logger.info("Processing %s orders from encounter(%s) for customer %s", len(all_orders), vals.get("encounter_id") ,customer_id)
 
         customer_ids = self.env['res.partner'].search([('ref', '=', customer_id)])
         if customer_ids:
@@ -113,6 +113,7 @@ class OrderSaveService(models.Model):
                 unprocessed_dispensed_order = []
                 unprocessed_non_dispensed_order = []
                 for unprocessed_order in unprocessed_orders:
+                    _logger.info("Processing unprocessed order with order id: %s", unprocessed_order.get('orderId'))
                     unprocessed_order['location_id'] = location_id
                     unprocessed_order['warehouse_id'] = warehouse_id
                     if(unprocessed_order.get('dispensed', 'false') == 'true'):
