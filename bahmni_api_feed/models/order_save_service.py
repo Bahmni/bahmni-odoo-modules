@@ -52,51 +52,30 @@ class OrderSaveService(models.Model):
        
     @api.model 
     def _get_shop_and_location_id(self, orderType, location_name, order_type_record):
-        _logger.info("\n _get_shop_and_location_id().... Called.....")
-        _logger.info("orderType %s",orderType)
-        _logger.info("location_name %s", location_name)
+        _logger.info("Identifying shop and location for order type %s, location %s", orderType, location_name)
         OrderTypeShopMap = self.env['order.type.shop.map']
         SaleShop = self.env['sale.shop']
         shop_list_with_order_type = None
         if location_name:
             shop_list_with_order_type = OrderTypeShopMap.search(
                 [('order_type', '=', order_type_record.id), ('location_name', '=', location_name)])
-            _logger.info("\nFor specified order location name [%s], shop_list_with_orderType : %s",
-                         location_name, shop_list_with_order_type)
         if not shop_list_with_order_type:
-            _logger.info("\nCouldn't identify OrderType-Shop mapping for specified order location name [%s], "
-                         "searching for default OrderType-Shop map", location_name)
             shop_list_with_order_type = OrderTypeShopMap.search(
                 [('order_type', '=', order_type_record.id), ('location_name', '=', None)])
-            _logger.info("\nOrderType-Shop mappings without order location name specified: %s",
+            _logger.info("OrderType-Shop mappings without order location name specified: %s",
                          shop_list_with_order_type)
 
-        if not shop_list_with_order_type:
-            _logger.info("\nCouldn't identify OrderType-Shop mapping for Order Type [%s]", orderType)
-            order_type = self.env['order.type'].search([('name', '=', orderType)], limit=1)
-            location_rec = self.env['stock.location'].search([('name', '=', location_name)], limit=1)
-            if not location_rec:
-                raise UserError("Location(Sales shop) does not exist in ERP")
-            shop_list_with_order_type = OrderTypeShopMap.create({
-                "order_type": order_type.id if order_type else self.env['order.type'].create({'name': OrderType}),
-                "location_name": location_name,
-                "shop_id": self.env['sale.shop'].search([('location_id', '=', location_rec.id)], limit=1).id,
-                "location_id": location_rec.id})
-
-        order_shop_map_object = shop_list_with_order_type[0]
-        _logger.info("Identified Order Shop mapping %s", order_shop_map_object)    
-        if order_shop_map_object.shop_id:
-            shop_id = order_shop_map_object.shop_id.id
+        if shop_list_with_order_type:
+            shop_id = shop_list_with_order_type[0].shop_id.id
+            location_id = shop_list_with_order_type[0].location_id.id
         else:
+            _logger.info("Unable to find OrderType-Shop mapping for order type %s. So using first shop entry", orderType)
             shop_records = SaleShop.search([])
             first_shop = shop_records[0]
             shop_id = first_shop.id
-        if order_shop_map_object.location_id:
-            location_id = order_shop_map_object.location_id.id
-        else:
             location_id = SaleShop.search([('id','=',shop_id)]).location_id.id
 
-        _logger.info("\n__get_shop_and_location_id() returning shop_id: %s, location_id: %s", shop_id, location_id)
+        _logger.info("Shop and Location identified for order type %s, location %s is %s", orderType, location_name,SaleShop.search([('id','=',shop_id)]).name)
         return shop_id, location_id
 
     @api.model
@@ -104,6 +83,7 @@ class OrderSaveService(models.Model):
         customer_id = vals.get("customer_id")
         location_name = vals.get("locationName")
         all_orders = self._get_openerp_orders(vals)
+        _logger.info("Processing %s orders from encounter(%s) for customer %s", len(all_orders), vals.get("encounter_id") ,customer_id)
 
         customer_ids = self.env['res.partner'].search([('ref', '=', customer_id)])
         if customer_ids:
@@ -113,9 +93,8 @@ class OrderSaveService(models.Model):
 
                 order_type_def = self.env['order.type'].search([('name','=',orderType)])
                 if (not order_type_def):
-                    self.env['order.type'].create({"name" : orderType})
-                    _logger.info("\nOrder Type is not defined. Ignoring %s for Customer %s",orderType,cus_id)
-                    #continue
+                    _logger.warning("Order Type - %s is not defined. Ignoring %s for Customer %s",orderType, orderType, cus_id.display_name)
+                    continue
 
                 orders = list(ordersGroup)
                 care_setting = orders[0].get('visitType').lower()
@@ -123,28 +102,18 @@ class OrderSaveService(models.Model):
                 # will return order line data for products which exists in the system, either with productID passed
                 # or with conceptName
                 unprocessed_orders = self._filter_processed_orders(orders)
-                _logger.info("\n DEBUG: Unprocessed Orders: %s", unprocessed_orders)
+                _logger.debug("\n DEBUG: Unprocessed Orders: %s", unprocessed_orders)
                 shop_id, location_id = self._get_shop_and_location_id(orderType, location_name, order_type_def)
-                # shop_id = tup[0]
-                # location_id = tup[1]
-                if (not shop_id):
-                    err_message = "Can not process order. Order type:{} - should be matched to a shop".format(orderType)
-                    _logger.info(err_message)
-                    raise Warning(err_message)
-                    
-                
+
                 shop_obj = self.env['sale.shop'].search([('id','=',shop_id)])
-                if shop_obj:
-                    pass
-                else:
-                    return "location Name Invalid."
                 warehouse_id = shop_obj.warehouse_id.id
-                _logger.warning("warehouse_id: %s"%(warehouse_id))
+                _logger.debug("warehouse_id: %s"%(warehouse_id))
 
                 #Adding both the ids to the unprocessed array of orders, Separating to dispensed and non-dispensed orders
                 unprocessed_dispensed_order = []
                 unprocessed_non_dispensed_order = []
                 for unprocessed_order in unprocessed_orders:
+                    _logger.info("Processing unprocessed order with order id: %s", unprocessed_order.get('orderId'))
                     unprocessed_order['location_id'] = location_id
                     unprocessed_order['warehouse_id'] = warehouse_id
                     if(unprocessed_order.get('dispensed', 'false') == 'true'):
@@ -349,11 +318,13 @@ class OrderSaveService(models.Model):
     @api.model
     def _get_order_quantity(self, order, default_quantity_value, product_default_uom):
         if(not self.env['syncable.units.mapping'].search([('name', '=', order['quantityUnits'])])):
-            _logger.info("No syncable unit mapping found for unit: %s, while mapping order for %s\
-                    "%(order['quantityUnits'],order['productName']))
+            _logger.warning("No syncable unit mapping found for unit: %s, while mapping order for %s, so setting \
+                    default value %s"%(order['quantityUnits'], order['productName'], default_quantity_value))
             return default_quantity_value
         uom_identified = self.env['syncable.units.mapping'].search([('name', '=', order['quantityUnits'])], limit=1)
         if product_default_uom.id != uom_identified.unit_of_measure.id if uom_identified else False:
+            _logger.warning("Syncable unit mapping is different from product UOM (%s) for product: %s, so setting \
+                    default value %s"%(order['quantityUnits'], order['productName'], default_quantity_value))
             return default_quantity_value
         return order['quantity']
 
@@ -470,7 +441,7 @@ class OrderSaveService(models.Model):
             return False
         elif any(existing_order_line):  ###HARI
             sale_order = self.env['sale.order'].search([('id', '=', existing_order_line[0].order_id.id)])
-            _logger.info("\n Checking for order line's parent Order state")
+            _logger.info("Checking for order line's parent Order state")
             if sale_order.state not in  ['draft']:
                 return False
             return existing_order_line[0].dispensed == dispensed
