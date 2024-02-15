@@ -10,6 +10,7 @@ COPY bahmni_purchase ${ADDON_PATH}/bahmni_purchase/
 COPY bahmni_sale ${ADDON_PATH}/bahmni_sale/
 COPY bahmni_stock ${ADDON_PATH}/bahmni_stock/
 COPY restful_api ${ADDON_PATH}/restful_api/
+COPY openerp7_data_import ${ADDON_PATH}/openerp7_data_import/
 
 RUN pip3 install python-decouple
 
