@@ -90,7 +90,7 @@
 					 <label for="pre_bal"><span style="margin-right: 40px;">Previous Balance</span>:</label>
 					 <span id="pre_bal" t-esc="'%.2f'%(o.invoice_seach().order_id._total_receivable() - o.invoice_seach().amount_residual)"></span><br></br>
 					 <label for="bill_amt" class="answer"><span style="margin-right: 78px;"> Bill Amount</span>:</label>
-					 <span id="bill_amt" class="answer" t-esc="'%.2f'%((o.invoice_seach().amount_total - o.invoice_seach().discount)+o.invoice_seach().round_off_amount)"></span><br></br>					 
+					 <span id="bill_amt" class="answer" t-esc="'%.2f'%(((o.invoice_seach().amount_total - o.invoice_seach().discount)+o.invoice_seach().round_off_amount) + (o.invoice_seach().order_id._total_receivable() - o.invoice_seach().amount_residual))"></span><br></br>					 
 					 <label for="paid_amt" class="answer"><span style="margin-right: 68px;">Paid Amount</span>: </label>
 					 <span id="paid_amt" class="answer" t-esc="'%.2f'%(o.amount)"></span><br></br><br></br>					 
 					 <label for="out_bal"><span style="margin-right: 10px;">Outstanding Balance </span>:</label>
@@ -241,7 +241,7 @@
 					 <label for="pre_bal"><span style="margin-right: 40px;">Previous Balance</span>:</label>
 					 <span id="pre_bal" t-esc="'%.2f'%(o.invoice_seach().order_id._total_receivable() - o.invoice_seach().amount_residual)"></span><br></br>
 					 <label for="bill_amt" class="answer"><span style="margin-right: 78px;"> Bill Amount</span>:</label>
-					 <span id="bill_amt" class="answer" t-esc="'%.2f'%((o.invoice_seach().amount_total - o.invoice_seach().discount)+o.invoice_seach().round_off_amount)"></span><br></br>
+					 <span id="bill_amt" class="answer" t-esc="'%.2f'%(((o.invoice_seach().amount_total - o.invoice_seach().discount)+o.invoice_seach().round_off_amount) + (o.invoice_seach().order_id._total_receivable() - o.invoice_seach().amount_residual))"></span><br></br>
 					 <label for="paid_amt" class="answer"><span style="margin-right: 68px;">Paid Amount</span>: </label>
 					 <span id="paid_amt" class="answer" t-esc="'%.2f'%(o.amount)"></span><br></br><br></br>					 
 					 <label for="out_bal"><span style="margin-right: 10px;">Outstanding Balance </span>:</label>
