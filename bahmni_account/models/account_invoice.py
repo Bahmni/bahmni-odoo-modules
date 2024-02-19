@@ -19,8 +19,7 @@ class AccountInvoice(models.Model):
                                      default='none')
     discount = fields.Monetary(string="Discount")
     discount_percentage = fields.Float(string="Discount Percentage")
-    disc_acc_id = fields.Many2one('account.account',
-                                  string="Discount Account Head")
+    disc_acc_id = fields.Many2one('account.account',string="Discount Account Head" ,domain=[('account_type', '=', 'income_other')])
     round_off_amount = fields.Monetary(string="Round Off Amount")
 
     @contextmanager
