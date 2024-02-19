@@ -52,6 +52,18 @@
 		</field>
 	</record>
 	
+	
+	<record id="inherit_view_invoice_tree_bahmni" model="ir.ui.view">
+		<field name="name">Invoice View Changes</field>
+		<field name="model">account.move</field>
+		<field name="inherit_id" ref="account.view_invoice_tree"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='name']" position="after">
+				<field name="partner_id"/>				
+			</xpath>
+		</field>
+	</record>
+	
 
 	<record id="account.action_move_out_invoice_type" model="ir.actions.act_window">
 		<field name="name">Customer Invoices</field>

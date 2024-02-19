@@ -183,7 +183,27 @@ as discount fields are readonly in case of chargable amount is editable-->
 			<xpath expr="//field[@name='amount_total']" position="after">
 			    <field name="total_outstanding_balance"/>
 			    <field name="provider_name"/>
-				<field name="care_setting"/>
+			    <field name="disc_acc_id"/>
+			    <field name="care_setting"/>
+			</xpath>
+		</field>
+	</record>
+	
+	
+    <record id="inherit_view_order_tree_bahmni" model="ir.ui.view">
+		<field name="name">Sale Order View Changes</field>
+		<field name="model">sale.order</field>
+		<field name="inherit_id" ref="sale.view_order_tree"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='partner_id']" position="after">
+				<field name="shop_id"/>
+				<field name="partner_village"/>
+			</xpath>
+			<xpath expr="//field[@name='amount_total']" position="after">
+			    <field name="total_outstanding_balance"/>
+			    <field name="provider_name"/>
+			    <field name="disc_acc_id"/>
+			    <field name="care_setting"/>
 			</xpath>
 		</field>
 	</record>
