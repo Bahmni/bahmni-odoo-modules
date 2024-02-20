@@ -15,7 +15,7 @@
 					   options="{'currency_field': 'currency_id'}"/>
 				<field name="amount_tax" widget='monetary'
 					   options="{'currency_field': 'currency_id'}"/>
-				<field name="discount_type" required="1"/>
+				<field name="discount_type" required="1" attrs="{'invisible': [('amount_untaxed', '=', 0.00)]}"/>
 				
 				<field name="discount_percentage" widget='monetary'
 					   options="{'currency_field': 'currency_id'}"

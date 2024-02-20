@@ -44,10 +44,21 @@ class AccountInvoice(models.Model):
     @api.onchange('discount', 'discount_percentage', 'discount_type')
     def onchange_discount(self):
         amount_total = self.amount_untaxed + self.amount_tax
-        if self.discount:
-            self.discount_percentage = (self.discount / amount_total) * 100
-        if self.discount_percentage:
-            self.discount = amount_total * self.discount_percentage / 100
+        if amount_total > 0.00:
+            if self.discount_type == 'none':
+                self.discount_percentage = 0
+                self.discount = 0
+                self.disc_acc_id = False
+            if self.discount_type == 'percentage':
+                self.discount = 0
+            if self.discount_type == 'fixed':
+                self.discount_percentage = 0
+            if self.discount:
+                self.discount_percentage = (self.discount / amount_total) * 100
+            if self.discount_percentage:
+                self.discount = amount_total * self.discount_percentage / 100
+        else:
+            pass
 
 
     
