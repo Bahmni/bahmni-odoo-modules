@@ -129,7 +129,7 @@ class SaleOrder(models.Model):
                                       ('percentage', 'Percentage')], string="Discount Type",
                                      default='none')
     discount = fields.Monetary(string="Discount")
-    disc_acc_id = fields.Many2one('account.account', string="Discount Account Head")
+    disc_acc_id = fields.Many2one('account.account', string="Discount Account Head" ,domain=[('account_type', '=', 'income_other')])
     round_off_amount = fields.Float(string="Round Off Amount")
     prev_outstanding_balance = fields.Monetary(string="Previous Outstanding Balance",
                                                )
