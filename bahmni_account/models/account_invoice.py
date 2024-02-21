@@ -52,9 +52,7 @@ class AccountInvoice(models.Model):
             if self.discount_type == 'percentage':
                 self.discount = 0
             if self.discount_type == 'fixed':
-                self.discount_percentage = 0
-            if self.discount:
-                self.discount_percentage = (self.discount / amount_total) * 100
+                self.discount_percentage = 0            
             if self.discount_percentage:
                 self.discount = amount_total * self.discount_percentage / 100
         else:
