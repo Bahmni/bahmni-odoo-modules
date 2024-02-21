@@ -14,14 +14,14 @@
 	</record>
 	
 	<record id="action_price_markup_table" model="ir.actions.act_window">
-		<field name="name">Price Markup Table</field>
+		<field name="name">Sale Price Markup Rule</field>
 		<field name="res_model">price.markup.table</field>
 		<field name="view_mode">tree,form</field>
 	</record>
 	
 	<menuitem
         id="menu_price_markup_table"
-        name="Price Markup Table"
+        name="Sale Price Markup Rule"
         parent="bahmni_sale.menu_bahmni_masters"
         action="action_price_markup_table"
         sequence="14"/>
