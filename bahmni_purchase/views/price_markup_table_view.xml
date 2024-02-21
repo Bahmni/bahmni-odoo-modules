@@ -18,6 +18,13 @@
 		<field name="res_model">price.markup.table</field>
 		<field name="view_mode">tree,form</field>
 	</record>
+	
+	<menuitem
+        id="menu_price_markup_table"
+        name="Price Markup Table"
+        parent="bahmni_sale.menu_bahmni_masters"
+        action="action_price_markup_table"
+        sequence="14"/>
 
 	
 </odoo>
