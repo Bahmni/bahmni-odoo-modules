@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_village_village,access_village_village,model_village_village,,1,1,1,1
+access_state_district,access_state_district,model_state_district,,1,1,1,1
+access_district_subdistrict,access_district_subdistrict,model_district_subdistrict,,1,1,1,1
+access_address_mapping_table,access_address_mapping_table,model_address_mapping_table,,1,1,1,1

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="inherit_partner_view_add_additional_fields" model="ir.ui.view">
+        <field name="name">inherit.partner.view.additional.fields</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@class='o_address_format']/field[@name='street2']" position="after">
+                <field name="village_id" placeholder="Village.."
+                       class="o_address_state" style="width:30% !important"/>
+                <field name="subdistrict_id" placeholder="Sub-District" class="o_address_state"
+                       style="width:31% !important"/>
+                <field name="district_id" placeholder="District.." class="o_address_state"/>
+
+                <br/>
+            </xpath>
+            <xpath expr="//field[@name='city']" position="replace">
+                <field name="city" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

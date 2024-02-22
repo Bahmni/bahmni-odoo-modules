@@ -19,7 +19,7 @@ class StateDistrict(models.Model):
 
 
 class DistrictTehsil(models.Model):
-    _name = 'district.tehsil'
+    _name = 'district.subdistrict'
 
     name = fields.Char(string="Name")
     district_id = fields.Many2one('state.district', string="District")
@@ -34,7 +34,7 @@ class DistrictTehsil(models.Model):
             self.state_id = self.district_id.state_id.id
             domain.update({'state_id': [('id', '=', self.district_id.state_id.id)]})
         return {'domain': domain}
- 
+
     @api.onchange('state_id')
     def onchange_state_id(self):
         domain = {}
@@ -47,7 +47,7 @@ class DistrictTehsil(models.Model):
             self.country_id = self.state_id.country_id.id
             domain.update({'country_id': [('id', '=', self.state_id.country_id.id)]})
         return {'domain': domain}
- 
+
     @api.onchange('country_id')
     def onchange_country_id(self):
         domain = {}
@@ -67,26 +67,26 @@ class VillageVillage(models.Model):
 
     name = fields.Char(string="Name")
     district_id = fields.Many2one("state.district", string="District")
-    tehsil_id = fields.Many2one("district.tehsil", string="Tehsil")
+    subdistrict_id = fields.Many2one("district.subdistrict", string="Sub-District")
     state_id = fields.Many2one('res.country.state', string="State")
     country_id = fields.Many2one('res.country', string="Country")
 
-    @api.onchange('tehsil_id')
-    def onchange_tehsil_id(self):
+    @api.onchange('subdistrict_id')
+    def onchange_subdistrict_id(self):
         domain = []
-        if self.tehsil_id:
-            self.district_id = self.tehsil_id.district_id.id
-            domain = [('id', '=', self.tehsil_id.district_id.id)]
+        if self.subdistrict_id:
+            self.district_id = self.subdistrict_id.district_id.id
+            domain = [('id', '=', self.subdistrict_id.district_id.id)]
         return {'domain': {'district_id': domain}}
 
     @api.onchange('district_id')
     def onchange_district_id(self):
         domain = {}
         if self.district_id:
-            if self.tehsil_id and self.tehsil_id.district_id.id != self.district_id.id:
-                self.tehsil_id = False
-                tehsil_ids = self.env['district.tehsil'].search([('district_id', '=', self.district_id.id)])
-                domain.update({'tehsil_id': [('id', 'in', tehsil_ids.ids)]})
+            if self.subdistrict_id and self.subdistrict_id.district_id.id != self.district_id.id:
+                self.subdistrict_id = False
+                subdistrict_ids = self.env['district.subdistrict'].search([('district_id', '=', self.district_id.id)])
+                domain.update({'subdistrict_id': [('id', 'in', subdistrict_ids.ids)]})
             self.state_id = self.district_id.state_id.id
             domain.update({'state_id': [('id', '=', self.district_id.state_id.id)]})
         return {'domain': domain}
@@ -99,9 +99,9 @@ class VillageVillage(models.Model):
                 self.district_id = False
                 district_ids = self.env['state.district'].search([('state_id', '=', self.state_id.id)])
                 domain.update({'district_id': [('id', 'in', district_ids.ids)]})
-                self.tehsil_id = False
-                tehsil_ids = self.env['district.tehsil'].search([('district_id', 'in', district_ids.ids)])
-                domain.update({'tehsil_id': [('id', 'in', tehsil_ids)]})
+                self.subdistrict_id = False
+                subdistrict_ids = self.env['district.subdistrict'].search([('district_id', 'in', district_ids.ids)])
+                domain.update({'subdistrict_id': [('id', 'in', subdistrict_ids)]})
             self.country_id = self.state_id.country_id.id
             domain = [('id', '=', self.state_id.country_id.id)]
         else:
