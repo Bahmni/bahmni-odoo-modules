@@ -8,19 +8,16 @@ class ResPartner(models.Model):
     _sql_constraints = [('unique_ref', 'unique(ref)',
                          'Internal Reference for Customer should be unique!')]
 
-    village_id = fields.Many2one('village.village', string="Village")
-    tehsil_id = fields.Many2one('district.tehsil', string="Tehsil")
-    district_id = fields.Many2one('state.district', string="District")
     local_name = fields.Char(string="Local Name")
     uuid = fields.Char(string = "UUID")
     attribute_ids = fields.One2many('res.partner.attributes', 'partner_id', string='Attributes')
-    
+
     use_parent_address = fields.Boolean(string="Use Parent Address")
     notification_email_send = fields.Char(string="Notification Email Send")
     last_reconciliation_date = fields.Datetime(string="Last Reconciliation Date", copy=False)
 
 
-    # inherited to update display name w.r.t. ref field 
+    # inherited to update display name w.r.t. ref field
     # and hence user can search customer with reference too
     @api.depends('is_company', 'name', 'parent_id.name',
                  'type', 'company_name', 'ref')
@@ -55,27 +52,11 @@ class ResPartner(models.Model):
             res.append((partner.id, name))
         return res
 
-    @api.onchange('village_id')
-    def onchange_village_id(self):
-        if self.village_id:
-            self.district_id = self.village_id.district_id.id
-            self.tehsil_id = self.village_id.tehsil_id.id
-            self.state_id = self.village_id.state_id.id
-            self.country_id = self.village_id.country_id.id
-            return {'domain': {'tehsil_id': [('id', '=', self.village_id.tehsil_id.id)],
-                               'state_id': [('id', '=', self.village_id.state_id.id)],
-                               'district_id': [('id', '=', self.village_id.district_id.id)],
-                               'country_id': [('id', '=', self.village_id.country_id.id)]}}
-        else:
-            return {'domain': {'tehsil_id': [],
-                               'state_id': [],
-                               'district_id': [],
-                               'country_id': []}}
 
 class ResPartnerAttributes(models.Model):
     _name = 'res.partner.attributes'
-    
+
     partner_id = fields.Many2one('res.partner', string='Partner', required=True, index=True, readonly=False)
     name = fields.Char(string='Name', size=128, required=True)
     value = fields.Char(string='Value', size=128, required=False)
-            
+
