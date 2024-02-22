@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="country_mapping" model="address.mapping.table">
+            <field name="openmrs_address_field">country</field>
+            <field name="odoo_address_field">country</field>
+        </record>
+        <record id="state_mapping" model="address.mapping.table">
+            <field name="openmrs_address_field">stateProvince</field>
+            <field name="odoo_address_field">state</field>
+        </record>
+        <record id="district_mapping" model="address.mapping.table">
+            <field name="openmrs_address_field">countyDistrict</field>
+            <field name="odoo_address_field">district</field>
+        </record>
+        <record id="postalcode_mapping" model="address.mapping.table">
+            <field name="openmrs_address_field">postalCode</field>
+            <field name="odoo_address_field">zip</field>
+        </record>
+    </data>
+</odoo>
