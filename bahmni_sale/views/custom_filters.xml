@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_move_view_search_filters" model="ir.ui.view">
+        <field name="name">account.move.search</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='myinvoices']" position="after">
+                <separator/>
+                <filter string="Today Invoices" name="today_invoices" domain="[('create_date','>=',time.strftime('%%Y-%%m-%%d'))]"/>
+                <filter string="Yesterday Invoices" name="yesterday_invoices"
+                        domain="[('create_date','>=',time.strftime('%%Y-%%m-%%d') - 1)]"/>
+                <separator/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_view_search_filters" model="ir.ui.view">
+        <field name="name">sale.order.search</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.sale_order_view_search_inherit_quotation"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='my_quotation']" position="after">
+                <separator/>
+                <filter string="Today Sales" name="today_sales" domain="[('create_date','>=',time.strftime('%%Y-%%m-%%d'))]"/>
+                <filter string="Yesterday Sales" name="yesterday_sales"
+                        domain="[('create_date','>=',time.strftime('%%Y-%%m-%%d') - 1)]"/>
+                <separator/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale.action_quotations_with_onboarding" model="ir.actions.act_window">
+        <field name="context">{'search_default_today_sales':1}</field>
+    </record>
+
+    <record id="account.action_move_out_invoice_type" model="ir.actions.act_window">
+        <field name="context">{'move_type':'out_invoice', 'journal_type': 'sale', 'readonly_by_pass': True, 'search_default_today_invoices':1}</field>
+    </record>
+
+
+</odoo>
