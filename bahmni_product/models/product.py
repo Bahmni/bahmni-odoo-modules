@@ -17,7 +17,7 @@ class ProductProduct(models.Model):
                                   help="Get the actual stock available for product."
                                   "\nActual stock of product doesn't eliminates the count of expired lots from available quantities.")
     mrp = fields.Float(string="MRP")    # when variants exists for product, then mrp will be defined at variant level.
-    uuid = fields.Char(string="UUID")
+    uuid = fields.Char(string="UUID", index='btree_not_null')
     
     free_qty = fields.Float(
         'Free To Use Quantity ', search='_search_free_qty',
@@ -31,6 +31,10 @@ class ProductProduct(models.Model):
              "of its children.\n"
              "Otherwise, this includes goods stored in any Stock Location "
              "with 'internal' type.")
+
+    _sql_constraints = [
+        ('unique_uuid', 'UNIQUE(uuid)', 'UUID must be unique'),
+    ]
 
     @api.model
     def create(self, vals):
