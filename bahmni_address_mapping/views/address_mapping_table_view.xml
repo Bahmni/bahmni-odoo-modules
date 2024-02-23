@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+	<record id="tree_address_mapping_table" model="ir.ui.view">
+		<field name="name">tree.address.mapping.table</field>
+		<field name="model">address.mapping.table</field>
+		<field name="arch" type="xml">
+			<tree editable="bottom">
+				<field name="odoo_address_field" required="1"/>
+				<field name="openmrs_address_field" required="1"/>
+			</tree>
+		</field>
+	</record>
+
+	<record id="action_address_mapping_table" model="ir.actions.act_window">
+		<field name="name">Address Mapping Table</field>
+		<field name="res_model">address.mapping.table</field>
+		<field name="view_mode">tree,form</field>
+	</record>
+
+
+</odoo>
