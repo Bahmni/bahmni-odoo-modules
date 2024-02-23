@@ -7,9 +7,10 @@
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='myinvoices']" position="after">
                 <separator/>
-                <filter string="Today Invoices" name="today_invoices" domain="[('create_date','>=',time.strftime('%%Y-%%m-%%d'))]"/>
+                <filter string="Today Invoices" name="today_invoices"
+                        domain="[('create_date','>=',time.strftime('%%Y-%%m-%%d'))]"/>
                 <filter string="Yesterday Invoices" name="yesterday_invoices"
-                        domain="[('create_date','>=',time.strftime('%%Y-%%m-%%d') - 1)]"/>
+                        domain="[('create_date','>=',(datetime.date.today()-datetime.timedelta(days=1)).strftime('%%Y-%%m-%%d 00:00:00')),('create_date','&lt;=',(datetime.date.today()-datetime.timedelta(days=1)).strftime('%%Y-%%m-%%d 23:59:59'))]"/>
                 <separator/>
             </xpath>
         </field>
@@ -22,9 +23,10 @@
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='my_quotation']" position="after">
                 <separator/>
-                <filter string="Today Sales" name="today_sales" domain="[('create_date','>=',time.strftime('%%Y-%%m-%%d'))]"/>
+                <filter string="Today Sales" name="today_sales"
+                        domain="[('create_date','>=',time.strftime('%%Y-%%m-%%d'))]"/>
                 <filter string="Yesterday Sales" name="yesterday_sales"
-                        domain="[('create_date','>=',time.strftime('%%Y-%%m-%%d') - 1)]"/>
+                        domain="[('create_date','>=',(datetime.date.today()-datetime.timedelta(days=1)).strftime('%%Y-%%m-%%d 00:00:00')),('create_date','&lt;=',(datetime.date.today()-datetime.timedelta(days=1)).strftime('%%Y-%%m-%%d 23:59:59'))]"/>
                 <separator/>
             </xpath>
         </field>
@@ -35,7 +37,9 @@
     </record>
 
     <record id="account.action_move_out_invoice_type" model="ir.actions.act_window">
-        <field name="context">{'move_type':'out_invoice', 'journal_type': 'sale', 'readonly_by_pass': True, 'search_default_today_invoices':1}</field>
+        <field name="context">{'move_type':'out_invoice', 'journal_type': 'sale', 'readonly_by_pass': True,
+            'search_default_today_invoices':1}
+        </field>
     </record>
 
 
