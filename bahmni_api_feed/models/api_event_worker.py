@@ -50,6 +50,12 @@ class ApiEventWorker(models.Model):
         for rec in customer_vals.keys():
             if not customer_vals[rec]:
                 del customer_vals[rec]
+        address_data = vals.get('preferredAddress')
+        # get validated address details
+        address_details = self.env['address.mapping.service']._map_address_fields(address_data)
+        # update address details
+        customer_vals.update(address_details)
+        _logger.info("Customer vals: %s", customer_vals)
         existing_customer = self.env['res.partner'].search([('ref', '=', patient_ref)])
         if existing_customer:
             existing_customer.write(customer_vals)
@@ -65,11 +71,6 @@ class ApiEventWorker(models.Model):
                     'local_name': vals.get('local_name') if vals.get('local_name') else False,
                     'uuid': vals.get('uuid'),
                     'customer_rank':  1})
-        address_data = vals.get('preferredAddress')
-        # get validated address details
-        address_details = self.env['address.mapping.service']._map_address_fields(address_data)
-        # update address details
-        res.update(address_details)
         # update other details : for now there is only scope of updating contact.
         if vals.get('primaryContact'):
             res.update({'phone': vals['primaryContact']})

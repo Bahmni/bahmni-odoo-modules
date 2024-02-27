@@ -13,7 +13,8 @@ class AddressMappingService(models.Model):
 
     @api.model
     def _map_address_fields(self, address):
-        mapped_result = {}
+        mapped_result = {'country_id': None, 'state_id': None, 'district_id': None, 'subdistrict_id': None,
+                         'village_id': None, 'zip': None, 'street': None, 'street2': None}
         address_field_for_country = self._get_openmrs_address_field('country')
         address_field_for_state = self._get_openmrs_address_field('state')
         address_field_for_district = self._get_openmrs_address_field('district')
@@ -101,7 +102,6 @@ class AddressMappingService(models.Model):
             else:
                 _logger.warning('Village value not passed in address with field %s', address_field_for_village)
 
-        mapped_result = self.clean_up_address(mapped_result)
         _logger.info('Input address: %s', str(address))
         _logger.info('Mapped address: %s', str(mapped_result))
         return mapped_result
@@ -110,8 +110,6 @@ class AddressMappingService(models.Model):
         return self.env['address.mapping.table'].search([('odoo_address_field', '=', odoo_field_name)],
                                                         limit=1).openmrs_address_field
 
-    def clean_up_address(self, address):
-        return {key: value for key, value in address.items() if value}
 
     @api.model
     def _find_country(self, country_name):
