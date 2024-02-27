@@ -10,15 +10,21 @@ class PriceMarkupTable(models.Model):
     higher_price = fields.Float(string="Maximum Cost", default=1)
     markup_percentage = fields.Float(string="Markup Percentage", default=1)
 
-    @api.constrains('lower_price', 'higher_price')
-    def _check_fields_values(self):        
-        if self.lower_price > self.higher_price:
+    @api.constrains('lower_price', 'higher_price','markup_percentage')
+    def _check_fields_values(self):    
+        if self.lower_price < 0 or self.higher_price < 0 or self.markup_percentage < 0:
+            raise ValidationError('Negative values are not allowed for Minimum Cost, Maximum Cost and Markup Percentage.')         
+          
+        if self.markup_percentage > 100:
+            raise ValidationError('Markup percentage should not exceed 100%. Please enter a valid markup percentage.')            
+            
+        if self.lower_price >= self.higher_price:
             raise ValidationError('Minimum cost should not be greater than maximum cost.')
         # Add any other conditions you need to check        
         for data in self.env['price.markup.table'].search([]):           
-            if data.lower_price < self.lower_price < data.higher_price and data.id != self.id:
+            if data.lower_price <= self.lower_price < data.higher_price and data.id != self.id:                
                 raise ValidationError('Your minimum cost is available within the range of minimum cost and maximum cost of previous records.')
                 
-            if data.lower_price < self.higher_price < data.higher_price and data.id != self.id:
+            if data.lower_price <= self.higher_price < data.higher_price and data.id != self.id:
                 raise ValidationError('Your maximum cost is available within the range of minimum cost and maximum cost of previous records.')
                 
