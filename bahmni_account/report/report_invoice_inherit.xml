@@ -65,14 +65,14 @@
 				  </div>
 			     </div>
 			     <div style="width: 58%;float: right;">
-				     <h5><b><span t-field="o.invoice_seach().order_id.care_setting"></span> Care Summary </b></h5>
+				     <h5><b><span t-field="o.invoice_search().order_id.care_setting"></span> Care Summary </b></h5>
 			     </div>
 			     <div style="width: 100%; float: right;" class='blue-border'>
 					     <label for="description" class='answer'>Description :</label>
-						     <t id="description" t-if="o.invoice_seach().order_id.care_setting == 'opd' ">
+						     <t id="description" t-if="o.invoice_search().order_id.care_setting == 'opd' ">
 							(includes Consultation Charges, Lab Charges, Drugs, Care Consumables, ECG, X-Ray, ECHO, USG)
 						     </t>
-						     <t id="description" t-if="o.invoice_seach().order_id.care_setting == 'ipd'">
+						     <t id="description" t-if="o.invoice_search().order_id.care_setting == 'ipd'">
 							(includes Admission Charges, Bed Charges Lab Charges, Drugs,Care Consumables, ECG, X-Ray, ECHO, USG)
 						     </t>
 
@@ -80,19 +80,21 @@
 			    <div style="width: 100%; float: right;margin-bottom: 50px;" class='bordered-box'>
 				    <div style="float: right;">
 					    <label for="new_char" ><span style="margin-right: 68px;">New Charges</span><span>:</span></label>
-					 <span id="new_char" t-esc="'%.2f'%(o.invoice_seach().amount_total)"></span><br></br>
+					 <span id="new_char" t-esc="'%.2f'%(o.invoice_search().amount_total)"></span><br></br>
 					 <label for="dic"> <span style="margin-right: 99px;">Discount</span><span>:</span> </label>
-					 <span id="dic" t-esc="'%.2f'%(o.invoice_seach().discount)"></span><br></br>
+					 <span id="dic" t-esc="'%.2f'%(o.invoice_search().discount)"></span><br></br>
 					 <!--<label for="net_amt"> <span style="margin-right: 74px;">Net Amount</span>:</label>
-					 <span id="net_amt" t-esc="'%.2f'%((o.invoice_seach().amount_total - o.invoice_seach().discount)+o.invoice_seach().round_off_amount)"></span><br></br>-->
-					 <label for="bill_amt" class="answer"><span style="margin-right: 78px;"> Bill Amount</span>:</label>
-					 <span id="bill_amt" class="answer" t-esc="'%.2f'%((o.invoice_seach().amount_total - o.invoice_seach().discount)+o.invoice_seach().round_off_amount)"></span><br></br>
-					 <label for="paid_amt" class="answer"><span style="margin-right: 68px;">Paid Amount</span>: </label>
-					 <span id="paid_amt" class="answer" t-esc="'%.2f'%(o.amount)"></span><br></br>
+					 <span id="net_amt" t-esc="'%.2f'%((o.invoice_search().amount_total - o.invoice_search().discount)+o.invoice_search().round_off_amount)"></span><br></br>-->
+					 <label for="net_amt" class="answer"><span style="margin-right: 78px;"> Net Amount</span>:</label>
+					 <span id="net_amt" class="answer" t-esc="'%.2f'%((o.invoice_search().amount_total - o.invoice_search().discount)+o.invoice_search().round_off_amount)"></span><br></br>
 					 <label for="pre_bal"><span style="margin-right: 40px;">Previous Balance</span>:</label>
-					 <span id="pre_bal" t-esc="'%.2f'%(o.invoice_seach().order_id._total_receivable() - o.invoice_seach().amount_residual)"></span><br></br><br></br>
+					 <span id="pre_bal" t-esc="'%.2f'%(o.invoice_search().order_id._total_receivable() - o.invoice_search().amount_residual)"></span><br></br>
+					 <label for="bill_amt" class="answer"><span style="margin-right: 78px;"> Bill Amount</span>:</label>
+					 <span id="bill_amt" class="answer" t-esc="'%.2f'%(((o.invoice_search().amount_total - o.invoice_search().discount)+o.invoice_search().round_off_amount) + (o.invoice_search().order_id._total_receivable() - o.invoice_search().amount_residual))"></span><br></br>					 
+					 <label for="paid_amt" class="answer"><span style="margin-right: 68px;">Paid Amount</span>: </label>
+					 <span id="paid_amt" class="answer" t-esc="'%.2f'%(o.amount)"></span><br></br><br></br>					 
 					 <label for="out_bal"><span style="margin-right: 10px;">Outstanding Balance </span>:</label>
-					 <span id="out_bal" t-esc="'%.2f'%(o.invoice_seach().order_id._total_receivable())"></span><br></br><br></br>
+					 <span id="out_bal" t-esc="'%.2f'%(o.invoice_search().order_id._total_receivable())"></span><br></br><br></br>
 				 </div>
 			    </div>
 			    <br></br>	 
@@ -190,7 +192,7 @@
 					    <th style="width:25%; height: 30px;">SubTotal</th>						
 				    </tr>
 			            <t t-set="serial" t-value="1"/>		    
-				    <t t-foreach="o.invoice_seach().order_id.order_line.sorted(key=lambda item : item.product_id.name)" t-as="item">
+				    <t t-foreach="o.invoice_search().order_id.order_line.sorted(key=lambda item : item.product_id.name)" t-as="item">
 				    <tr>
         				<td style="width:10%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:20px;padding-right: 20px;">
 				         <t t-esc="serial"/>
@@ -231,17 +233,19 @@
 				    </div>
 				    <div style="float: right;">
 					    <label for="new_char" ><span style="margin-right: 68px;">New Charges</span><span>:</span></label>
-					 <span id="new_char" t-esc="'%.2f'%(o.invoice_seach().amount_total)"></span><br></br>
+					 <span id="new_char" t-esc="'%.2f'%(o.invoice_search().amount_total)"></span><br></br>
 					 <label for="dic"> <span style="margin-right: 99px;">Discount</span><span>:</span> </label>
-					 <span id="dic" t-esc="'%.2f'%(o.invoice_seach().discount)"></span><br></br>
-					 <label for="bill_amt" class="answer"><span style="margin-right: 78px;"> Bill Amount</span>:</label>
-					 <span id="bill_amt" class="answer" t-esc="'%.2f'%((o.invoice_seach().amount_total - o.invoice_seach().discount)+o.invoice_seach().round_off_amount)"></span><br></br>
-					 <label for="paid_amt" class="answer"><span style="margin-right: 68px;">Paid Amount</span>: </label>
-					 <span id="paid_amt" class="answer" t-esc="'%.2f'%(o.amount)"></span><br></br>
+					 <span id="dic" t-esc="'%.2f'%(o.invoice_search().discount)"></span><br></br>
+					 <label for="net_amt" class="answer"><span style="margin-right: 78px;"> Net Amount</span>:</label>
+					 <span id="net_amt" class="answer" t-esc="'%.2f'%((o.invoice_search().amount_total - o.invoice_search().discount)+o.invoice_search().round_off_amount)"></span><br></br>
 					 <label for="pre_bal"><span style="margin-right: 40px;">Previous Balance</span>:</label>
-					 <span id="pre_bal" t-esc="'%.2f'%(o.invoice_seach().order_id._total_receivable() - o.invoice_seach().amount_residual)"></span><br></br><br></br>
+					 <span id="pre_bal" t-esc="'%.2f'%(o.invoice_search().order_id._total_receivable() - o.invoice_search().amount_residual)"></span><br></br>
+					 <label for="bill_amt" class="answer"><span style="margin-right: 78px;"> Bill Amount</span>:</label>
+					 <span id="bill_amt" class="answer" t-esc="'%.2f'%(((o.invoice_search().amount_total - o.invoice_search().discount)+o.invoice_search().round_off_amount) + (o.invoice_search().order_id._total_receivable() - o.invoice_search().amount_residual))"></span><br></br>
+					 <label for="paid_amt" class="answer"><span style="margin-right: 68px;">Paid Amount</span>: </label>
+					 <span id="paid_amt" class="answer" t-esc="'%.2f'%(o.amount)"></span><br></br><br></br>					 
 					 <label for="out_bal"><span style="margin-right: 10px;">Outstanding Balance </span>:</label>
-					 <span id="out_bal" t-esc="'%.2f'%(o.invoice_seach().order_id._total_receivable())"></span>
+					 <span id="out_bal" t-esc="'%.2f'%(o.invoice_search().order_id._total_receivable())"></span>
 				 </div>
 			    </div>
 		   </t>

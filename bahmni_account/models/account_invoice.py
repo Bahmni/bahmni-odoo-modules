@@ -92,7 +92,7 @@ class AccountInvoice(models.Model):
 class AccountPayment(models.Model):
     _inherit = 'account.payment'
     
-    def invoice_seach(self):
+    def invoice_search(self):
         """ Using ref find the invoice obj """
         return self.env['account.move'].search([('name', '=', self.move_id.ref),('move_type', '=', 'out_invoice')], limit=1)
    
