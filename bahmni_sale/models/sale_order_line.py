@@ -17,25 +17,40 @@ class SaleOrderLine(models.Model):
                                help="Flag to identify whether drug order is dispensed or not.")
     lot_id = fields.Many2one('stock.lot', string="Batch No")
     expiry_date = fields.Datetime(string="Expiry date")
+    
+    
+    @api.onchange('product_uom_qty')
+    def onchange_product_uom_qty(self):
+        if self.product_uom_qty:
+            res_config = self.env['res.config.settings'].search([],order='id desc',limit=1)
+            
+            if res_config.sale_price_markup == True:
+                self.price_unit = self.lot_id.sale_price if self.lot_id.sale_price > 0.0 else self.product_id.lst_price 
+            else:
+                self.price_unit = self.product_id.lst_price 
 
-    product_uom_qty = fields.Float(
-        string="Quantity",
-        compute='_compute_product_uom_qty',
-        digits='Product Unit of Measure', default=0.0,
-        store=True, readonly=False, required=True, precompute=True)
     
     @api.onchange('lot_id')
     def onchange_lot_id(self):
         if self.lot_id:
-            self.expiry_date = self.lot_id.expiration_date
-            sale_price_basedon_cost_price_markup = '0'
-            if sale_price_basedon_cost_price_markup == '1':
-                self.price_unit = self.lot_id.sale_price if self.lot_id.sale_price > 0.0 else self.price_unit
+            self.expiry_date = self.lot_id.expiration_date 
+            res_config = self.env['res.config.settings'].search([],order='id desc',limit=1)
+            
+            print("res_config",res_config.id)
+            print("res_config",res_config.sale_price_markup)
+               
+            
+            if res_config.sale_price_markup == True:
+                self.price_unit = self.lot_id.sale_price if self.lot_id.sale_price > 0.0 else self.product_id.lst_price 
+            else:
+                self.price_unit = self.product_id.lst_price 
                 
     @api.onchange('product_id')
     def onchange_product_id_inherit(self):
         if self.product_id:
+           self.price_unit = self.product_id.lst_price
            self.lot_id = self.get_available_batch_details(self.product_id,self.order_id.id)
+           
 
     @api.model
     def get_available_batch_details(self, product_id, sale_order):
@@ -54,8 +69,13 @@ class SaleOrderLine(models.Model):
                  ('id', 'not in', already_used_batch_ids if already_used_batch_ids else False)]\
                  if len(already_used_batch_ids) > 0 else [('product_id','=', product_id.id if type(product_id) != list else product_id[0])]
                  
-        for prodlot in stock_prod_lot.search(query, order='expiration_date asc'):
-            if(prodlot.expiration_date and datetime.strptime(str(prodlot.expiration_date), DTF) > datetime.today()):
+        for prodlot in stock_prod_lot.search(query, order='expiration_date asc'):            
+            date_lenth = len(str(prodlot.expiration_date))            
+            if len(str(prodlot.expiration_date)) > 20:                
+                formatted_ts = datetime.strptime(str(prodlot.expiration_date), "%Y-%m-%d %H:%M:%S.%f").strftime("%Y-%m-%d %H:%M:%S")
+            else:                
+                formatted_ts = datetime.strptime(str(prodlot.expiration_date), "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+            if(formatted_ts and datetime.strptime(str(formatted_ts), DTF) > datetime.today()):
                 return prodlot
         return None
     

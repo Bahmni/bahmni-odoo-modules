@@ -19,7 +19,7 @@ Bahmni Sale
              'views/res_partner_view.xml',
              'views/village_master_view.xml',
              'views/sale_order_views.xml',
-             'views/sale_config_settings.xml',
+             'views/res_config_settings_view.xml',
 			 'views/pos_view.xml',
              'views/address_views.xml',
              'views/custom_filters.xml',

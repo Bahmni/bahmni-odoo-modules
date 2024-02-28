@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+   <record id="res_config_settings_inheit_view" model="ir.ui.view">
+       <field name="name">res.config.settings.inherit.view</field>
+       <field name="model">res.config.settings</field>
+       <!--        <field name="priority" eval="10"/>-->
+       <field name="inherit_id"
+              ref="sale.res_config_settings_view_form"/>
+       <field name="arch" type="xml">
+           <xpath expr="//div[@id='discount_sale_order_lines']"
+                  position="after">
+               <div class="col-12 col-lg-6 o_setting_box" id="sale_price_markup">
+                   <div class="o_setting_left_pane">
+                       <field name="sale_price_markup"/>
+                   </div>
+                   <div class="o_setting_right_pane">
+                       <label for="sale_price_markup" string="Sale Price Markup Rule [Bahmni]"/>
+                       <div class="text-muted mb16">
+                           Determine sale price based on cost price markup
+                       </div>
+                   </div>
+               </div>
+           </xpath>
+       </field>
+   </record>
+</odoo>
