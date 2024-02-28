@@ -22,6 +22,7 @@ Bahmni Sale
              'views/sale_config_settings.xml',
 			 'views/pos_view.xml',
              'views/address_views.xml',
+             'views/custom_filters.xml',
 	     'report/report_discount_heads.xml',
 	     'report/sale_report.xml',
              'views/account_invoice_view.xml'],
