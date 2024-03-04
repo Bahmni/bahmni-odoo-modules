@@ -4,6 +4,18 @@ class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
    
     sale_price_markup = fields.Boolean(string="Sale Price Markup Rule", store=True)
+    
+    group_final_so_charge = fields.Boolean(string="Allow to enter final Sale Order charge",
+                                           implied_group='bahmni_sale.group_allow_change_so_charge')
+    group_default_quantity = fields.Boolean(string="Allow to enter default quantity as -1",
+                                            implied_group='bahmni_sale.group_allow_change_qty')
+    convert_dispensed = fields.Boolean(string="Allow to automatically convert "
+                                       "quotation to sale order if drug is dispensed from local shop")
+    validate_picking = fields.Boolean(string="Validate delivery when order confirmed")
+    allow_negative_stock = fields.Boolean(string="Allow negative stock")
+    auto_invoice_dispensed = fields.Boolean(string="Automatically register payment for dispensed order invoice")
+    auto_create_customer_address_levels = fields.Boolean(string="Automatically create customer address for state, district, level3")
+
 
 
     
