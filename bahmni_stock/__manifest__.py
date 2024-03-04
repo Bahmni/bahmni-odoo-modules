@@ -15,6 +15,7 @@ Bahmni Purchase
     'data': ['views/stock_production_lot_view.xml',
              'views/stock_picking_view.xml',
              'views/account_invoice_line.xml',
+             'views/stock_pick_lot_view.xml',
              ],
     'demo': [],
     'qweb': [],
