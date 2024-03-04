@@ -21,10 +21,12 @@ class PriceMarkupTable(models.Model):
         if self.lower_price >= self.higher_price:
             raise ValidationError('Minimum cost should not be greater than maximum cost.')
         # Add any other conditions you need to check        
-        for data in self.env['price.markup.table'].search([]):           
-            if data.lower_price <= self.lower_price < data.higher_price and data.id != self.id:                
+        for data in self.env['price.markup.table'].search([]): 
+            if data.lower_price < self.lower_price < data.higher_price and data.id != self.id:                
                 raise ValidationError('Your minimum cost is available within the range of minimum cost and maximum cost of previous records.')
                 
-            if data.lower_price <= self.higher_price < data.higher_price and data.id != self.id:
+            if data.lower_price < self.higher_price < data.higher_price and data.id != self.id:
                 raise ValidationError('Your maximum cost is available within the range of minimum cost and maximum cost of previous records.')
-                
+            
+            if self.lower_price < data.lower_price < self.higher_price and data.id != self.id:                
+                raise ValidationError('Your minimum cost is available within the range of minimum cost and maximum cost of previous records.')
