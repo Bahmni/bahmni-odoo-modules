@@ -3,7 +3,8 @@ from odoo import models, fields, api
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
    
-    sale_price_markup = fields.Boolean(string="Sale Price Markup Rule", store=True)
+    is_delivery_automated = fields.Boolean(string="Enable auto delivery on sale order confirm action", config_parameter="bahmni_sale.is_delivery_automated")
+    sale_price_markup = fields.Boolean(string="Sale Price Markup Rule", )
     
     group_final_so_charge = fields.Boolean(string="Allow to enter final Sale Order charge",
                                            implied_group='bahmni_sale.group_allow_change_so_charge')
@@ -17,17 +18,18 @@ class ResConfigSettings(models.TransientModel):
     auto_create_customer_address_levels = fields.Boolean(string="Automatically create customer address for state, district, level3")
 
 
-
     
     def set_values(self):
        res = super(ResConfigSettings, self).set_values()
-       self.env['ir.config_parameter'].sudo().set_param('discount.sale_price_markup', self.sale_price_markup)
+       self.env['ir.config_parameter'].sudo().set_param('bahmni_sale.sale_price_markup', self.sale_price_markup)
+       self.env['ir.config_parameter'].sudo().set_param('bahmni_sale.is_delivery_automated', self.is_delivery_automated)
        return res
     @api.model
     def get_values(self):
        res = super(ResConfigSettings, self).get_values()
        ICPSudo = self.env['ir.config_parameter'].sudo()
        res.update(
-           sale_price_markup=ICPSudo.get_param('discount.sale_price_markup'),
+           sale_price_markup=ICPSudo.get_param('bahmni_sale.sale_price_markup'),
+           is_delivery_automated=ICPSudo.get_param('bahmni_sale.is_delivery_automated'),
        )
        return res
