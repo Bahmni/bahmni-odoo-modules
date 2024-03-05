@@ -4,7 +4,7 @@ class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
    
     is_delivery_automated = fields.Boolean(string="Enable auto delivery on sale order confirm action", config_parameter="bahmni_sale.is_delivery_automated")
-    sale_price_markup = fields.Boolean(string="Sale Price Markup Rule", )
+    sale_price_markup = fields.Boolean(string="Sale Price Markup Rule", config_parameter="bahmni_sale.sale_price_markup" )
     
     group_final_so_charge = fields.Boolean(string="Allow to enter final Sale Order charge",
                                            implied_group='bahmni_sale.group_allow_change_so_charge')
