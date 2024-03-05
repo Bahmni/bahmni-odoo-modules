@@ -250,7 +250,26 @@ class SaleOrder(models.Model):
                             %(line.lot_id.name, line.product_id.name, line.lot_id.product_qty))
         res = super(SaleOrder, self.with_context(default_immediate_transfer=True)).action_confirm()
         self.validate_delivery()
-      
+        for order in self:
+            warehouse = order.warehouse_id
+            if order.picking_ids and bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_delivery_automated')): 
+                for picking in self.picking_ids:
+                    picking.immediate_transfer = True
+                    for move in picking.move_ids:
+                        move.quantity_done = move.product_uom_qty
+                    picking._autoconfirm_picking()
+                    picking.action_set_quantities_to_reservation()
+                    picking.action_confirm()
+                    for move_line in picking.move_ids_without_package:
+                        move_line.quantity_done = move_line.product_uom_qty
+                    picking._action_done()
+                    for mv_line in picking.move_ids.mapped('move_line_ids'):
+                        if not mv_line.qty_done and mv_line.reserved_qty or mv_line.reserved_uom_qty:
+                            mv_line.qty_done = mv_line.reserved_qty or mv_line.reserved_uom_qty      
+                        else:
+                            ...
+            else:
+                ...
         return res
 
 
