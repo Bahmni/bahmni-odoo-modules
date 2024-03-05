@@ -34,7 +34,8 @@ class StockMoveLine(models.Model):
                                                                        ('higher_price', '=', 0)],limit=1)
             if markup_table_line:
                 self.sale_price = self.cost_price + (self.cost_price * markup_table_line.markup_percentage / 100)
-        
+            else:
+                self.sale_price = self.cost_price
         else:
             pass
     
@@ -51,7 +52,8 @@ class StockMoveLine(models.Model):
                                                                            ('higher_price', '=', 0)],limit=1)
                 if markup_table_line:
                     res.update({'cost_price': cost_value,'sale_price': cost_value + (cost_value * markup_table_line.markup_percentage / 100)})
-            
+                else:
+                    res.update({'cost_price': cost_value,'sale_price': cost_value })
             else:
                 pass
         return res
