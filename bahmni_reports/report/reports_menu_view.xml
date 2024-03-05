@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    
+
+    <menuitem id="stock_report_menu_root" name="Reports" web_icon="crm,static/description/icon.svg" sequence="31"/>
+
+    <menuitem id="menu_stock_report_masters" name="Custom Reports" parent="bahmni_reports.stock_report_menu_root" sequence="1"/>
+
+
+
+
+</odoo>
