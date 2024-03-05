@@ -32,7 +32,7 @@ class SaleOrder(models.Model):
                     amount_tax += line.price_tax
             amount_total = amount_untaxed + amount_tax
           
-            if order.discount_percentage:
+            if order.discount_type == 'percentage':
                 tot_discount = amount_total * order.discount_percentage / 100
             else:
                 tot_discount = order.discount
