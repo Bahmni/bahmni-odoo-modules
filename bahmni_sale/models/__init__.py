@@ -6,3 +6,4 @@ from . import res_company
 from . import pos
 from . import account_invoice
 from . import shop
+from . import stock_move_line
