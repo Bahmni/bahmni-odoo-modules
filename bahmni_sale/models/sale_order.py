@@ -266,10 +266,6 @@ class SaleOrder(models.Model):
                     for mv_line in picking.move_ids.mapped('move_line_ids'):
                         if not mv_line.qty_done and mv_line.reserved_qty or mv_line.reserved_uom_qty:
                             mv_line.qty_done = mv_line.reserved_qty or mv_line.reserved_uom_qty      
-                        else:
-                            ...
-            else:
-                ...
         return res
 
 

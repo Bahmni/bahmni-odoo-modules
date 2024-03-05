@@ -1,3 +1,7 @@
+## This files is copied from https://github.com/odoo/odoo/blob/16.0/addons/stock/models/stock_move_line.py
+## To override the User Error message.
+
+
 from collections import Counter, defaultdict
 
 from odoo import _, api, fields, tools, models
@@ -9,7 +13,11 @@ from odoo.addons.base.models.ir_model import MODULE_UNINSTALL_FLAG
 class StockMoveLine(models.Model):
     _inherit = "stock.move.line"
 
+
     def _action_done(self):
+           
+        Quant = self.env['stock.quant']
+
         ml_ids_tracked_without_lot = OrderedSet()
         ml_ids_to_delete = OrderedSet()
         ml_ids_to_create_lot = OrderedSet()
