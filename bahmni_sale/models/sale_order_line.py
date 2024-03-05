@@ -1,7 +1,14 @@
 from datetime import datetime
-
-from odoo import models, fields, api
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF, float_is_zero
+
+from collections import defaultdict
+from datetime import timedelta
+
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
+from odoo.fields import Command
+from odoo.osv import expression
+from odoo.tools import float_is_zero, float_compare, float_round
 
 
 class SaleOrderLine(models.Model):
@@ -96,3 +103,44 @@ class SaleOrderLine(models.Model):
                              'lot_id': line.lot_id.id,
                              'expiry_date': line.expiry_date})
                 self.env['account.invoice.line'].create(vals)
+                
+    def _prepare_invoice_line(self, **optional_values):
+        """Prepare the values to create the new invoice line for a sales order line.
+
+        :param optional_values: any parameter that should be added to the returned invoice line
+        :rtype: dict
+        """
+        self.ensure_one()
+        
+        print("self.display_type",self.display_type)
+        
+        
+        res = {
+            'display_type': self.display_type or 'product',
+            'sequence': self.sequence,
+            'name': self.name,
+            'product_id': self.product_id.id,
+            'product_uom_id': self.product_uom.id,
+            'quantity': self.qty_to_invoice,
+            'discount': self.discount,
+            'price_unit': self.price_unit,
+            'tax_ids': [Command.set(self.tax_id.ids)],
+            'sale_line_ids': [Command.link(self.id)],
+            'is_downpayment': self.is_downpayment,
+            'lot_id':self.lot_id.id,
+            'expiry_date': self.expiry_date,
+        }
+        analytic_account_id = self.order_id.analytic_account_id.id
+        if self.analytic_distribution and not self.display_type:
+            res['analytic_distribution'] = self.analytic_distribution
+        if analytic_account_id and not self.display_type:
+            analytic_account_id = str(analytic_account_id)
+            if 'analytic_distribution' in res:
+                res['analytic_distribution'][analytic_account_id] = res['analytic_distribution'].get(analytic_account_id, 0) + 100
+            else:
+                res['analytic_distribution'] = {analytic_account_id: 100}
+        if optional_values:
+            res.update(optional_values)
+        if self.display_type:
+            res['account_id'] = False
+        return res
