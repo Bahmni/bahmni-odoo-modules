@@ -41,7 +41,7 @@ class SaleOrderLine(models.Model):
     def onchange_lot_id(self):
         if self.lot_id:
             self.expiry_date = self.lot_id.expiration_date             
-            if if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.sale_price_markup')) == True:
+            if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.sale_price_markup')) == True:
                 self.price_unit = self.lot_id.sale_price if self.lot_id.sale_price > 0.0 else self.product_id.lst_price 
             else:
                 self.price_unit = self.product_id.lst_price 
