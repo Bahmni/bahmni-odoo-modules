@@ -76,14 +76,17 @@ class SaleOrderLine(models.Model):
                  ('id', 'not in', already_used_batch_ids if already_used_batch_ids else False)]\
                  if len(already_used_batch_ids) > 0 else [('product_id','=', product_id.id if type(product_id) != list else product_id[0])]
                  
-        for prodlot in stock_prod_lot.search(query, order='expiration_date asc'):            
-            date_lenth = len(str(prodlot.expiration_date))            
-            if len(str(prodlot.expiration_date)) > 20:                
-                formatted_ts = datetime.strptime(str(prodlot.expiration_date), "%Y-%m-%d %H:%M:%S.%f").strftime("%Y-%m-%d %H:%M:%S")
-            else:                
-                formatted_ts = datetime.strptime(str(prodlot.expiration_date), "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
-            if(formatted_ts and datetime.strptime(str(formatted_ts), DTF) > datetime.today()):
-                return prodlot
+        for prodlot in stock_prod_lot.search(query, order='expiration_date asc'):   
+            if prodlot.expiration_date:         
+                date_lenth = len(str(prodlot.expiration_date))            
+                if len(str(prodlot.expiration_date)) > 20:                
+                    formatted_ts = datetime.strptime(str(prodlot.expiration_date), "%Y-%m-%d %H:%M:%S.%f").strftime("%Y-%m-%d %H:%M:%S")
+                else:                
+                    formatted_ts = datetime.strptime(str(prodlot.expiration_date), "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+                if(formatted_ts and datetime.strptime(str(formatted_ts), DTF) > datetime.today()):
+                    return prodlot
+            else:
+                pass
         return None
     
     def invoice_line_create(self, invoice_id, qty):
