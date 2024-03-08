@@ -10,68 +10,43 @@ class District(models.Model):
     _name = 'district'
     _description = "Bahmni District"
 
-    id = fields.Integer(string='District Id', required=True, readonly = True)
-    name = fields.Char(string='Name', required=True)
-    state = fields.Many2one('res.country.state',string='State', required=True)
-    country = fields.Many2one('res.country',string='Country', required=True)
+    id = fields.Integer(string='District Id', required=True, readonly=True)
+    name = fields.Char(string='District', required=True)
+    state = fields.Many2one('res.country.state', string='State', required=True)
+    country = fields.Many2one('res.country', string='Country', required=True)
 
-    @api.model
-    def create(self, vals):
-        try:
-            country_name = vals.get('country')
-            state_name = vals.get('state')
-            state = self.env['res.country.state'].search([('name', '=ilike', state_name)], limit=1)
-            country = self.env['res.country'].search([('name', '=ilike', country_name)], limit=1)
-            if not state:
-                raise MissingError(
-                    _("State not found or already exists in the database. Please check your input or verify if the state already exists in the records."))
-            if not country:
-                raise MissingError(
-                    _("Country not found or already exists in the database. Please check your input or verify if the country already exists in the records."))
-            district_vals = {
-                'name': vals.get('name'),
-                'state': state.id,
-                'country': country.id
-            }
-            return super(District, self).create(district_vals)
-        except:
-            raise Exception("Failed To Create District : {}".format(vals.get('name')))
+    @api.onchange('state')
+    def onchange_state(self):
+        domain = []
+        if self.state:
+            self.country = self.state.country_id.id
+            domain = [('id', '=', self.state.country_id.id)]
+        return {'domain': {'country_id': domain}}
 
 class SubDistrict(models.Model):
     _name = 'sub.district'
     _description = "Bahmni Sub District"
 
-    id = fields.Integer(string="Sub District Id", required=True, readonly = True)
-    name = fields.Char(string='SubDistrict', required=True, index=True)
-    district = fields.Many2one('district',string='District', required=True)
-    state = fields.Many2one('res.country.state',string='State', required=True)
-    country = fields.Many2one('res.country',string='Country', required=True)
+    id = fields.Integer(string="Sub District Id", required=True, readonly=True)
+    name = fields.Char(string='Sub District', required=True, index=True)
+    district = fields.Many2one('district', string='District', required=True)
+    state = fields.Many2one('res.country.state', string='State', required=True)
+    country = fields.Many2one('res.country', string='Country', required=True)
 
-    @api.model
-    def create(self, vals):
-        try:
-            district = self._create_district(vals)
-            sub_district_vals = {
-                'name': vals.get('name'),
-                'district': district.id,
-                'state': district.state.id,
-                'country': district.country.id
-            }
-            return super(SubDistrict, self).create(sub_district_vals)
-        except:
-            raise Exception("Failed To Create SubDistrict : {}".format(vals.get('name')))
-    @api.model
-    def _create_district(self, vals):
-        district_name = vals.get('district')
-        district = self.env['district'].search([('name', '=ilike', district_name)], limit=1)
-        if not district:
-            district_vals = {
-                'name': district_name,
-                'state': vals.get('state'),
-                'country': vals.get('country')
-            }
-            district = self.env['district'].create(district_vals)
-        return district
+    @api.onchange('district', 'state')
+    def onchange_district_state(self):
+        domain = {}
+        if self.district:
+            self.state = self.district.state.id
+            domain.update({'state': [('id', '=', self.district.state.id)]})
+        if self.state:
+            if not self.district or self.state.id != self.district.state.id:
+                self.district = False
+                district_domain = [('state', '=', self.state.id)]
+                domain.update({'district': district_domain})
+            self.country = self.state.country_id.id
+            domain.update({'country': [('id', '=', self.state.country_id.id)]})
+        return {'domain': domain}
 
 class CityVillage(models.Model):
     _name = "city.village"
@@ -79,11 +54,11 @@ class CityVillage(models.Model):
     _order = 'name'
     _rec_names_search = ['name', 'zipcode']
 
-    id = fields.Integer(string="City Village Id", required=True, readonly = True)
+    id = fields.Integer(string="City Village Id", required=True, readonly=True)
     name = fields.Char(string='City Village', required=True, index=True)
-    sub_district = fields.Many2one("sub.district", string='Sub District', required=False, domain="[('district', '=', id)]")
-    district = fields.Many2one("district", string='District', required=True, domain="[('state', '=', id)]")
-    state = fields.Many2one('res.country.state', string='State', required=True, domain="[('country', '=', id)]")
+    sub_district = fields.Many2one("sub.district", string='Sub District', required=False)
+    district = fields.Many2one("district", string='District', required=True)
+    state = fields.Many2one('res.country.state', string='State', required=True)
     country = fields.Many2one('res.country', string='Country', required=True)
     zip = fields.Char(string='ZIP / Postal Code', required=True)
 
@@ -94,65 +69,41 @@ class CityVillage(models.Model):
     @api.model
     def create(self, vals):
         try:
-            city_village_vals = self._prepare_city_village_vals(vals)
-            return super(CityVillage, self).create(city_village_vals)
+            self._check_existing_zip(vals)
+            return super(CityVillage, self).create(vals)
         except Exception as error:
             raise Exception("Failed To Create City/Village : {}".format(vals.get('name')))
 
-    def _prepare_city_village_vals(self, vals):
-        sub_district_name = vals.get('sub_district')
-        if sub_district_name:
-            sub_district = self._create_sub_district(vals)
-            city_village_vals = {
-                'name': vals.get('name'),
-                'sub_district': sub_district.id,
-                'district': sub_district.district.id,
-                'state': sub_district.state.id,
-                'country': sub_district.country.id,
-                'zip': vals.get('zip'),
-            }
-        else:
-            district = self._create_district(vals)
-            city_village_vals = {
-                'name': vals.get('name'),
-                'district': district.id,
-                'state': district.state.id,
-                'country': district.country.id,
-                'zip': vals.get('zip'),
-            }
-        return city_village_vals
-    @api.model
-    def _create_sub_district(self, vals):
-        sub_district_name = vals.get('sub_district')
-        sub_district = self.env['sub.district'].search([('name', '=ilike', sub_district_name)], limit=1)
-        if not sub_district:
-            sub_district_vals = {
-                'name': sub_district_name,
-                'district': vals.get('district'),
-                'state': vals.get('state'),
-                'country': vals.get('country')
-            }
-            sub_district = self.env['sub.district'].create(sub_district_vals)
-        return sub_district
+    @api.onchange('sub_district', 'district', 'state')
+    def onchange_district_state(self):
+        domain = {}
+        if self.sub_district:
+            self.district = self.sub_district.district.id
+            domain.update({'district': [('id', '=', self.sub_district.district.id)]})
+        if self.district:
+            self.state = self.district.state.id
+            domain.update({'state': [('id', '=', self.district.state.id)]})
+        if self.state:
+            if not self.district or self.state.id != self.district.state.id:
+                self.district = False
+                district_domain = [('state', '=', self.state.id)]
+                domain.update({'district': district_domain})
+            self.country = self.state.country_id.id
+            domain.update({'country': [('id', '=', self.state.country_id.id)]})
+        return {'domain': domain}
 
-    @api.model
-    def _create_district(self, vals):
-        district_name = vals.get('district')
-        district = self.env['district'].search([('name', '=ilike', district_name)], limit=1)
-        if not district:
-            district_vals = {
-                'name': district_name,
-                'state': vals.get('state'),
-                'country': vals.get('country')
-            }
-            district = self.env['district'].create(district_vals)
-        return district
+    def _check_existing_zip(self, vals):
+        city_village = self.env['city.village'].search([('zip', '=ilike', vals.get('zip'))], limit=1)
+        if city_village:
+            vals.update({'status': False})
+            raise Exception("Failed To Create City/Village {} As City/Village With Same ZIP Code Already Exists.".format(vals.get('city_village')))
 
 class AddressSeed(models.Model):
     _name = "address.seed"
     _description = "Bahmni Address Seed"
     _order = "id"
-    id = fields.Integer(string="City Village Id", required=True, readonly = True)
+
+    id = fields.Integer(string="City Village Id", required=True, readonly=True)
     city_village = fields.Char(string='City Village', required=False, index=True)
     sub_district = fields.Char(string='Sub District', required=False)
     district = fields.Char(string='District', required=False)
@@ -165,7 +116,7 @@ class AddressSeed(models.Model):
     def create(self, vals):
         try:
             self._check_required_keys(vals)
-            self._check_existing_city_village(vals)
+            self._check_existing_zip(vals)
             city_village_vals = self._prepare_city_village_values(vals)
             city_village = self.env['city.village'].create(city_village_vals)
             self._log_successful_creation(city_village)
@@ -174,28 +125,66 @@ class AddressSeed(models.Model):
         return super(AddressSeed, self).create(vals)
 
     def _check_required_keys(self, vals):
-        for required_key in REQUIRED_KEYS:
-            if required_key not in vals:
-                raise Exception("Missing required value for {} field in address.seed.csv. Exception found for City/Village {}".format(*(required_key, vals.get('city_village'))))
+        required_keys = ['city_village', 'sub_district', 'district', 'state', 'country', 'zip']
+        missing_keys = [key for key in required_keys if key not in vals]
+        if missing_keys:
+            raise Exception("Missing required value(s) for {} field(s) in address.seed.csv".format(', '.join(missing_keys)))
 
-    def _check_existing_city_village(self, vals):
-        city_village = self.env['city.village'].search([('zip', '=ilike', vals.get('zip'))], limit=1)
-        if city_village:
-            vals.update({'status': False})
-            raise Exception("Failed To Create City/Village {} As City/Village With Same ZIP Code Already Exists.".format(vals.get('city_village')))
+    def _check_existing_zip(self, vals):
+        existing_city_village = self.env['city.village'].search([('zip', '=ilike', vals.get('zip'))], limit=1)
+        if existing_city_village:
+            raise Exception("Failed To Create City/Village {}. A City/Village With the Same ZIP Code Already Exists.".format(vals.get('city_village')))
 
     def _prepare_city_village_values(self, vals):
+        district = self._get_or_create_district(vals)
+        sub_district = self._get_or_create_sub_district(vals, district)
+        state, country = self._get_state_and_country(vals)
         return {
             'name': vals.get('city_village'),
-            'sub_district': vals.get('sub_district', ''),
-            'district': vals.get('district'),
-            'state': vals.get('state'),
-            'country': vals.get('country'),
+            'district': district.id,
+            'sub_district': sub_district.id,
+            'state': state.id,
+            'country': country.id,
             'zip': vals.get('zip'),
         }
 
+    def _get_or_create_sub_district(self, vals, district):
+        sub_district_name = vals.get('sub_district')
+        sub_district = self.env['sub.district'].search([('name', '=ilike', sub_district_name)], limit=1)
+        if not sub_district:
+            return self.env['sub.district'].create({
+                'name': sub_district_name,
+                'district': district.id,
+                'state': district.state.id,
+                'country': district.country.id
+            })
+        return sub_district
+
+    def _get_or_create_district(self, vals):
+        district_name = vals.get('district')
+        district = self.env['district'].search([('name', '=ilike', district_name)], limit=1)
+        if not district:
+            state, country = self._get_state_and_country(vals)
+            return self.env['district'].create({
+                'name': district_name,
+                'state': state.id,
+                'country': country.id
+            })
+        return district
+
+    def _get_state_and_country(self, vals):
+        state_name = vals.get('state')
+        country_name = vals.get('country')
+        state = self.env['res.country.state'].search([('name', '=ilike', state_name)], limit=1)
+        country = self.env['res.country'].search([('name', '=ilike', country_name)], limit=1)
+        if not state:
+            raise Exception("State '{}' Not Found.".format(state_name))
+        if not country:
+            raise Exception("Country '{}' Not Found.".format(country_name))
+        return state, country
+
     def _log_successful_creation(self, city_village):
-        _logger.info("City/Village %s - District %s - State %s Successfully Created.",city_village.name, city_village.district.name, city_village.state.name)
+        _logger.info("City/Village %s - District %s - State %s Successfully Created.", city_village.name, city_village.district.name, city_village.state.name)
 
     def _handle_creation_failure(self, vals, error):
         vals.update({'status': False})

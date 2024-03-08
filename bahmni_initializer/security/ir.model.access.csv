@@ -1,2 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_addons/bahmni_initializer/_addons/bahmni_initializer/,addons/bahmni_initializer/.addons/bahmni_initializer/,model_addons/bahmni_initializer/_addons/bahmni_initializer/,base.group_user,1,1,1,1
+bahmni_initializer.access_district,access_district,bahmni_initializer.model_district,base.group_user,1,1,1,1
+bahmni_initializer.access_sub_district,access_sub_district,bahmni_initializer.model_sub_district,base.group_user,1,1,1,1
+bahmni_initializer.access_city_village,access_city_village,bahmni_initializer.model_city_village,base.group_user,1,1,1,1
+bahmni_initializer.access_address_seed,access_address_seed,bahmni_initializer.model_address_seed,base.group_user,1,1,1,1
