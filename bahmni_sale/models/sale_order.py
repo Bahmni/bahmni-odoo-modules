@@ -209,8 +209,7 @@ class SaleOrder(models.Model):
         else:
             tot_discount = self.discount
 		
-        invoice_vals = {
-            'name': self.client_order_ref or '',
+        invoice_vals = {            
             'ref': self.client_order_ref or '',
             'move_type': 'out_invoice',
             'partner_id': self.partner_invoice_id.id,
