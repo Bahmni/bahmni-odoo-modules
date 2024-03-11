@@ -85,11 +85,11 @@
 	
 			
 			<xpath expr="//field[@name='order_line']/tree/field[@name='qty_delivered']" position="after">
-				<field name="lot_id" domain="[('product_id','=',product_id),('expiration_date','&gt;', datetime.datetime.combine(context_today(), datetime.time(23,59,59)))]"/>
+				<field name="lot_id" domain="['|',('expiration_date','&gt;', datetime.datetime.combine(context_today(), datetime.time(23,59,59))),('expiration_date','=',False),('product_qty','>' ,0),('product_id','=',product_id)]"/>
 				<field name="expiry_date" force_save="1" readonly="1"/>
 			</xpath>
 			<xpath expr="//field[@name='order_line']/form/group/group/field[@name='price_unit']" position="after">
-				<field name="lot_id" domain="[('expiration_date','&gt;', datetime.datetime.combine(context_today(), datetime.time(23,59,59)))]"/>
+				<field name="lot_id" domain="['|',('expiration_date','&gt;', datetime.datetime.combine(context_today(), datetime.time(23,59,59))),('expiration_date','=',False),('product_qty','>' ,0),('product_id','=',product_id)]"/>
 				<field name="expiry_date" readonly="1"/>
 			</xpath>
 			<xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="replace">
