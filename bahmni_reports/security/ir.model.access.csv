@@ -1,3 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_product_reorder_list,bahmni_reports.product_reorder_list,model_product_reorder_list,base.group_user,1,1,1,1
 access_sale_discount_head_statement,bahmni_reports.sale_discount_head_statement,model_sale_discount_head_statement,base.group_user,1,1,1,1
+access_purchase_register,bahmni_reports.purchase_register,model_purchase_register,base.group_user,1,1,1,1
