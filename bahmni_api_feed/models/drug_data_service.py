@@ -42,7 +42,8 @@ class DrugDataService(models.Model):
     @api.model
     def create_or_update_drug(self, vals):
         '''Method for creating/updating a new product under drug category'''
-        products = self.env['product.product'].search([('uuid', '=', vals.get("uuid"))])
+        products = self.env['product.product'].with_context({"active_test": False}).\
+            search([('uuid', '=', vals.get("uuid"))])
         updated_drug = self._fill_drug_object(vals, products.ids)
         if products:
             product = self.env['product.product'].browse(products.ids[0:1])
