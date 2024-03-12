@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>   
+    
+    <record id="product_exp_report_form_view_new" model="ir.ui.view">
+	<field name="name">Product Expiration Register</field>
+	<field name="model">product.expiration.register</field>
+	<field name="type">form</field>
+	<field name="arch" type="xml">
+	    <form string="Product Expiration Register"> 
+	    <header>
+		<h5 style="text-align:center;font-size: 1.5em;"> Product Expiration Register </h5>
+	    </header> 
+	    <group>    
+		<group>
+		    <field name="date" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1" />
+		    <field name="expiry_ageing" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1"/>		    
+		</group>
+		<group>
+		    <field name="product_id"  widget="many2many_tags"/>
+		    
+		</group>
+		<group>
+		</group>
+		<group>
+		<button name="print_report" type="object" string="Generate" class="oe_highlight"/>
+		</group>
+	    </group>
+	    
+	    
+	    
+	    <notebook>
+
+	    <page string="Entry Info">
+	    <group>
+		<group>		    			
+		    <field name="generate_user_id"/>	
+		</group>
+		<group>		    			
+		    <field name="generate_date"/>	
+		</group>
+	    </group>
+	    </page>
+	    </notebook>
+	    </form>
+	</field>
+    </record>
+        
+    <record id="action_product_exp_report_new" model="ir.actions.act_window">
+	<field name="name">Product Expiration Register</field>
+	<field name="res_model">product.expiration.register</field>
+	<field name="view_mode">form</field>
+    </record>   
+    
+    <menuitem id="menu_product_exp_new" name="Product Expiration Register" parent="bahmni_reports.menu_expiry_config" action="action_product_exp_report_new" sequence="1"/>	
+        
+</odoo>
