@@ -28,9 +28,7 @@ class SaleOrderLine(models.Model):
     
     @api.onchange('product_uom_qty')
     def onchange_product_uom_qty(self):
-        if self.product_uom_qty:
-            res_config = self.env['res.config.settings'].search([],order='id desc',limit=1)
-            
+        if self.product_uom_qty:           
             if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.sale_price_markup')) == True:
                 self.price_unit = self.lot_id.sale_price if self.lot_id.sale_price > 0.0 else self.product_id.lst_price 
             else:
