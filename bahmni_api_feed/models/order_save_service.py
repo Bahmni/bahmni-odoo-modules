@@ -379,7 +379,11 @@ class OrderSaveService(models.Model):
                 'lot_id': prod_lot.id if prod_lot else False,
                 'expiry_date': prod_lot.expiration_date if prod_lot else False,
             }
-           
+            
+            if prod_lot != None:
+                if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.sale_price_markup')) == True:
+                    sale_order_line['price_unit'] = prod_lot.sale_price if prod_lot.sale_price > 0.0 else sale_order_line['price_unit']
+            
             sale_obj = self.env['sale.order'].browse(sale_order)
             sale_line = sale_order_line_obj.create(sale_order_line)
             
@@ -394,7 +398,7 @@ class OrderSaveService(models.Model):
                     uom = prod_obj.uom_id.id
                 )
                 price = self.env['account.tax']._fix_tax_included_price_company(sale_line._get_display_price(), prod_obj.taxes_id, sale_line.tax_id, sale_line.company_id)
-                sale_line.price_unit = price
+                
 
             if product_uom_qty != order['quantity']:
                 order['quantity'] = order['quantity'] - product_uom_qty
