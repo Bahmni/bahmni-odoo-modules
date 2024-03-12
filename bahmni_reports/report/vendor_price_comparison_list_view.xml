@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>   
+    
+    <record id="vendor_price_comparison_report_form_view_new" model="ir.ui.view">
+	<field name="name">Vendor Price Comparison Register</field>
+	<field name="model">vendor.price.comparison.list</field>
+	<field name="type">form</field>
+	<field name="arch" type="xml">
+	    <form string="Vendor Price Comparison Register">  
+	    <header>
+		<h5 style="text-align:center;font-size: 1.5em;"> Vendor Price Comparison Register </h5>
+	    </header>  
+	    <group>    
+		<group>
+		    <field name="from_date" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1" />
+		    <field name="vendor_id"  widget="many2many_tags"/>	    
+		</group>
+		<group>
+		    <field name="to_date" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1" />
+		    <field name="product_id"  widget="many2many_tags"/>
+		    
+		</group>
+		<group>
+		</group>
+		<group>
+		    <button name="print_report" type="object" string="Generate" class="oe_highlight"/>
+		</group>		
+	    </group>	    
+	    
+	    <notebook>
+
+	    <page string="Entry Info">
+	    <group>
+		<group>		    			
+		    <field name="generate_user_id"/>	
+		</group>
+		<group>		    			
+		    <field name="generate_date"/>	
+		</group>
+	    </group>
+	    </page>
+	    </notebook>
+	    </form>
+	</field>
+    </record>
+        
+    <record id="action_vendor_price_comparison_report" model="ir.actions.act_window">
+	<field name="name">Vendor Price Comparison Register</field>
+	<field name="res_model">vendor.price.comparison.list</field>
+	<field name="view_mode">form</field>
+    </record>   
+    
+    <menuitem id="menu_vendor_price_comparison" name="Vendor Price Comparison Register" parent="bahmni_reports.menu_purchase_config" action="action_vendor_price_comparison_report" sequence="8"/>	
+        
+</odoo>
