@@ -54,6 +54,6 @@
 	<field name="view_mode">form</field>
     </record>   
     
-    <menuitem id="menu_product_reorder_new" name="Product Reorder List" parent="bahmni_reports.menu_stock_report_masters" action="action_product_reorder_report_new" sequence="4"/>	
+    <menuitem id="menu_product_reorder_new" name="Product Reorder List" parent="bahmni_reports.menu_purchase_config" action="action_product_reorder_report_new" sequence="1"/>	
         
 </odoo>

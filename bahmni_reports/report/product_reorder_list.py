@@ -13,7 +13,8 @@ from odoo.tools import date_utils
 class ProductReorderList(models.Model):   
     _name = 'product.reorder.list'
     _order = 'date desc'
-
+    
+    name = fields.Char(string="Report Name" , default='Product Reorder List')
     date = fields.Date('As On Date',required=True,default=lambda * a: time.strftime('%Y-%m-%d'))
     status = fields.Selection([('all','All'),('available','Stock Available'),('reorder','Order To Be Placed'),('nil','No Min Stock & Reorder Rule')],'Status',default="all")
     product_id = fields.Many2many('product.product','pro_reorder_reports','reports_id','product_id','Drugs Name',domain=[('active', '=', True),('type','=','product')])
@@ -103,7 +104,7 @@ class ProductReorderList(models.Model):
                     product_min_qty = reorder_data.product_min_qty
                     qty_to_order = reorder_data.qty_to_order
                     supplier_name = reorder_data.supplier_id.partner_id.name if reorder_data.supplier_id else '-'
-                    if reorder_data.qty_on_hand > reorder_data.product_min_qty:
+                    if reorder_data.qty_on_hand >= reorder_data.product_min_qty:
                         status = 'Stock Available'                    
                     elif reorder_data.qty_on_hand < reorder_data.product_min_qty:
                         status = 'Order To Be Placed'
