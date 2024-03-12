@@ -32,7 +32,6 @@
         'report/purchase_return_register_view.xml',
         'report/vendor_price_comparison_list_view.xml',
         'report/location_wise_drug_movement_view.xml',
-        'report/location_based_product_return_view.xml',
         'report/active_drug_statement_view.xml',
         'security/ir.model.access.csv',        
         'report/product_reorder_list_view.xml',

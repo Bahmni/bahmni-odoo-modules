@@ -6,5 +6,4 @@ from . import expired_drugs_list
 from . import purchase_return_register
 from . import vendor_price_comparison_list
 from . import location_wise_drug_movement
-from . import location_based_product_return
 from . import active_drug_statement
