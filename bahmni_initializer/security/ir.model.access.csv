@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+bahmni_initializer.access_address_seed,access_address_seed,bahmni_initializer.model_address_seed,base.group_user,1,1,1,1
