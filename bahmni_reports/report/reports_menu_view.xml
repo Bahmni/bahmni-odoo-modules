@@ -5,7 +5,41 @@
     <menuitem id="stock_report_menu_root" name="Reports" web_icon="crm,static/description/icon.svg" sequence="31"/>
 
     <menuitem id="menu_stock_report_masters" name="Custom Reports" parent="bahmni_reports.stock_report_menu_root" sequence="1"/>
-
+    
+    <menuitem
+        id="menu_stock_config"
+        name="Stock Reports"
+        parent="bahmni_reports.menu_stock_report_masters"
+        sequence="1"
+    />
+    
+    <menuitem
+        id="menu_expiry_config"
+        name="Expiry Reports"
+        parent="bahmni_reports.menu_stock_report_masters"
+        sequence="2"
+    />
+    
+    <menuitem
+        id="menu_purchase_config"
+        name="Purchase Reports"
+        parent="bahmni_reports.menu_stock_report_masters"
+        sequence="3"
+    />
+    
+    <menuitem
+        id="menu_sale_config"
+        name="Sale Reports"
+        parent="bahmni_reports.menu_stock_report_masters"
+        sequence="4"
+    />
+    
+    <menuitem
+        id="menu_purchase_return_config"
+        name="Product Return Reports"
+        parent="bahmni_reports.menu_stock_report_masters"
+        sequence="5"
+    />
 
 
 
