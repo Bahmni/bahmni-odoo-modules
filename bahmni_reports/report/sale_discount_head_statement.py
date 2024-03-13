@@ -14,11 +14,12 @@ from odoo.tools import date_utils
 class SaleDiscountHeadStatement(models.Model):   
 	_name = 'sale.discount.head.statement'
 
+	name = fields.Char(string="Report Name" , default='Sales Discount Statement')
 	from_date = fields.Date('From Date',default=lambda * a: time.strftime('%Y-%m-%d'))
 	to_date = fields.Date('To Date',default=lambda * a: time.strftime('%Y-%m-%d'))
 	report_type = fields.Selection([('summary', 'Discount Head Wise'),('details', 'Customer Wise'),('order', 'Order Wise')], 
 				  string='Report Type', widget='selection',default='summary')
-	discount_head_id = fields.Many2many('account.account','sale_discount_head_statement_reports','reports_id','discount_id','Discount Account Head',domain=[('account_type', '=', 'income_other')])
+	discount_head_id = fields.Many2many('account.account','sale_discount_head_statement_reports','reports_id','discount_id','Discount Head',domain=[('account_type', '=', 'income_other')])
 	
 	generate_date = fields.Datetime('Generate Date', default=time.strftime('%Y-%m-%d %H:%M:%S'), readonly=True)
 	generate_user_id = fields.Many2one('res.users', 'Generate By', default=lambda self: self.env.user.id, readonly=True)    

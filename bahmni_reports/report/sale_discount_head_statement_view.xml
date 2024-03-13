@@ -54,6 +54,6 @@
 	<field name="view_mode">form</field>
     </record>   
     
-    <menuitem id="menu_sale_discount_head_statement" name="Sales Discount Statement" parent="bahmni_reports.menu_stock_report_masters" action="action_sale_discount_head_statement_report" sequence="15"/>	
+    <menuitem id="menu_sale_discount_head_statement" name="Sales Discount Statement" parent="bahmni_reports.menu_sale_config" action="action_sale_discount_head_statement_report" sequence="1"/>	
         
 </odoo>
