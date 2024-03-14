@@ -395,11 +395,8 @@ class OrderSaveService(models.Model):
                     uom = prod_obj.uom_id.id
                 )
                 price = self.env['account.tax']._fix_tax_included_price_company(sale_line._get_display_price(), prod_obj.taxes_id, sale_line.tax_id, sale_line.company_id)
-                if prod_lot != None:
-                    if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.sale_price_markup')) == True:
-                        sale_line.price_unit = prod_lot.sale_price if prod_lot.sale_price > 0.0 else sale_line.price_unit
-                    else:
-                        sale_line.price_unit = price if price > 0.0 else sale_line.price_unit
+                if prod_lot != None and bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.sale_price_markup')) == True:
+                    sale_line.price_unit = prod_lot.sale_price if prod_lot.sale_price > 0.0 else sale_line.price_unit
                 else:
                     sale_line.price_unit = price if price > 0.0 else sale_line.price_unit
 
