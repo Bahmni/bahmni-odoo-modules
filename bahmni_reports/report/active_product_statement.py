@@ -14,13 +14,13 @@ from datetime import datetime,date, timedelta
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
-class ActiveDrugStatement(models.Model):   
-	_name = 'active.drug.statement'
+class ActiveProductStatement(models.Model):   
+	_name = 'active.product.statement'
 
 	name = fields.Char(string="Report Name" , default='Active Product Statement')
 	from_date = fields.Date('From Date',default=lambda * a: time.strftime('%Y-%m-%d'))
 	to_date = fields.Date('To Date',default=lambda * a: time.strftime('%Y-%m-%d'))
-	product_id = fields.Many2many('product.product','active_drug_statement_product_reports','reports_id','product_id','Product Name',domain=[('active', '=', True),('type','=','product')])
+	product_id = fields.Many2many('product.product','active_product_statement_product_reports','reports_id','product_id','Product Name',domain=[('active', '=', True),('type','=','product')])
 	
 	generate_date = fields.Datetime('Generate Date', default=time.strftime('%Y-%m-%d %H:%M:%S'), readonly=True)
 	generate_user_id = fields.Many2one('res.users', 'Generate By', default=lambda self: self.env.user.id, readonly=True)    
@@ -41,7 +41,7 @@ class ActiveDrugStatement(models.Model):
 			}
 			return {
 				'type': 'ir.actions.report',
-				'data': {'model': 'active.drug.statement',
+				'data': {'model': 'active.product.statement',
 						 'options': json.dumps(data,
 											   default=date_utils.json_default),
 						 'output_format': 'xlsx',
@@ -53,7 +53,7 @@ class ActiveDrugStatement(models.Model):
 	def get_xlsx_report(self, data, response):
 		"""this is used to print the report of all records"""        
 		
-		rec_obj = self.env['active.drug.statement'].search([('id', '=', data['self_rec'])])
+		rec_obj = self.env['active.product.statement'].search([('id', '=', data['self_rec'])])
 		current_datetime = datetime.now() + timedelta(hours=5, minutes=30)
 		
 		output = io.BytesIO()
