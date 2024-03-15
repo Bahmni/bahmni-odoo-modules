@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>   
+    
+    <record id="location_wise_drug_movement_report_form_view_new" model="ir.ui.view">
+	<field name="name">Location Wise Product Movement Register</field>
+	<field name="model">location.wise.drug.movement</field>
+	<field name="type">form</field>
+	<field name="arch" type="xml">
+	    <form string="Location Wise Product Movement Register">  
+	    <header>
+		<h5 style="text-align:center;font-size: 1.5em;"> Location Wise Product Movement Register </h5>
+	    </header>  
+	    <group>    
+		<group>
+		    <field name="from_date" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1" />
+		    <field name="source_location_id" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1"/>		    
+		    <field name="dest_location_id"/>	
+		
+		</group>
+		<group>
+		    <field name="to_date" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1" />
+		    <field name="product_id"  widget="many2many_tags"/>
+		    
+		</group>
+		<group>
+		</group>
+		<group>
+		    <button name="print_report" type="object" string="Generate" class="oe_highlight"/>
+		</group>		
+	    </group>	    
+	    
+	    <notebook>
+
+	    <page string="Entry Info">
+	    <group>
+		<group>		    			
+		    <field name="generate_user_id"/>	
+		</group>
+		<group>		    			
+		    <field name="generate_date"/>	
+		</group>
+	    </group>
+	    </page>
+	    </notebook>
+	    </form>
+	</field>
+    </record>
+        
+    <record id="action_location_wise_drug_movement_report" model="ir.actions.act_window">
+	<field name="name">Location Wise Product Movement Register</field>
+	<field name="res_model">location.wise.drug.movement</field>
+	<field name="view_mode">form</field>
+    </record>   
+    
+    <menuitem id="menu_location_wise_drug_movement" name="Location Wise Product Movement Register" parent="bahmni_reports.menu_stock_config" action="action_location_wise_drug_movement_report" sequence="2"/>	
+        
+</odoo>
