@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>   
+    
+    <record id="active_product_statement_report_form_view_new" model="ir.ui.view">
+	<field name="name">Active Product Statement</field>
+	<field name="model">active.product.statement</field>
+	<field name="type">form</field>
+	<field name="arch" type="xml">
+	    <form string="Active Product Statement">  
+	    <header>
+		<h5 style="text-align:center;font-size: 1.5em;"> Active Product Statement </h5>
+	    </header>  
+	    <group>    
+		<group>
+		    <field name="from_date" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;"  required="1" />
+		    <field name="product_id"  widget="many2many_tags"/>
+		    
+		</group>
+		<group>
+		    <field name="to_date" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" widget="date" required="1" />
+
+		</group>
+		<group>
+		</group>
+		<group>
+		    <button name="print_report" type="object" string="Generate" class="oe_highlight"/>
+		</group>		
+	    </group>	    
+	    
+	    <notebook>
+
+	    <page string="Entry Info">
+	    <group>
+		<group>		    			
+		    <field name="generate_user_id"/>	
+		</group>
+		<group>		    			
+		    <field name="generate_date"/>	
+		</group>
+	    </group>
+	    </page>
+	    </notebook>
+	    </form>
+	</field>
+    </record>
+        
+    <record id="action_active_product_statement_report" model="ir.actions.act_window">
+	<field name="name">Active Product Statement List</field>
+	<field name="res_model">active.product.statement</field>
+	<field name="view_mode">form</field>
+    </record>   
+    
+    <menuitem id="menu_active_product_statement" name="Active Product Statement" parent="bahmni_reports.menu_expiry_config" action="action_active_product_statement_report" sequence="3"/>	
+        
+</odoo>
