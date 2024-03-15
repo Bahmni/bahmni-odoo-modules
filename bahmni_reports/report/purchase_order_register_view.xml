@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="purchase_register_form_view" model="ir.ui.view">
+        <field name="name">Bahmni Reports</field>
+        <field name="model">purchase.register</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Purchase Order Register">
+            <header>
+                  <h5 style="text-align:center;font-size: 1.5em;"> Purchase Order Register </h5>
+            </header>
+            <group>
+                <group>
+                    <field name="from_date" required="1"
+                       style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;"/>
+                    <field name="tax_type" required="1" 
+                       style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;"/>
+                    <field name="drug_ids"  widget="many2many_tags"/>
+                </group>
+                <group>
+                    <field name="to_date" required="1" widget="custom_date"
+                       style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;"/>
+                    <field name="vendor_ids"  widget="many2many_tags"/>
+                    <button name="print_report_button" type="object" string="Generate" class="oe_highlight"/>
+                </group>
+            </group>
+
+            <notebook>
+
+            <page string="Entry Info">
+            <group>
+                <group>
+                    <field name="generate_user_id"/>
+                </group>
+                <group>
+                    <field name="generate_date"/>
+                </group>
+            </group>
+            </page>
+            </notebook>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_purchase_register" model="ir.actions.act_window">
+        <field name="name">Bahmni Reports</field>
+        <field name="res_model">purchase.register</field>
+        <field name="view_mode">form</field>
+    </record>
+
+
+    <menuitem id="menu_purchase_register" name="Purchase Order Register" parent="bahmni_reports.menu_purchase_config" action="action_purchase_register" sequence="2"/>
+
+
+</odoo>
