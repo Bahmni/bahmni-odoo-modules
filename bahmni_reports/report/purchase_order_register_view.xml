@@ -28,8 +28,6 @@
                 </group>
             </group>
 
-            <!--<button name="produce_xls" type="object" string="Generate" states="draft" class="oe_highlight"/>-->
-
             <notebook>
 
             <page string="Entry Info">
