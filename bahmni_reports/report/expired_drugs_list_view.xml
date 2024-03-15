@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>   
     
-    <record id="product_expired_drugs_report_form_view_new" model="ir.ui.view">
+    <record id="product_expired_product_report_form_view_new" model="ir.ui.view">
 	<field name="name">Expired Product List</field>
-	<field name="model">expired.drugs.list</field>
+	<field name="model">expired.product.list</field>
 	<field name="type">form</field>
 	<field name="arch" type="xml">
 	    <form string="Expired Product List">  
@@ -47,12 +47,12 @@
 	</field>
     </record>
         
-    <record id="action_product_expired_drugs_report_new" model="ir.actions.act_window">
+    <record id="action_product_expired_product_report_new" model="ir.actions.act_window">
 	<field name="name">Expired Product List</field>
-	<field name="res_model">expired.drugs.list</field>
+	<field name="res_model">expired.product.list</field>
 	<field name="view_mode">form</field>
     </record>   
     
-    <menuitem id="menu_product_expired_drugs_new" name="Expired Product List" parent="bahmni_reports.menu_expiry_config" action="action_product_expired_drugs_report_new" sequence="2"/>	
+    <menuitem id="menu_product_expired_product_new" name="Expired Product List" parent="bahmni_reports.menu_expiry_config" action="action_product_expired_product_report_new" sequence="2"/>	
         
 </odoo>

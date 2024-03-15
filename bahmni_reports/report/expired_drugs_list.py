@@ -11,13 +11,13 @@ import io
 import json
 from odoo.tools import date_utils
 
-class ExpiredDrugsList(models.Model):   
-	_name = 'expired.drugs.list'
+class ExpiredProductList(models.Model):   
+	_name = 'expired.product.list'
 	
 	name = fields.Char(string="Report Name" , default='Expired Product List')
 	from_date = fields.Date('From Date',default=lambda * a: time.strftime('%Y-%m-%d'))
 	to_date = fields.Date('To Date',default=lambda * a: time.strftime('%Y-%m-%d'))
-	product_id = fields.Many2many('product.product','expired_drugs_reports','reports_id','product_id','Product Name',domain=[('active', '=', True),('type','=','product')])
+	product_id = fields.Many2many('product.product','expired_product_reports','reports_id','product_id','Product Name',domain=[('active', '=', True),('type','=','product')])
 	location_id = fields.Many2one('stock.location', 'Location Name',domain=[('active', '=', True),('usage', '=', 'internal')])  
 	
 	generate_date = fields.Datetime('Generate Date', default=time.strftime('%Y-%m-%d %H:%M:%S'), readonly=True)
@@ -36,7 +36,7 @@ class ExpiredDrugsList(models.Model):
 			}
 			return {
 				'type': 'ir.actions.report',
-				'data': {'model': 'expired.drugs.list',
+				'data': {'model': 'expired.product.list',
 						 'options': json.dumps(data,
 											   default=date_utils.json_default),
 						 'output_format': 'xlsx',
@@ -48,7 +48,7 @@ class ExpiredDrugsList(models.Model):
 	def get_xlsx_report(self, data, response):
 		"""this is used to print the report of all records"""        
 		
-		rec_obj = self.env['expired.drugs.list'].search([('id', '=', data['self_rec'])])
+		rec_obj = self.env['expired.product.list'].search([('id', '=', data['self_rec'])])
 		current_datetime = datetime.now() + timedelta(hours=5, minutes=30)
 		
 		output = io.BytesIO()
