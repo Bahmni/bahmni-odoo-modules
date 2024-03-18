@@ -18,9 +18,9 @@ COPY community_modules/report_pdf_options ${ADDON_PATH}/report_pdf_options/
 COPY community_modules/stock_picking_filter_lot ${ADDON_PATH}/stock_picking_filter_lot
 COPY community_modules/br_custom_list_view ${ADDON_PATH}/br_custom_list_view
 COPY openerp7_data_import ${ADDON_PATH}/openerp7_data_import/
-COPY package/resources/data/address.seed.csv ${ADDON_PATH}/bahmni_initializer/data/
 COPY bahmni_reports ${ADDON_PATH}/bahmni_reports
-
+COPY package/resources/data/address.seed.csv ${ADDON_PATH}/bahmni_initializer/data/
+COPY package/resources/data/order_type.xml ${ADDON_PATH}/bahmni_initializer/data/
 RUN pip3 install python-decouple
 
 CMD ["odoo", "-u", "all", "-i", "sale_management,purchase,stock,point_of_sale,l10n_generic_coa,bahmni_account,bahmni_product,bahmni_api_feed,bahmni_stock,bahmni_purchase,bahmni_address_mapping,bahmni_sale,restful_api,bahmni_reports", "--without-demo", "-d odoo"]
