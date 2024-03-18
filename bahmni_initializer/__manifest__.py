@@ -12,10 +12,11 @@ Bahmni Initializer
     'website': "https://www.yourcompany.com",
     'category': 'Services',
     'license': 'LGPL-3',
-    'depends': ['base','bahmni_address_mapping','bahmni_api_feed'],
+    'depends': ['base','bahmni_address_mapping','bahmni_product','bahmni_api_feed'],
     'data': [
         'security/ir.model.access.csv',
         'data/address.seed.csv',
+        'data/uom_seed.xml'
         'data/order_type.xml'
     ],
     'demo': [],
