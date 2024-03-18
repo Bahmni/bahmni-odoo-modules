@@ -20,6 +20,7 @@ COPY community_modules/br_custom_list_view ${ADDON_PATH}/br_custom_list_view
 COPY openerp7_data_import ${ADDON_PATH}/openerp7_data_import/
 COPY bahmni_reports ${ADDON_PATH}/bahmni_reports
 COPY package/resources/data/address.seed.csv ${ADDON_PATH}/bahmni_initializer/data/
+COPY package/resources/data/uom_seed.xml ${ADDON_PATH}/bahmni_initializer/data/
 COPY package/resources/data/order_type.xml ${ADDON_PATH}/bahmni_initializer/data/
 RUN pip3 install python-decouple
 

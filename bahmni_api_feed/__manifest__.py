@@ -21,7 +21,6 @@ Bahmni API Feed
         'views/res_users_view.xml',
         'data/mrs_person_attributes_data.xml',
         'views/menus.xml',
-        'data/sale_shop.xml',
         'data/syncable_units_mapping.xml'
     ],
     'demo': [],
