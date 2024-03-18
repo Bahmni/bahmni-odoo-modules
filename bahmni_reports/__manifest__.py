@@ -35,6 +35,9 @@
         'report/active_product_statement_view.xml',
         'security/ir.model.access.csv',        
         'report/product_reorder_list_view.xml',
+        'report/stock_report_view.xml',
+        'report/stock_report_qweb.xml',
+        'report/stock_report_template.xml',
  
     ],
     "qweb": [],

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="stock_report_template">
+           <t t-call="web.html_container">
+               <t t-foreach="docs" t-as="o">
+                   <t t-call="web.external_layout">
+                          <div class="page">
+                             <head>
+				<style>
+				  .report_details_left {
+                                         border: none;
+				  }
+				  .report_details_right {
+                                         margin-left: 68%;
+                                         margin-top: -8%;
+                                         border: none;
+				  }
+				  .report_table {
+                                         margin-top: 3%;
+				  }
+				  th,td,tbody {
+                                    border: 2px solid black;
+				  }
+				  th {
+				    text-align: center; /* Align text/content in the center */
+				    padding: 8px;
+				  }
+                                  h5{
+                                     text-align : center;
+                                     font-weight: bold;
+                                      }
+				</style>
+                              </head>
+                             <div class="oe_structure"/>
+                             </div>
+                               <div>
+                                       <h5><t t-esc="o.print_report()['data']['company_name']"/>,<t t-esc="o.print_report()['data']['company_street']"/>,<t t-esc="o.print_report()['data']['company_state']"/></h5><br></br>
+                                       <t t-if="o.report_type == 'summary'">
+                                          <h5>Stock Statement - Summary</h5>
+                                       </t>
+                                       <t t-if="o.report_type == 'details'">
+                                          <h5>Stock Statement - Details</h5>
+                                       </t>
+                               </div>
+                               <div>
+                                   <div class="report_details_left">
+                                       <table style="border: none;">
+                                        <tbody style="border: none;">
+                                         <tr style="border: none;">
+                                             <th style="border: none;text-align: left;">From Date</th>
+                                             <th style="border: none;">:</th>
+                                             <td style="border: none;text-align: left;"><span t-esc="o.print_report()['data']['from_date']"></span></td>
+                                         </tr>
+                                         <tr style="border: none;">
+                                             <th style="border: none;text-align: left;">Location Name</th>
+                                             <th style="border: none;">:</th>
+                                             <td style="border: none;text-align: left;"><span t-esc="o.print_report()['data']['location_name']"></span></td>
+                                         </tr>
+                                         <tr style="border: none; text-align: left;">
+                                             <th style="border: none;">Report Taken By</th>
+                                             <th style="border: none;">:</th>
+                                             <td style="border: none;text-align: left;"><span t-esc="o.print_report()['data']['report_taken_by']"></span></td>
+                                         </tr>
+                                        </tbody>
+                                       </table>
+                                   </div>
+                                   <div class="report_details_right">
+                                       <table style="border: none;">
+                                        <tbody style="border: none;">
+                                         <tr style="border: none;">
+                                             <th style="border: none;text-align: left;">To Date</th>
+                                             <th style="border: none;">:</th>
+                                             <td style="border: none;text-align: left;"><span t-esc="o.print_report()['data']['to_date']"></span></td>
+                                         </tr>
+                                         <tr style="border: none;">
+                                             <th style="border: none;text-align: left;">Drugs</th>
+                                             <th style="border: none;">:</th>
+                                             <td style="border: none;text-align: left;">
+                                              <t t-if="o.report_type == 'details'">
+                                                <span t-esc="o.print_report()['data']['drug_list'][0]"></span><br/>
+                                              </t>
+                                              <t t-if="o.report_type == 'summary'">
+                                                <span t-esc="o.print_report()['data']['drug_count']"></span><br/>
+                                              </t>
+                                             </td>
+                                         </tr>
+                                         <tr style="border: none;">
+                                             <th style="border: none;text-align: left;">Taken Date and Time</th>
+                                             <th style="border: none;">:</th>
+                                             <td style="border: none;text-align: left;"><span t-esc="o.print_report()['data']['taken_date']"></span></td>
+                                         </tr>
+                                        </tbody>
+                                       </table>
+                                   </div>
+                                   <div class="report_table">
+                                      <table style="border: none;">
+                                         <tr style="border: none;">
+                                            <th style="border: none;"></th>
+                                            <th style="border: none;"></th>
+                                            <th style="border: none;"></th>
+				            <t t-if="o.report_type == 'details'">
+                                                <th style="width:5%;"></th>
+                                            </t>
+                                            <th colspan="2" >Opening Stock</th>
+                                            <th colspan="2" >Purchase</th>
+                                            <th colspan="2" >Internal Inward</th>
+                                            <th colspan="2" >Internal Outward</th>
+                                            <th colspan="2" >Issue</th>
+                                            <th colspan="3" >Closing Stock</th>
+                                            <!--<th style="border: none; width:5%; height: 30px;"></th>-->
+                                         </tr>
+                                         <tr>
+                                            <th>S.N</th>
+                                            <t t-if="o.report_type == 'details'">
+                                                <th >Date</th>
+                                            </t>
+                                            <th>Product Name</th>
+                                            <th>UOM</th>
+                                            <th>Qty</th>
+                                            <th>Total Value</th>
+                                            <th>Qty</th>
+                                            <th>Total Value</th>
+                                            <th>Qty</th>
+                                            <th>Total Value</th>
+                                            <th>Qty</th>
+                                            <th>Total Value</th>
+                                            <th>Qty</th>
+                                            <th>Total Value</th>
+                                            <th>Qty</th>
+                                            <th>Total Value</th>
+                                         </tr>
+                                            <t t-set="serial" t-value="1"/>
+                                            <t t-set="grand_total" t-value="0"/>
+                                            <t t-foreach="o.print_report()['data']['drug']" t-as="item">
+                                              <t t-if="item['open_stock_qty'] or item['purchase_qty'] or item['issue_qty'] or item['internal_inward_qty'] or item['internal_outward_qty']">
+						    <tr>
+						      <td style="width:4%; text-align: center;height: 20px;padding-top:10px;padding-bottom:5px;padding-left:10px;padding-right: 10px;">
+						      <t t-esc="serial"/>
+						      </td>
+						      <t t-if="o.report_type == 'details'">
+							<td style="width:20%; text-align: left;height: 20px;padding-top:5px;padding-bottom:5px;padding-left:5px;padding-right: 5px;">
+							   <t t-esc="item['date']"/>
+							</td>
+						      </t>
+						      <td style="width:30%; text-align: left; height: 20px;padding-top:5px;padding-bottom:5px;padding-left:5px;padding-right:5px;">
+						      <t t-esc="item['name']"/>
+						      </td>
+						      <td style="width:5%; text-align: left;height: 20px;padding-top:10px;padding-bottom:5px;padding-left:5px;padding-right: 4px;">
+						      <t t-esc="item['uom']"/>
+						      </td>
+						      <td style="text-align: right; width:5%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:4px;padding-right: 4px;">
+						      <t t-esc="'%.2f'%(item['open_stock_qty'])"/>
+						      </td>
+						      <td style="text-align: right;width:8%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:8px;padding-right: 8px;">
+						      <t t-esc="'%.2f'%(item['open_stock_total'])"/>
+						      </td>
+						      <td style="wtext-align: right;idth:5%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:4px;padding-right: 4px;">
+						      <t t-esc="'%.2f'%(item['purchase_qty'])"/>
+						      </td>
+						      <td style="text-align: right;width:8%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:8px;padding-right: 8px;">
+						      <t t-esc="'%.2f'%(item['purchase_total'])"/>
+						      </td>
+						      <td style="text-align: right;width:5%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:4px;padding-right: 4px;">
+						      <t t-esc="'%.2f'%(item['internal_inward_qty'])"/>
+						      </td>
+						      <td style="text-align: right;width:8%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:8px;padding-right: 8px;">
+						      <t t-esc="'%.2f'%(item['internal_inward_total'])"/>
+						      </td>
+						      <td style="text-align: right;width:5%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:4px;padding-right: 4px;">
+						      <t t-esc="'%.2f'%(item['internal_outward_qty'])"/>
+						      </td>
+						      <td style="text-align: right;width:8%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:8px;padding-right: 8px;">
+						      <t t-esc="'%.2f'%(item['internal_outward_total'])"/>
+						      </td>
+						      <td style="text-align: right;width:5%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:4px;padding-right: 4px;">
+						      <t t-esc="'%.2f'%(item['issue_qty'])"/>
+						      </td>
+						      <td style="text-align: right;width:8%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:8px;padding-right: 8px;">
+						          <t t-esc="'%.2f'%(item['issue_total'])"/>
+						      </td>
+                                                      <t t-set="inward_qty" t-value="item['open_stock_qty'] + item['purchase_qty'] + item['internal_inward_qty']"/>
+                                                      <t t-set="outward_qty" t-value="item['issue_qty'] + item['internal_outward_qty']"/>
+                                                      <t t-set="closing_qty" t-value="inward_qty - outward_qty"/>
+						      <td style="text-align: right;width:5%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:4px;padding-right: 4px;">
+						      <t t-esc="'%.2f'%(closing_qty)"/>
+						      </td>
+                                                      <t t-set="inward_total" t-value="item['open_stock_total'] + item['purchase_total'] + item['internal_inward_total']"/>
+                                                      <t t-set="outward_total" t-value="item['issue_total'] + item['internal_outward_total']"/>
+                                                      <t t-set="closing_total" t-value="inward_total - outward_total"/>
+						      <td style="text-align: right;width:8%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:8px;padding-right: 8px;">
+						      <t t-esc="'%.2f'%(closing_total)"/>
+						      </td>
+                                                       <t t-set="grand_total" t-value="closing_total"/>
+						      <t t-set="serial" t-value="serial+1"/>
+						    </tr>
+						    </t>
+						    </t>
+                                         <tr style="border: none;">
+				            <t t-if="o.report_type != 'details'">
+                                               <th colspan="12" style="border: none; width:2%; height: 5px;"></th>
+                                               <th colspan="2" style="width:5%; height: 5px;">Grand Total</th>
+                                               <th colspan="1" style="width:5%; height: 5px;"><t t-esc="'%.2f'%(grand_total)"/></th>
+				            </t>
+				            <!--<t t-if="o.report_type == 'details'">
+                                               <th colspan="2" style="width:5%; height: 5px;"><t t-esc="'%.2f'%(grand_total)"/></th>
+				            </t>-->
+                                         </tr>
+                                      </table>
+                                   </div>
+                               </div>
+                   </t>
+               </t>
+        </t>
+    </template>
+</odoo>
+

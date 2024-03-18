@@ -8,3 +8,4 @@ access_vendor_price_comparison_list,bahmni_reports.vendor_price_comparison_list,
 access_purchase_return_register,bahmni_reports.purchase_return_register,model_purchase_return_register,base.group_user,1,1,1,1
 access_location_wise_drug_movement,bahmni_reports.location_wise_drug_movement,model_location_wise_drug_movement,base.group_user,1,1,1,1
 access_active_product_statement,bahmni_reports.active_product_statement,model_active_product_statement,base.group_user,1,1,1,1
+access_stock_report,bahmni_reports.stock_report,model_stock_report,base.group_user,1,1,1,1
