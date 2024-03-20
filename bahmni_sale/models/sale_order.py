@@ -113,7 +113,6 @@ class SaleOrder(models.Model):
             partner = order.partner_id
             order.update({
                 'partner_uuid': partner.uuid,
-                'provider_name': self.user_id.partner_id.name,
             })
 
 
