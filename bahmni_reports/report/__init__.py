@@ -7,3 +7,6 @@ from . import purchase_return_register
 from . import vendor_price_comparison_list
 from . import location_wise_drug_movement
 from . import active_product_statement
+from . import stock_report
+from . import purchase_order_inward_list
+

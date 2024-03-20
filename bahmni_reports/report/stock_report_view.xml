@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="stock_report_form_view" model="ir.ui.view">
+        <field name="name">Bahmni Reports</field>
+        <field name="model">stock.report</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Opening Stock and Closing Stock Reports">
+            <header>
+                  <h5 style="text-align:center;font-size: 1.5em;"> Stock Statement </h5>
+            </header>
+            <group>
+                <group>
+                    <field name="location_id" 
+                    style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1"/>
+                    <field name="from_date" required="1"
+                       style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;"/>
+                    <field name="drug_ids"  widget="many2many_tags"/>
+                </group>
+                <group>
+                    <field name="report_type" required="1" 
+                       style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;"/>
+                    <field name="to_date" required="1" widget="custom_date"
+                       style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;"/>
+                    <field name="output_type" required="1"
+                       style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;"/>
+                    <button name="print_report_button" type="object" string="Generate" class="oe_highlight"/>
+                </group>
+            </group>
+
+            <notebook>
+
+            <page string="Entry Info">
+            <group>
+                <group>
+                    <field name="generate_user_id"/>
+                </group>
+                <group>
+                    <field name="generate_date"/>
+                </group>
+            </group>
+            </page>
+            </notebook>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stock_report" model="ir.actions.act_window">
+        <field name="name">Bahmni Reports</field>
+        <field name="res_model">stock.report</field>
+        <field name="view_mode">form</field>
+    </record>
+
+  
+
+    <menuitem id="menu_product_exp_1" name="Stock Statement" parent="bahmni_reports.menu_stock_config" action="action_stock_report" sequence="1"/>
+
+
+</odoo>
