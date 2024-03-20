@@ -60,7 +60,6 @@ class PurchaseOrderInwardList(models.Model):
         format12_a = workbook.add_format({'font_size': 10, 'align': 'center','font_name': 'Calibri', 'border': 1})
         format12_b = workbook.add_format({'font_size': 10, 'align': 'right', 'border': 1,'font_name': 'Calibri'})
         
-        print("dsfsfsdfd")
         product_list = []        
         if len(rec_obj.product_id) == 0:
             product_names = 'All'
@@ -82,9 +81,8 @@ class PurchaseOrderInwardList(models.Model):
         else:
             vendor_names = 'Limited'
         
-        print("ASASSS")
         
-        sheet.merge_range(0, 0, 0, 11,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street + rec_obj.env.user.company_id.state_id.name +"."), format1)
+        sheet.merge_range(0, 0, 0, 11,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street +", "+ rec_obj.env.user.company_id.state_id.name +"."), format1)
         sheet.merge_range(1, 0, 1, 11,'Purchase Order Based Inward Batch List', format1)
         sheet.merge_range(2, 0, 2, 5,"From Date : "+ str(rec_obj.from_date.strftime("%d/%m/%Y")), format11)
         sheet.merge_range(2, 6, 2, 11,"To Date : "+ str(rec_obj.to_date.strftime("%d/%m/%Y")), format11)
@@ -131,7 +129,6 @@ class PurchaseOrderInwardList(models.Model):
             ('partner_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)
         ], order='date_planned asc')
         
-        print("po_order_data_obj",po_order_data_obj)
         
         row_num = 7
         head_row = 7
