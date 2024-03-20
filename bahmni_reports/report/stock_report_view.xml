@@ -8,8 +8,6 @@
             <form string="Opening Stock and Closing Stock Reports">
             <header>
                   <h5 style="text-align:center;font-size: 1.5em;"> Stock Statement </h5>
-                    <!--<button name="print_report" type="object"
-                            string="Print Excel Report" class="oe_highlight"/>-->
             </header>
             <group>
                 <group>
@@ -34,8 +32,6 @@
                     <button name="print_report_button" type="object" string="Generate" class="oe_highlight"/>
                 </group>
             </group>
-
-            <!--<button name="produce_xls" type="object" string="Generate" states="draft" class="oe_highlight"/>-->
 
             <notebook>
 

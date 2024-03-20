@@ -313,7 +313,6 @@ class StockReport(models.Model):
                                        issue.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
                                   'date': days.strftime('%d-%m-%Y')} \
                                   for days in pd.date_range(start=pd.to_datetime(rec.from_date), end=pd.to_datetime(rec.to_date))]}
-            #print("\033[91m %s \033[0m" %(json.dumps(data,default=date_utils.json_default)))
             excel = {
                 'type': 'ir.actions.report',
                 'data': {'model': 'stock.report',
@@ -371,12 +370,12 @@ class StockReport(models.Model):
         grand_total_format_ans.set_align('right')
         if data['report_type'] == 'summary':
             sheet.merge_range(0, 0, 0, 13,
-                          "%s,%s %s"%(data['company_name'],data['company_street'],data['company_state']), format1)
+                          "%s,%s, %s"%(data['company_name'],data['company_street'],data['company_state']), format1)
             sheet.merge_range(1, 0, 1, 13,
                           'Stock Statement - Summary', format1)
         else:
             sheet.merge_range(0, 0, 0, 14,
-                          "%s,%s %s"%(data['company_name'],data['company_street'],data['company_state']), format1)
+                          "%s,%s, %s"%(data['company_name'],data['company_street'],data['company_state']), format1)
             sheet.merge_range(1, 0, 1, 14,
                           'Stock Statement - Details', format1)
         sheet.merge_range(2, 0, 2, 2,

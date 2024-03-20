@@ -201,9 +201,6 @@
                                                <th colspan="2" style="width:5%; height: 5px;">Grand Total</th>
                                                <th colspan="1" style="width:5%; height: 5px;"><t t-esc="'%.2f'%(grand_total)"/></th>
 				            </t>
-				            <!--<t t-if="o.report_type == 'details'">
-                                               <th colspan="2" style="width:5%; height: 5px;"><t t-esc="'%.2f'%(grand_total)"/></th>
-				            </t>-->
                                          </tr>
                                       </table>
                                    </div>
