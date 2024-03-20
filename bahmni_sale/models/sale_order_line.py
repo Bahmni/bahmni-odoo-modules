@@ -90,7 +90,7 @@ class SaleOrderLine(models.Model):
                  if len(already_used_batch_ids) > 0 else [('product_id','=', product_id.id if type(product_id) != list else product_id[0])]
                  
         for prodlot in stock_prod_lot.search(query, order='expiration_date asc'):   
-            if prodlot.expiration_date and prodlot.product_qty:        
+            if prodlot.expiration_date and prodlot.product_qty > 0:        
                 date_lenth = len(str(prodlot.expiration_date))            
                 if len(str(prodlot.expiration_date)) > 20:                
                     formatted_ts = datetime.strptime(str(prodlot.expiration_date), "%Y-%m-%d %H:%M:%S.%f").strftime("%Y-%m-%d %H:%M:%S")
@@ -98,7 +98,7 @@ class SaleOrderLine(models.Model):
                     formatted_ts = datetime.strptime(str(prodlot.expiration_date), "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
                 if(formatted_ts and datetime.strptime(str(formatted_ts), DTF) > datetime.today()):
                     return prodlot
-            elif prodlot.product_qty:
+            elif prodlot.product_qty > 0:
                 return prodlot
             else:
                 pass
