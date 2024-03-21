@@ -63,14 +63,14 @@ class ProductExpirationRegister(models.Model):
         format12_b = workbook.add_format({'font_size': 10, 'align': 'right', 'border': 1,'font_name': 'Calibri'})
         
         product_list = []        
-		if len(rec_obj.product_id) == 0:
-			product_names = 'All'
-		elif len(rec_obj.product_id) <= 3:
-			for product in rec_obj.product_id:
-				product_list.append(product.name)
-			product_names = ', '.join(product_list)
-		else:
-			product_names = 'Limited'
+        if len(rec_obj.product_id) == 0:
+            product_names = 'All'
+        elif len(rec_obj.product_id) <= 3:
+            for product in rec_obj.product_id:
+                product_list.append(product.name)
+            product_names = ', '.join(product_list)
+        else:
+            product_names = 'Limited'
         
         sheet.merge_range(0, 0, 0, 11,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street +", "+ rec_obj.env.user.company_id.state_id.name +"."), format1)
         sheet.merge_range(1, 0, 1, 11,'Product Expiration Register', format1)
