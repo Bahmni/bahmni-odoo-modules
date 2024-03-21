@@ -2,10 +2,18 @@ Accounting Kit V16
 ==================
 * Full accounting kit for Odoo 16 community editions
 
+Note
+============
+This addon module is developed by Cybrosys Technologies, and not by Bahmni. It is being used under the General Public License, Version 3 (LGPL v3).
+
 Installation
 ============
-	- www.odoo.com/documentation/15.0/setup/install.html
-	- Install our custom addon
+To add this module:
+
+1. Update the `Dockerfile` by copying the addon module to the ADDON_PATH.
+        `COPY base_accounting_kit ${ADDON_PATH}/base_accounting_kit`
+    Optionally update the install command to install the addon module during boot.
+2. Build the image.
 
 License
 -------

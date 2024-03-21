@@ -2,10 +2,18 @@ Odoo 16 Budgets Management
 ==========================
 * Budgets Management system for Odoo 16 Community edition
 
+Note
+============
+This addon module is developed by Cybrosys Technologies, and not by Bahmni. It is being used under the General Public License, Version 3 (LGPL v3).
+
 Installation
 ============
-	- www.odoo.com/documentation/16.0/setup/install.html
-	- Install our custom addon
+To add this module:
+
+1. Update the `Dockerfile` by copying the addon module to the ADDON_PATH.
+        `COPY base_account_budget ${ADDON_PATH}/base_account_budget`
+    Optionally update the install command to install the addon module during boot.
+2. Build the image.
 
 License
 -------
