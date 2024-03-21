@@ -93,7 +93,7 @@ class StockReport(models.Model):
                 'report_type': rec.report_type,
                 'report_taken_by': self.env.user.partner_id.name,
                 'taken_date': str(current_datetime.strftime("%d/%m/%Y %H:%M:%S")),
-                'location_name': rec.location_id.name,
+                'location_name': rec.location_id.complete_name,
                 'drug_list': [drug.name for drug in rec.drug_ids],
                 'company_name': rec.env.user.company_id.name,
                 'company_street': rec.env.user.company_id.street,

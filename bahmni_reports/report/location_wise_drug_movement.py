@@ -78,15 +78,15 @@ class LocationWiseDrugMovement(models.Model):
         else:
             product_names = 'Limited'
         
-        sheet.merge_range(0, 0, 0, 8,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street + rec_obj.env.user.company_id.state_id.name +"."), format1)
+        sheet.merge_range(0, 0, 0, 8,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street +", "+ rec_obj.env.user.company_id.state_id.name +"."), format1)
         sheet.merge_range(1, 0, 1, 8,'Location Wise Product Movement Register', format1)
         sheet.merge_range(2, 0, 2, 4,"From Date : "+ str(rec_obj.from_date.strftime("%d/%m/%Y")), format11)
         sheet.merge_range(2, 5, 2, 8,"To Date : "+ str(rec_obj.to_date.strftime("%d/%m/%Y")), format11)
         
-        sheet.merge_range(3, 0, 3, 4,"From Location : "+ str(rec_obj.source_location_id.name if rec_obj.source_location_id.name else 'All'), format11)
+        sheet.merge_range(3, 0, 3, 4,"From Location : "+ str(rec_obj.source_location_id.complete_name if rec_obj.source_location_id.complete_name else 'All'), format11)
         sheet.merge_range(3, 5, 3, 8,"Product : "+product_names, format11)
         
-        sheet.merge_range(4, 0, 4, 8,"Destination Location : "+ str(rec_obj.dest_location_id.name if rec_obj.dest_location_id.name else 'All'), format11)
+        sheet.merge_range(4, 0, 4, 8,"Destination Location : "+ str(rec_obj.dest_location_id.complete_name if rec_obj.dest_location_id.complete_name else 'All'), format11)
         
         sheet.merge_range(5, 0, 5, 4,"Report Taken By  : "+ str(self.env.user.partner_id.name), format11)          
         sheet.merge_range(5, 5, 5, 8,"Taken Date & Time : "+ str(current_datetime.strftime("%d/%m/%Y %H:%M:%S")), format11) 
@@ -147,8 +147,8 @@ class LocationWiseDrugMovement(models.Model):
             sheet.write(row_num, 4, lot_name, format12)
             sheet.write(row_num, 5, "{:.2f}".format(cost_price), format12_b)
             sheet.write(row_num, 6, "{:.2f}".format((data.qty_done * cost_price)), format12_b)
-            sheet.write(row_num, 7, data.location_id.name, format12)
-            sheet.write(row_num, 8, data.location_dest_id.name, format12)
+            sheet.write(row_num, 7, data.location_id.complete_name, format12)
+            sheet.write(row_num, 8, data.location_dest_id.complete_name, format12)
             sheet.write(row_num, 9, ((data.date + timedelta(hours=5, minutes=30)).strftime("%d/%m/%Y")), format12)
             row_num += 1
             total_val += (data.qty_done * cost_price)

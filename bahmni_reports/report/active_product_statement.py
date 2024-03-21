@@ -83,7 +83,7 @@ class ActiveProductStatement(models.Model):
 		else:
 			product_names = 'Limited'
 		
-		sheet.merge_range(0, 0, 0, 8,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street + rec_obj.env.user.company_id.state_id.name +"."), format1)
+		sheet.merge_range(0, 0, 0, 8,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street +", "+ rec_obj.env.user.company_id.state_id.name +"."), format1)
 		sheet.merge_range(1, 0, 1, 8,'Active Product Statement', format1)
 		sheet.merge_range(2, 0, 2, 4,"From Date : "+ str(rec_obj.from_date.strftime("%d/%m/%Y")), format11)
 		sheet.merge_range(2, 5, 2, 8,"To Date : "+ str(rec_obj.to_date.strftime("%d/%m/%Y")), format11)

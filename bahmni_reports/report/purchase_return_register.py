@@ -87,7 +87,7 @@ class PurchaseReturnRegister(models.Model):
             vendor_names = 'Limited'
         
         
-        sheet.merge_range(0, 0, 0, 13,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street + rec_obj.env.user.company_id.state_id.name +"."), format1)
+        sheet.merge_range(0, 0, 0, 13,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street +", "+ rec_obj.env.user.company_id.state_id.name +"."), format1)
         sheet.merge_range(1, 0, 1, 13,'Purchase Return Register', format1)
         sheet.merge_range(2, 0, 2, 5,"From Date : "+ str(rec_obj.from_date.strftime("%d/%m/%Y")), format11)
         sheet.merge_range(2, 6, 2, 13,"To Date : "+ str(rec_obj.to_date.strftime("%d/%m/%Y")), format11)
@@ -117,7 +117,7 @@ class PurchaseReturnRegister(models.Model):
         sheet.set_column('G:G', 15)
         sheet.write(6, 7, "Unit Price", format2)
         sheet.set_column('H:H', 16)        
-        sheet.write(6, 8, "Total Value(Rs)", format2)
+        sheet.write(6, 8, "Total Value", format2)
         sheet.set_column('I:I', 19)
         sheet.write(6, 9, "Serial Number", format2)
         sheet.set_column('J:J', 16)
