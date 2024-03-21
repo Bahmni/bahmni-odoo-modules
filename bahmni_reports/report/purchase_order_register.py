@@ -150,7 +150,7 @@ class PurchaseOrderRegister(models.Model):
         if data['tax_type'] == 'with_tax':
             with_tax = 1
         sheet.merge_range(0, 0, 0, 10 + with_tax,
-                          "%s,%s %s"%(data['company_name'],data['company_street'],data['company_state']), format1)
+                          "%s,%s, %s"%(data['company_name'],data['company_street'],data['company_state']), format1)
 
         sheet.merge_range(1, 0, 1, 10 + with_tax,
                           'Purchase Order Register', format1)

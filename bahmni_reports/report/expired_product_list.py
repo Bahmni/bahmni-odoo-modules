@@ -66,13 +66,23 @@ class ExpiredProductList(models.Model):
 		format12_a = workbook.add_format({'font_size': 10, 'align': 'center','font_name': 'Calibri', 'border': 1})
 		format12_b = workbook.add_format({'font_size': 10, 'align': 'right', 'border': 1,'font_name': 'Calibri'})
 		
-		sheet.merge_range(0, 0, 0, 9,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street + rec_obj.env.user.company_id.state_id.name +"."), format1)
+		product_list = []        
+		if len(rec_obj.product_id) == 0:
+			product_names = 'All'
+		elif len(rec_obj.product_id) <= 3:
+			for product in rec_obj.product_id:
+				product_list.append(product.name)
+			product_names = ', '.join(product_list)
+		else:
+			product_names = 'Limited'
+		
+		sheet.merge_range(0, 0, 0, 9,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street +", "+ rec_obj.env.user.company_id.state_id.name +"."), format1)
 		sheet.merge_range(1, 0, 1, 9,'Expired Product List', format1)
 		sheet.merge_range(2, 0, 2, 5,"From Date : "+ str(rec_obj.from_date.strftime("%d/%m/%Y")), format11)
 		sheet.merge_range(2, 6, 2, 9,"To Date : "+ str(rec_obj.to_date.strftime("%d/%m/%Y")), format11)
 		
-		sheet.merge_range(3, 0, 3, 5,"Location Name : "+ str(rec_obj.location_id.name), format11)
-		sheet.merge_range(3, 6, 3, 9,"Product : All", format11)
+		sheet.merge_range(3, 0, 3, 5,"Location Name : "+ str(rec_obj.location_id.complete_name), format11)
+		sheet.merge_range(3, 6, 3, 9,"Product : "+product_names, format11)
 		
 		sheet.merge_range(4, 0, 4, 5,"Report Taken By  : "+ str(self.env.user.partner_id.name), format11)       
 		
@@ -92,9 +102,9 @@ class ExpiredProductList(models.Model):
 		sheet.set_column('E:E', 10)
 		sheet.write(6, 5, "Qty", format2)
 		sheet.set_column('F:F', 8)
-		sheet.write(6, 6, "Cost Price(Rs)", format2)
+		sheet.write(6, 6, "Cost Price", format2)
 		sheet.set_column('G:G', 15)
-		sheet.write(6, 7, "Total Value(Rs)", format2)
+		sheet.write(6, 7, "Total Value", format2)
 		sheet.set_column('H:H', 16)       
 		sheet.write(6, 8, "Expired Date", format2)
 		sheet.set_column('I:I', 16)
@@ -122,7 +132,7 @@ class ExpiredProductList(models.Model):
 			sheet.write(row_num, 6, "{:.2f}".format(data.lot_id.cost_price), format12_b)
 			sheet.write(row_num, 7, "{:.2f}".format((data.quantity * data.lot_id.cost_price)), format12_b)
 			sheet.write(row_num, 8, ((data.lot_id.expiration_date + timedelta(hours=5, minutes=30)).strftime("%d/%m/%Y")), format12)
-			sheet.write(row_num, 9, rec_obj.location_id.name, format12)                
+			sheet.write(row_num, 9, rec_obj.location_id.complete_name, format12)                
 			
 			row_num += 1
 			total_val += (data.quantity * data.lot_id.cost_price)

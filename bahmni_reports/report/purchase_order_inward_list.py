@@ -138,47 +138,48 @@ class PurchaseOrderInwardList(models.Model):
         
         for data in sorted(po_order_data_obj, key=lambda x: x.date_planned,reverse=False):     
             stock_obj = self.env['stock.move'].search([('purchase_line_id', '=', data.id)])          
-            if stock_obj:        
-                stock_move_obj = self.env['stock.move.line'].search([('move_id', '=', stock_obj.id),('lot_name','!=',False)])
-                if stock_move_obj:
-                    stok_move_len += len(stock_move_obj) -1
-                    if head_row == stok_move_len:
-                        sheet.write(row_num, 0, s_no, format12_a)
-                        sheet.write(row_num, 1, data.order_id.name + " / " + (data.date_planned + timedelta(hours=5, minutes=30)).strftime("%d/%m/%Y"), format12)                        
-                        sheet.write(row_num, 2, data.order_id.partner_id.name, format12)
-                        sheet.write(row_num, 3, data.product_id.product_tmpl_id.name, format12)
-                        sheet.write(row_num, 4, data.product_id.categ_id.name, format12)
-                        sheet.write(row_num, 5, data.product_id.uom_id.name, format12)              
-                    else:
-                        sheet.merge_range(head_row, 0, stok_move_len, 0, s_no, format12_a)
-                        sheet.merge_range(head_row, 1, stok_move_len, 1, data.order_id.name + " / " + (data.date_planned + timedelta(hours=5, minutes=30)).strftime("%d/%m/%Y"), format12)
-                        sheet.merge_range(head_row, 2, stok_move_len, 2, data.order_id.partner_id.name, format12)
-                        sheet.merge_range(head_row, 3, stok_move_len, 3, data.product_id.product_tmpl_id.name, format12)
-                        sheet.merge_range(head_row, 4, stok_move_len, 4, data.product_id.categ_id.name, format12)
-                        sheet.merge_range(head_row, 5, stok_move_len, 5, data.product_id.uom_id.name, format12)
-                    
-                    line_count = 1    
-                    for stock_move_line in stock_move_obj:
-                        if stock_move_line.lot_name:
-                            sheet.write(row_num, 6, line_count, format12_a)
-                            sheet.write(row_num, 7, ((stock_move_line.date + timedelta(hours=5, minutes=30)).strftime("%d/%m/%Y")), format12)
-                            sheet.write(row_num, 8, stock_move_line.lot_name, format12)
-                            sheet.write(row_num, 9, "{:.2f}".format(stock_move_line.qty_done), format12_b)
-                            sheet.write(row_num, 10, "{:.2f}".format(stock_move_line.cost_price), format12_b)                            
-                            sheet.write(row_num, 11, "{:.2f}".format(stock_move_line.qty_done * stock_move_line.cost_price), format12_b)
+            if stock_obj:
+                for stock in stock_obj:        
+                    stock_move_obj = self.env['stock.move.line'].search([('move_id', '=', stock_obj.id),('lot_name','!=',False)])
+                    if stock_move_obj:
+                        stok_move_len += len(stock_move_obj) -1
+                        if head_row == stok_move_len:
+                            sheet.write(row_num, 0, s_no, format12_a)
+                            sheet.write(row_num, 1, data.order_id.name + " / " + (data.date_planned + timedelta(hours=5, minutes=30)).strftime("%d/%m/%Y"), format12)                        
+                            sheet.write(row_num, 2, data.order_id.partner_id.name, format12)
+                            sheet.write(row_num, 3, data.product_id.product_tmpl_id.name, format12)
+                            sheet.write(row_num, 4, data.product_id.categ_id.name, format12)
+                            sheet.write(row_num, 5, data.product_id.uom_id.name, format12)              
                         else:
-                            pass
+                            sheet.merge_range(head_row, 0, stok_move_len, 0, s_no, format12_a)
+                            sheet.merge_range(head_row, 1, stok_move_len, 1, data.order_id.name + " / " + (data.date_planned + timedelta(hours=5, minutes=30)).strftime("%d/%m/%Y"), format12)
+                            sheet.merge_range(head_row, 2, stok_move_len, 2, data.order_id.partner_id.name, format12)
+                            sheet.merge_range(head_row, 3, stok_move_len, 3, data.product_id.product_tmpl_id.name, format12)
+                            sheet.merge_range(head_row, 4, stok_move_len, 4, data.product_id.categ_id.name, format12)
+                            sheet.merge_range(head_row, 5, stok_move_len, 5, data.product_id.uom_id.name, format12)
                         
-                        row_num += 1
-                        line_count += 1
-                        total_val += (stock_move_line.qty_done * stock_move_line.cost_price)
+                        line_count = 1    
+                        for stock_move_line in stock_move_obj:
+                            if stock_move_line.lot_name:
+                                sheet.write(row_num, 6, line_count, format12_a)
+                                sheet.write(row_num, 7, ((stock_move_line.date + timedelta(hours=5, minutes=30)).strftime("%d/%m/%Y")), format12)
+                                sheet.write(row_num, 8, stock_move_line.lot_name, format12)
+                                sheet.write(row_num, 9, "{:.2f}".format(stock_move_line.qty_done), format12_b)
+                                sheet.write(row_num, 10, "{:.2f}".format(stock_move_line.cost_price), format12_b)                            
+                                sheet.write(row_num, 11, "{:.2f}".format(stock_move_line.qty_done * stock_move_line.cost_price), format12_b)
+                            else:
+                                pass
+                            
+                            row_num += 1
+                            line_count += 1
+                            total_val += (stock_move_line.qty_done * stock_move_line.cost_price)
+                        
+                        stok_move_len +=1           
+                        head_row = stok_move_len            
+                        s_no += 1
                     
-                    stok_move_len +=1           
-                    head_row = stok_move_len            
-                    s_no += 1
-                
-                else:
-                    pass
+                    else:
+                        pass
                 
             else:
                 pass

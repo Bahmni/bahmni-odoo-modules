@@ -97,7 +97,7 @@ class SaleDiscountHeadStatement(models.Model):
 		
 		if rec_obj.report_type == 'summary':
 		
-			sheet.merge_range(0, 0, 0, 3,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street + rec_obj.env.user.company_id.state_id.name +"."), format1)
+			sheet.merge_range(0, 0, 0, 3,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street +", "+ rec_obj.env.user.company_id.state_id.name +"."), format1)
 			sheet.merge_range(1, 0, 1, 3,'Sales Discount Statement - Discount Head Wise', format1)
 			sheet.merge_range(2, 0, 2, 1,"From Date : "+ str(rec_obj.from_date.strftime("%d/%m/%Y")), format11)
 			sheet.merge_range(2, 2, 2, 3,"To Date : "+ str(rec_obj.to_date.strftime("%d/%m/%Y")), format11)  

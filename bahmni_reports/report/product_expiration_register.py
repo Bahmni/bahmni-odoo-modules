@@ -62,11 +62,21 @@ class ProductExpirationRegister(models.Model):
         format12_a = workbook.add_format({'font_size': 10, 'align': 'center', 'border': 1,'font_name': 'Calibri'})
         format12_b = workbook.add_format({'font_size': 10, 'align': 'right', 'border': 1,'font_name': 'Calibri'})
         
-        sheet.merge_range(0, 0, 0, 11,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street + rec_obj.env.user.company_id.state_id.name +"."), format1)
+        product_list = []        
+		if len(rec_obj.product_id) == 0:
+			product_names = 'All'
+		elif len(rec_obj.product_id) <= 3:
+			for product in rec_obj.product_id:
+				product_list.append(product.name)
+			product_names = ', '.join(product_list)
+		else:
+			product_names = 'Limited'
+        
+        sheet.merge_range(0, 0, 0, 11,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street +", "+ rec_obj.env.user.company_id.state_id.name +"."), format1)
         sheet.merge_range(1, 0, 1, 11,'Product Expiration Register', format1)
         sheet.merge_range(2, 0, 2, 5,"As On Date : "+ str(rec_obj.date.strftime("%d/%m/%Y")), format11)
         sheet.merge_range(3, 0, 3, 5,"Report Taken By  : "+ str(self.env.user.partner_id.name), format11)       
-        sheet.merge_range(2, 6, 2, 11,"Drugs : All", format11)
+        sheet.merge_range(2, 6, 2, 11,"Drugs : "+product_names, format11)
         sheet.merge_range(3, 6, 3, 11,"Taken Date & Time : "+ str(current_datetime.strftime("%d/%m/%Y %H:%M:%S")), format11)   
  
         sheet.write(5, 0, "S.No", format2)
