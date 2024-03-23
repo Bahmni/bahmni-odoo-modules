@@ -64,13 +64,6 @@ class StockReport(models.Model):
         vals.update({'generate_date': time.strftime('%Y-%m-%d %H:%M:%S'),'generate_user_id':self.env.user.id})
         return super(StockReport, self).write(vals)
 
-    @api.onchange('drug_ids')
-    def onchange_drug_ids(self):
-        if len(self.drug_ids) > 1 and self.report_type == 'details':
-           raise UserError(_("Unable to choose more than one drug if report type is detail. Kindly choose one drug to proceed further."))
-        if len(self.drug_ids) == 0 and self.report_type == 'details':
-           raise UserError(_("Unable to choose more than one drug if report type is detail. Kindly choose one drug to proceed further."))
-
     @api.onchange('from_date', 'to_date')
     def onchange_date_validations(self):
         if self.from_date > fields.Date.today() or self.to_date > fields.Date.today():
@@ -79,6 +72,10 @@ class StockReport(models.Model):
 
     def print_report(self):
         for rec in self:
+            if len(self.drug_ids) > 1 and self.report_type == 'details':
+                raise UserError(_("Unable to choose more than one drug if report type is detail. Kindly choose one drug to proceed further."))
+            if len(self.drug_ids) == 0 and self.report_type == 'details':
+                raise UserError(_("Kindly choose one drug to proceed further."))
             if rec.drug_ids:
                drug_list = rec.drug_ids
             else:
@@ -370,7 +367,7 @@ class StockReport(models.Model):
         grand_total_format_ans.set_align('right')
         if data['report_type'] == 'summary':
             sheet.merge_range(0, 0, 0, 13,
-                          "%s,%s, %s"%(data['company_name'],data['company_street'],data['company_state']), format1)
+                          "%s, %s, %s"%(data['company_name'],data['company_street'],data['company_state']), format1)
             sheet.merge_range(1, 0, 1, 13,
                           'Stock Statement - Summary', format1)
         else:
@@ -486,7 +483,6 @@ class StockReport(models.Model):
         output.close()
 
     def print_report_button(self):
-        self.onchange_drug_ids()
         if self.output_type == 'excel':
             return self.print_report()
         else:
