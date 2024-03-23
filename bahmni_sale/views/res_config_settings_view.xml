@@ -34,6 +34,19 @@
                             </div>
 
                     </div>
+                    <div class="col-12 col-lg-6 o_setting_box" id="variant_options">
+                            <div class="o_setting_left_pane">
+                                <field name="is_invoice_automated"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for="is_invoice_automated"/>
+                                <div class="text-muted">
+                                    On sale order confirm action invoice will be auto confirmed.
+                                </div>
+                            </div>
+
+                    </div>
+                    
                  </div>
                </div>
            </xpath>
