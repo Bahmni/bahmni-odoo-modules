@@ -148,7 +148,7 @@ class SaleDiscountHeadStatement(models.Model):
 		
 		elif rec_obj.report_type == 'order':
 			
-			sheet.merge_range(0, 0, 0, 7,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street + rec_obj.env.user.company_id.state_id.name +"."), format1)
+			sheet.merge_range(0, 0, 0, 7,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street +", "+ rec_obj.env.user.company_id.state_id.name +"."), format1)
 			sheet.merge_range(1, 0, 1, 7,'Sales Discount Statement - Order Wise', format1)
 			sheet.merge_range(2, 0, 2, 2,"From Date : "+ str(rec_obj.from_date.strftime("%d/%m/%Y")), format11)
 			sheet.merge_range(2, 3, 2, 7,"To Date : "+ str(rec_obj.to_date.strftime("%d/%m/%Y")), format11)  
@@ -221,7 +221,7 @@ class SaleDiscountHeadStatement(models.Model):
 			
 		else:
 			
-			sheet.merge_range(0, 0, 0, 5,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street + rec_obj.env.user.company_id.state_id.name +"."), format1)
+			sheet.merge_range(0, 0, 0, 5,(rec_obj.env.user.company_id.name +", "+ rec_obj.env.user.company_id.street +", "+ rec_obj.env.user.company_id.state_id.name +"."), format1)
 			sheet.merge_range(1, 0, 1, 5,'Sales Discount Statement - Customer Wise', format1)
 			sheet.merge_range(2, 0, 2, 2,"From Date : "+ str(rec_obj.from_date.strftime("%d/%m/%Y")), format11)
 			sheet.merge_range(2, 3, 2, 5,"To Date : "+ str(rec_obj.to_date.strftime("%d/%m/%Y")), format11)  
