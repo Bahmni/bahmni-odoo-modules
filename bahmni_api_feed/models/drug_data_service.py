@@ -73,8 +73,6 @@ class DrugDataService(models.Model):
         drug["list_price"] = list_price
         drug["sale_ok"] = 1
         drug["purchase_ok"] = 1
-        drug["property_stock_production"] = 1
-        drug["property_stock_inventory"] = 1
         return drug
 
     @api.model

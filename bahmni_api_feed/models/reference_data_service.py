@@ -44,8 +44,6 @@ class ReferenceDataService(models.Model):
         data["sale_ok"] = vals.get("is_active")
         data["purchase_ok"] = False
         data["type"] = "service"
-        data["property_stock_inventory"] = 1
-        data["property_stock_production"] = 1
         return data
 
     @api.model
