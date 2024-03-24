@@ -29,6 +29,8 @@
 		    <button name="print_report" type="object" string="Generate" class="oe_highlight"/>
 		</group>
 		<p style="color:blue"> *** Only storable products will be shown in this report </p>
+		<br></br><br></br>
+		<p style="color:blue"> *** If the status is 'No Min Stock &amp; Reorder Rule,' it indicates that the vendor filter has not been applied.</p>
 	    </group>	    
 	    
 	    <notebook>

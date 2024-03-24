@@ -106,9 +106,12 @@ class ProductReorderList(models.Model):
         total_qty =0       
         
         for product_data in sorted(product_obj, key=lambda x: x.name,reverse=False):            
-            if rec_obj.status == 'all':                
-                reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
-                ('supplier_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+            if rec_obj.status == 'all':
+                if rec_obj.vendor_id:                
+                    reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
+                    ('vendor_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+                else:
+                    reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id)])                
                 if reorder_data:
                     qty_on_hand = reorder_data.qty_on_hand
                     lst_price = reorder_data.product_id.lst_price
@@ -142,8 +145,11 @@ class ProductReorderList(models.Model):
                     s_no += 1
             
             elif rec_obj.status == 'available':
-                reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
-                ('supplier_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+                if rec_obj.vendor_id:                
+                    reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
+                    ('vendor_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+                else:
+                    reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id)]) 
                 if reorder_data:
                     if reorder_data.qty_on_hand > reorder_data.product_min_qty:
                         status = 'Stock Available'                        
@@ -166,7 +172,7 @@ class ProductReorderList(models.Model):
             elif rec_obj.status == 'nil':
                 
                 reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
-                ('supplier_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+                ('vendor_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
                 if not reorder_data:                    
                     qty_on_hand = 0
                     lst_price = 0
@@ -190,8 +196,11 @@ class ProductReorderList(models.Model):
                 else:
                     pass
             elif rec_obj.status == 'reorder':
-                reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
-                ('supplier_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+                if rec_obj.vendor_id:                
+                    reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
+                    ('vendor_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+                else:
+                    reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id)]) 
                 if reorder_data: 
                     if reorder_data.qty_on_hand < reorder_data.product_min_qty:
                         status = 'Order To Be Placed'
