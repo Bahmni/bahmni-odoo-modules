@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	
+	<record id="tree_db_details" model="ir.ui.view">
+	    <field name="name">Odoo 10 Data Import</field>
+	    <field name="model">db.details</field>
+	    <field name="arch" type="xml">
+		<tree>
+		    <field name="db_ip"/>
+		    <field name="db_name"/>
+		    <field name="db_uname"/>
+		    <field name="db_pwd" password="True"/>
+		    <field name="db_port"/>
+		</tree>
+	    </field>
+	</record>
+	
+	<record id="form_db_details" model="ir.ui.view">
+	    <field name="name">Odoo 10 Data Import</field>
+	    <field name="model">db.details</field>
+	    <field name="arch" type="xml">
+		<form>
+		    <sheet>
+		    <group>
+			<field name="db_ip" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1"/>
+			<field name="db_name" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1"/>			
+			<field name="db_port" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1"/>			
+		    </group>
+		    <group>
+			<field name="db_uname" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1"/>
+			<field name="db_pwd" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+                        border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1" password="True" />			
+		    </group>
+		    <button name="test_connection" string="Test Connection" type="object" class="btn-primary"/>
+		    <br></br><br></br>
+		    <p style="color:blue"> *** The following master import sequence must to be followed, </p>		    
+		    <p style="color:blue"> 1. UOM Category </p>	
+		    <button name="uom_cate_creation" string="UOM Category" type="object" class="btn-primary"/>	
+		    <br></br><br></br>	    
+		    <p style="color:blue"> 2. UOM</p>	
+		    <button name="uom_creation" string="UOM" type="object" class="btn-primary"/>
+		    <br></br><br></br>	    
+		    <p style="color:blue"> 3. Product Category</p>	
+		    <button name="product_cate_creation" string="Product Category" type="object" class="btn-primary"/>	
+		    <br></br><br></br>	    
+		    <p style="color:blue"> 4. Product</p>	
+		    <button name="product_creation" string="Product" type="object" class="btn-primary"/>
+		    <br></br><br></br>			    
+		    <p style="color:blue"> 5. Supplier</p>
+		    <group>
+		    <field name="sup_start_id" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+			border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1"/>
+		    <field name="sup_end_id" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+			border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1"/>
+		    <button name="supplier_creation" string="Supplier" type="object" class="btn-primary"/>
+		    <br></br><br></br>		    
+		    </group>
+		    <p style="color:blue"> 6. Customer</p>  
+		    <group>
+			<field name="cus_start_id" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+		    border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1"/>
+			<field name="cus_end_id" style="background-color: #D2D2FF;border-top-left-radius: 5px;border-top-right-radius: 5px;
+		    border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;" required="1"/>
+			<button name="customer_creation" string="Customer" type="object" class="btn-primary"/>		
+		    </group>
+		    </sheet>
+		</form>
+		
+	    </field>
+	</record>
+	
+	<record id="action_db_details" model="ir.actions.act_window">
+		<field name="name">Odoo 10 Data Import</field>
+		<field name="res_model">db.details</field>
+		<field name="view_mode">tree,form</field>
+	</record>	
+	
+	<menuitem
+        id="menu_db_details"
+        name="Odoo 10 Data Import"
+        parent="bahmni_sale.menu_bahmni_masters"
+        action="action_db_details"
+        sequence="16"/>	
+
+	
+</odoo>
