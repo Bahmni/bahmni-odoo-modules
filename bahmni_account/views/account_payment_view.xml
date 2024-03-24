@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	
+	<record id="inherit_view_account_payment_tree_bahmni" model="ir.ui.view">
+		<field name="name">Payment View Changes</field>
+		<field name="model">account.payment</field>
+		<field name="inherit_id" ref="account.view_account_payment_tree"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='partner_id']" position="after">
+				<field name="create_uid" string="Cashier"/>				
+			</xpath>			
+		</field>
+	</record>
+	
+	<record id="inherit_view_account_payment_search_bahmni" model="ir.ui.view">
+		<field name="name">Payment Search View Changes</field>
+		<field name="model">account.payment</field>
+		<field name="inherit_id" ref="account.view_account_payment_search"/>
+		<field name="arch" type="xml">
+			<search string="Payments">
+				<field name="create_uid" string="Cashier"/>
+				<filter string="Cashier" name="create_uid" domain="[]" context="{'group_by': 'create_uid'}"/>
+			</search>				
+		</field>
+	</record>
+	
+</odoo>

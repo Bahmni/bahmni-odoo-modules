@@ -16,6 +16,7 @@ Bahmni Account
              'views/company_view.xml',
 	         'views/account_report.xml',
              'report/report_invoice_inherit.xml',
+             'views/account_payment_view.xml',
              ],
     'demo': [],
     'qweb': [],
