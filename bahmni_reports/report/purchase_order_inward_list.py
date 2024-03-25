@@ -140,7 +140,7 @@ class PurchaseOrderInwardList(models.Model):
             stock_obj = self.env['stock.move'].search([('purchase_line_id', '=', data.id)])          
             if stock_obj:
                 for stock in stock_obj:        
-                    stock_move_obj = self.env['stock.move.line'].search([('move_id', '=', stock_obj.id),('lot_name','!=',False)])
+                    stock_move_obj = self.env['stock.move.line'].search([('move_id', '=', stock.id),('lot_name','!=',False)])
                     if stock_move_obj:
                         stok_move_len += len(stock_move_obj) -1
                         if head_row == stok_move_len:
