@@ -372,7 +372,7 @@ class StockReport(models.Model):
                           'Stock Statement - Summary', format1)
         else:
             sheet.merge_range(0, 0, 0, 14,
-                          "%s,%s, %s"%(data['company_name'],data['company_street'],data['company_state']), format1)
+                          "%s, %s, %s"%(data['company_name'],data['company_street'],data['company_state']), format1)
             sheet.merge_range(1, 0, 1, 14,
                           'Stock Statement - Details', format1)
         sheet.merge_range(2, 0, 2, 2,
