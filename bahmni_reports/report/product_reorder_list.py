@@ -96,137 +96,142 @@ class ProductReorderList(models.Model):
         sheet.write(5, 7, "Status", format2)
         sheet.set_column('H:H', 38)        
    
-        if rec_obj.product_id:
-            product_obj = self.env['product.product'].search([('type', '=', 'product'),('id','in', list(i.id for i in rec_obj.product_id))])
-        else:
-            product_obj = self.env['product.product'].search([('type', '=', 'product')])
-
-        row_num = 6
-        s_no = 1            
-        total_qty =0       
-        
-        for product_data in sorted(product_obj, key=lambda x: x.name,reverse=False):            
-            if rec_obj.status == 'all':
-                if rec_obj.vendor_id:                
-                    reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
-                    ('vendor_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
-                else:
-                    reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id)])                
-                if reorder_data:
-                    qty_on_hand = reorder_data.qty_on_hand
-                    lst_price = reorder_data.product_id.lst_price
-                    product_min_qty = reorder_data.product_min_qty
-                    qty_to_order = reorder_data.qty_to_order
-                    supplier_name = reorder_data.supplier_id.partner_id.name if reorder_data.supplier_id else '-'
-                    if reorder_data.qty_on_hand >= reorder_data.product_min_qty:
-                        status = 'Stock Available'                    
-                    elif reorder_data.qty_on_hand < reorder_data.product_min_qty:
-                        status = 'Order To Be Placed'
-                else:
-                    qty_on_hand = 0
-                    lst_price = 0
-                    product_min_qty = 0
-                    qty_to_order = 0
-                    supplier_name = '-'
-                    status = 'No Min Stock & Reorder Rule'
-                if reorder_data:
-                    sheet.write(row_num, 0, s_no, format12_a)
-                    sheet.write(row_num, 1, product_data.name, format12)
-                    sheet.write(row_num, 2, "{:.2f}".format(qty_on_hand), format12_b)
-                    sheet.write(row_num, 3, "{:.2f}".format(lst_price), format12_b)
-                    sheet.write(row_num, 4, "{:.2f}".format(product_min_qty), format12_b)
-                    sheet.write(row_num, 5, "{:.2f}".format(qty_to_order), format12_b)
-                    sheet.write(row_num, 6, supplier_name , format12)
-                    sheet.write(row_num, 7, status, format12)                
-                
-                    row_num += 1
-                    if reorder_data:
-                        total_qty += reorder_data.qty_on_hand
-                    s_no += 1
-            
-            elif rec_obj.status == 'available':
-                if rec_obj.vendor_id:                
-                    reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
-                    ('vendor_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
-                else:
-                    reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id)]) 
-                if reorder_data:
-                    if reorder_data.qty_on_hand > reorder_data.product_min_qty:
-                        status = 'Stock Available'                        
-                        sheet.write(row_num, 0, s_no, format12_a)
-                        sheet.write(row_num, 1, reorder_data.product_id.product_tmpl_id.name, format12)
-                        sheet.write(row_num, 2, "{:.2f}".format(reorder_data.qty_on_hand), format12_b)
-                        sheet.write(row_num, 3, "{:.2f}".format(reorder_data.product_id.lst_price), format12_b)
-                        sheet.write(row_num, 4, "{:.2f}".format(reorder_data.product_min_qty), format12_b)
-                        sheet.write(row_num, 5, "{:.2f}".format(reorder_data.qty_to_order), format12_b)
-                        sheet.write(row_num, 6, reorder_data.supplier_id.partner_id.name if reorder_data.supplier_id else '-' , format12)
-                        sheet.write(row_num, 7, status, format12)                
-                        
-                        row_num += 1
-                        total_qty += reorder_data.qty_on_hand
-                        s_no += 1
-                    else:
-                        pass
-                else:
-                    pass
-            elif rec_obj.status == 'nil':
-                
-                reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
-                ('vendor_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
-                if not reorder_data:                    
-                    qty_on_hand = 0
-                    lst_price = 0
-                    product_min_qty = 0
-                    qty_to_order = 0
-                    supplier_name = '-'
-                    status = 'No Min Stock & Reorder Rule'
-                    
-                    sheet.write(row_num, 0, s_no, format12_a)
-                    sheet.write(row_num, 1, product_data.name, format12)
-                    sheet.write(row_num, 2, "{:.2f}".format(qty_on_hand), format12_b)
-                    sheet.write(row_num, 3, "{:.2f}".format(lst_price), format12_b)
-                    sheet.write(row_num, 4, "{:.2f}".format(product_min_qty), format12_b)
-                    sheet.write(row_num, 5, "{:.2f}".format(qty_to_order), format12_b)
-                    sheet.write(row_num, 6, supplier_name , format12)
-                    sheet.write(row_num, 7, status, format12)                 
-                    
-                    row_num += 1
-                    total_qty += reorder_data.qty_on_hand
-                    s_no += 1
-                else:
-                    pass
-            elif rec_obj.status == 'reorder':
-                if rec_obj.vendor_id:                
-                    reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
-                    ('vendor_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
-                else:
-                    reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id)]) 
-                if reorder_data: 
-                    if reorder_data.qty_on_hand < reorder_data.product_min_qty:
-                        status = 'Order To Be Placed'
-                        
-                        sheet.write(row_num, 0, s_no, format12_a)
-                        sheet.write(row_num, 1, reorder_data.product_id.product_tmpl_id.name, format12)
-                        sheet.write(row_num, 2, "{:.2f}".format(reorder_data.qty_on_hand), format12_b)
-                        sheet.write(row_num, 3, "{:.2f}".format(reorder_data.product_id.lst_price), format12_b)
-                        sheet.write(row_num, 4, "{:.2f}".format(reorder_data.product_min_qty), format12_b)
-                        sheet.write(row_num, 5, "{:.2f}".format(reorder_data.qty_to_order), format12_b)
-                        sheet.write(row_num, 6, reorder_data.supplier_id.partner_id.name if reorder_data.supplier_id else '-' , format12)
-                        sheet.write(row_num, 7, status, format12)                
-                        
-                        row_num += 1
-                        total_qty += reorder_data.qty_on_hand
-                        s_no += 1
-                        
-                    else:
-                        pass
-                else:
-                    pass    
-                    
-            
-            
-        workbook.close()
-        output.seek(0)
-        response.stream.write(output.read())
-        output.close()     
+        if rec_obj.product_id and rec_obj.vendor_id:			
+			product_obj = self.env['product.product'].search([('type', '=', 'product'),('id', 'in', [i.id for i in rec_obj.product_id] if rec_obj.product_id else self.env['product.product'].search([]).ids),
+			('seller_ids.partner_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+		elif rec_obj.vendor_id:
+			product_obj = self.env['product.product'].search([('type', '=', 'product'),
+			('seller_ids.partner_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+		elif rec_obj.product_id:			
+			product_obj = self.env['product.product'].search([('type', '=', 'product'),('id', 'in', [i.id for i in rec_obj.product_id] if rec_obj.product_id else self.env['product.product'].search([]).ids)])	
+		else:
+			product_obj = self.env['product.product'].search([('type', '=', 'product')])
+	
+		row_num = 6
+		s_no = 1            
+		total_qty =0       
+		
+		for product_data in sorted(product_obj, key=lambda x: x.name,reverse=False):            
+			if rec_obj.status == 'all':
+				if rec_obj.vendor_id:                
+					reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
+					('vendor_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+				else:
+					reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id)])
+				if reorder_data:
+					qty_on_hand = reorder_data.qty_on_hand
+					lst_price = reorder_data.product_id.lst_price
+					product_min_qty = reorder_data.product_min_qty
+					qty_to_order = reorder_data.qty_to_order
+					supplier_name = reorder_data.supplier_id.partner_id.name if reorder_data.supplier_id else '-'
+					if reorder_data.qty_on_hand >= reorder_data.product_min_qty:
+						status = 'Stock Available'                    
+					elif reorder_data.qty_on_hand < reorder_data.product_min_qty:
+						status = 'Order To Be Placed'
+				else:
+					qty_on_hand = 0
+					lst_price = 0
+					product_min_qty = 0
+					qty_to_order = 0
+					supplier_name = '-'
+					status = 'No Min Stock & Reorder Rule'
+				sheet.write(row_num, 0, s_no, format12_a)
+				sheet.write(row_num, 1, product_data.name, format12)
+				sheet.write(row_num, 2, "{:.2f}".format(qty_on_hand), format12_b)
+				sheet.write(row_num, 3, "{:.2f}".format(lst_price), format12_b)
+				sheet.write(row_num, 4, "{:.2f}".format(product_min_qty), format12_b)
+				sheet.write(row_num, 5, "{:.2f}".format(qty_to_order), format12_b)
+				sheet.write(row_num, 6, supplier_name , format12)
+				sheet.write(row_num, 7, status, format12)                
+				
+				row_num += 1
+				if reorder_data:
+					total_qty += reorder_data.qty_on_hand
+				s_no += 1
+			
+			elif rec_obj.status == 'available':
+				if rec_obj.vendor_id:
+					reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
+					('vendor_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+				else:
+					reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id)])
+				if reorder_data:
+					if reorder_data.qty_on_hand > reorder_data.product_min_qty:
+						status = 'Stock Available'                        
+						sheet.write(row_num, 0, s_no, format12_a)
+						sheet.write(row_num, 1, reorder_data.product_id.product_tmpl_id.name, format12)
+						sheet.write(row_num, 2, "{:.2f}".format(reorder_data.qty_on_hand), format12_b)
+						sheet.write(row_num, 3, "{:.2f}".format(reorder_data.product_id.lst_price), format12_b)
+						sheet.write(row_num, 4, "{:.2f}".format(reorder_data.product_min_qty), format12_b)
+						sheet.write(row_num, 5, "{:.2f}".format(reorder_data.qty_to_order), format12_b)
+						sheet.write(row_num, 6, reorder_data.supplier_id.partner_id.name if reorder_data.supplier_id else '-' , format12)
+						sheet.write(row_num, 7, status, format12)                
+						
+						row_num += 1
+						total_qty += reorder_data.qty_on_hand
+						s_no += 1
+					else:
+						pass
+				else:
+					pass
+			elif rec_obj.status == 'nil':
+				
+				reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
+				('vendor_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+				if not reorder_data:                    
+					qty_on_hand = 0
+					lst_price = 0
+					product_min_qty = 0
+					qty_to_order = 0
+					supplier_name = '-'
+					status = 'No Min Stock & Reorder Rule'
+					
+					sheet.write(row_num, 0, s_no, format12_a)
+					sheet.write(row_num, 1, product_data.name, format12)
+					sheet.write(row_num, 2, "{:.2f}".format(qty_on_hand), format12_b)
+					sheet.write(row_num, 3, "{:.2f}".format(lst_price), format12_b)
+					sheet.write(row_num, 4, "{:.2f}".format(product_min_qty), format12_b)
+					sheet.write(row_num, 5, "{:.2f}".format(qty_to_order), format12_b)
+					sheet.write(row_num, 6, supplier_name , format12)
+					sheet.write(row_num, 7, status, format12)                 
+					
+					row_num += 1
+					total_qty += reorder_data.qty_on_hand
+					s_no += 1
+				else:
+					pass
+			elif rec_obj.status == 'reorder':
+				if rec_obj.vendor_id:
+					reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id),
+					('vendor_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+				else:
+					reorder_data = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product_data.id)])
+				if reorder_data: 
+					if reorder_data.qty_on_hand < reorder_data.product_min_qty:
+						status = 'Order To Be Placed'
+						
+						sheet.write(row_num, 0, s_no, format12_a)
+						sheet.write(row_num, 1, reorder_data.product_id.product_tmpl_id.name, format12)
+						sheet.write(row_num, 2, "{:.2f}".format(reorder_data.qty_on_hand), format12_b)
+						sheet.write(row_num, 3, "{:.2f}".format(reorder_data.product_id.lst_price), format12_b)
+						sheet.write(row_num, 4, "{:.2f}".format(reorder_data.product_min_qty), format12_b)
+						sheet.write(row_num, 5, "{:.2f}".format(reorder_data.qty_to_order), format12_b)
+						sheet.write(row_num, 6, reorder_data.supplier_id.partner_id.name if reorder_data.supplier_id else '-' , format12)
+						sheet.write(row_num, 7, status, format12)                
+						
+						row_num += 1
+						total_qty += reorder_data.qty_on_hand
+						s_no += 1
+						
+					else:
+						pass
+				else:
+					pass    
+					
+			
+			
+		workbook.close()
+		output.seek(0)
+		response.stream.write(output.read())
+		output.close()     
     
