@@ -1,9 +1,18 @@
 from datetime import datetime, date
 from lxml import etree
+from datetime import timedelta
+from itertools import groupby
+from markupsafe import Markup
+from odoo import api, fields, models, SUPERUSER_ID, _
+from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.fields import Command
+from odoo.osv import expression
+from odoo.tools import float_is_zero, format_amount, format_date, html_keep_url, is_html_empty
+from odoo.tools.sql import create_index
 
-from odoo import fields, models, api, _
+from odoo.addons.payment import utils as payment_utils
+
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DSDF
-from odoo.tools import float_is_zero
 from odoo.exceptions import UserError
 from odoo.tools import pickle
 import logging
