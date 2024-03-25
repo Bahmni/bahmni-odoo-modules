@@ -11,6 +11,8 @@ COPY bahmni_purchase ${ADDON_PATH}/bahmni_purchase/
 COPY bahmni_sale ${ADDON_PATH}/bahmni_sale/
 COPY bahmni_stock ${ADDON_PATH}/bahmni_stock/
 COPY restful_api ${ADDON_PATH}/restful_api/
+COPY base_account_budget ${ADDON_PATH}/base_account_budget/
+COPY base_accounting_kit ${ADDON_PATH}/base_accounting_kit/
 COPY openerp7_data_import ${ADDON_PATH}/openerp7_data_import/
 COPY bahmni_reports ${ADDON_PATH}/bahmni_reports
 
