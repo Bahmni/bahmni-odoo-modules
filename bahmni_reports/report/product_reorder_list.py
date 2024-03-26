@@ -133,7 +133,9 @@ class ProductReorderList(models.Model):
                     lst_price = 0
                     product_min_qty = 0
                     qty_to_order = 0
-                    supplier_name = '-'
+                    supplier_data = self.env['product.supplierinfo'].search([('product_tmpl_id', '=', product_data.product_tmpl_id.id),
+					('partner_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+                    supplier_name = ', '.join([supplierinfo.partner_id.name for supplierinfo in supplier_data]) if supplier_data else '-'
                     status = 'No Min Stock & Reorder Rule'
                 
                 sheet.write(row_num, 0, s_no, format12_a)
@@ -184,7 +186,9 @@ class ProductReorderList(models.Model):
                     lst_price = 0
                     product_min_qty = 0
                     qty_to_order = 0
-                    supplier_name = '-'
+                    supplier_data = self.env['product.supplierinfo'].search([('product_tmpl_id', '=', product_data.product_tmpl_id.id),
+					('partner_id', 'in', [i.id for i in rec_obj.vendor_id] if rec_obj.vendor_id else self.env['res.partner'].search([('active', '=', True),('supplier_rank', '>', 0)]).ids)])
+                    supplier_name = ', '.join([supplierinfo.partner_id.name for supplierinfo in supplier_data]) if supplier_data else '-'
                     status = 'No Min Stock & Reorder Rule'
                     
                     sheet.write(row_num, 0, s_no, format12_a)
