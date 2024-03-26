@@ -6,6 +6,7 @@ COPY package/docker/odoo/odoo.conf /etc/odoo/odoo.conf
 COPY bahmni_account ${ADDON_PATH}/bahmni_account/
 COPY bahmni_address_mapping ${ADDON_PATH}/bahmni_address_mapping/
 COPY bahmni_api_feed ${ADDON_PATH}/bahmni_api_feed/
+COPY bahmni_initializer ${ADDON_PATH}/bahmni_initializer/
 COPY bahmni_product ${ADDON_PATH}/bahmni_product/
 COPY bahmni_purchase ${ADDON_PATH}/bahmni_purchase/
 COPY bahmni_sale ${ADDON_PATH}/bahmni_sale/
@@ -14,6 +15,7 @@ COPY restful_api ${ADDON_PATH}/restful_api/
 COPY base_account_budget ${ADDON_PATH}/base_account_budget/
 COPY base_accounting_kit ${ADDON_PATH}/base_accounting_kit/
 COPY openerp7_data_import ${ADDON_PATH}/openerp7_data_import/
+COPY package/resources/data/address.seed.csv ${ADDON_PATH}/bahmni_initializer/data/
 COPY bahmni_reports ${ADDON_PATH}/bahmni_reports
 
 RUN pip3 install python-decouple
