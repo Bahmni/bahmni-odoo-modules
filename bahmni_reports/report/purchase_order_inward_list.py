@@ -107,7 +107,7 @@ class PurchaseOrderInwardList(models.Model):
         sheet.set_column('E:E', 18)
         sheet.write(6, 5, "UOM", format2)
         sheet.set_column('F:F', 12)
-        sheet.write(6, 6, "Inward Batch Count", format2)
+        sheet.write(6, 6, "Inward Batch S.No.", format2)
         sheet.set_column('G:G', 19)
         sheet.write(6, 7, "Inward Date", format2)
         sheet.set_column('H:H', 15)
