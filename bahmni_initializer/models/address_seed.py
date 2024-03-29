@@ -24,6 +24,9 @@ class AddressSeed(models.Model):
     def create(self, vals):
         try:
             self._check_required_keys(vals)
+            address_seed = self._check_for_duplicate(vals)
+            if address_seed:
+               return address_seed
             city_village_vals = self._prepare_city_village_values(vals)
             city_village = self.env['village.village'].create(city_village_vals)
             vals.update({'is_initialized': True})
@@ -32,6 +35,14 @@ class AddressSeed(models.Model):
             vals.update({'init_error_message': error, 'is_initialized': True})
             self._handle_creation_failure(vals, error)
         return super(AddressSeed, self).create(vals)
+
+    def _check_for_duplicate(self, vals):
+        address_seed = self.env['address.seed'].search([('city_village', '=ilike', vals.get('city_village')),
+                                                        ('sub_district', '=ilike', vals.get('sub_district')),
+                                                        ('district', '=ilike', vals.get('district')),
+                                                        ('state', '=ilike', vals.get('state')),
+                                                        ('country', '=ilike', vals.get('country'))], limit=1)
+        return address_seed
 
     def _check_required_keys(self, vals):
         missing_fields = [key for key in REQUIRED_KEYS if key not in vals or not vals.get(key)]
