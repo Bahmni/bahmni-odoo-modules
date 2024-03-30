@@ -14,6 +14,7 @@ COPY bahmni_stock ${ADDON_PATH}/bahmni_stock/
 COPY restful_api ${ADDON_PATH}/restful_api/
 COPY community_modules/base_account_budget ${ADDON_PATH}/base_account_budget/
 COPY community_modules/base_accounting_kit ${ADDON_PATH}/base_accounting_kit/
+COPY community_modules/report_pdf_options ${ADDON_PATH}/report_pdf_options/
 COPY openerp7_data_import ${ADDON_PATH}/openerp7_data_import/
 COPY package/resources/data/address.seed.csv ${ADDON_PATH}/bahmni_initializer/data/
 COPY bahmni_reports ${ADDON_PATH}/bahmni_reports
