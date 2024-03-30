@@ -13,9 +13,25 @@ class StockMoveLine(models.Model):
     
     sale_price = fields.Float(string="Sale Price")
     mrp = fields.Float(string="MRP")
-    cost_price = fields.Float(string="Cost Price")
+    cost_price = fields.Float(string="Cost Price")    
+    balance = fields.Float(string="Balance")    
+    existing_lot_id = fields.Many2one(
+        'stock.lot', 'Lot/Serial Number',
+        domain="[('product_id', '=', product_id), ('company_id', '=', company_id)]", check_company=True)
     
+    @api.onchange('product_id','qty_done')
+    def _onchange_balance_qty(self): 
+        if self.location_id and self.product_id:
+            self.balance = (sum([stock.inventory_quantity_auto_apply for stock in self.env['stock.quant'].search([('location_id', '=', self.location_id.id),('product_id', '=', self.product_id.id)])])) - self.qty_done
     
+    @api.onchange('existing_lot_id')
+    def _onchange_existing_lot_id(self):        
+        if self.existing_lot_id:                
+           self.lot_name = self.existing_lot_id.name 
+           self.expiration_date = self.existing_lot_id.expiration_date 
+        else:
+            self.lot_name = '' 
+            self.expiration_date = fields.Datetime.today() + datetime.timedelta(days=self.product_id.expiration_time)
     
     @api.constrains('mrp')
     def _check_fields_values(self):
@@ -66,6 +82,7 @@ class StockMoveLine(models.Model):
         key_to_index = {}  # key to index of the lot
         key_to_mls = defaultdict(lambda: self.env['stock.move.line'])  # key to all mls
         for ml in self:
+            ml.product_id.write({'standard_price': ml.cost_price,'list_price': ml.sale_price,'mrp': ml.mrp})
             key = (ml.company_id.id, ml.product_id.id, ml.lot_name, ml.cost_price, ml.sale_price, ml.mrp, ml.expiration_date)
             key_to_mls[key] |= ml
             if ml.tracking != 'lot' or key not in key_to_index:
