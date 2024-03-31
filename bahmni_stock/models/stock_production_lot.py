@@ -18,7 +18,10 @@ class StockProductionLot(models.Model):
         for record in self:
             name = record.name
             if(record.expiration_date):
-                expiry_date = datetime.strptime(str(record.expiration_date), '%Y-%m-%d %H:%M:%S')
+                if len(str(record.expiration_date)) > 20:                
+                    expiry_date = datetime.strptime(str(record.expiration_date), "%Y-%m-%d %H:%M:%S.%f")
+                else:                
+                    expiry_date = datetime.strptime(str(record.expiration_date), "%Y-%m-%d %H:%M:%S")
                 expiry = expiry_date.strftime("%b %d,%Y")
                 name = "%s [%s]" % (name, expiry)
             if(context.get('show_future_forcast', False)):
