@@ -59,7 +59,7 @@ class SaleOrderLine(models.Model):
             else:
                 price = line.with_company(line.company_id)._get_display_price()
                 if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.sale_price_markup')) == True:
-                    price = self.lot_id.sale_price if self.lot_id.sale_price > 0.0 else self.product_id.lst_price
+                    price = line.lot_id.sale_price if line.lot_id.sale_price > 0.0 else line.product_id.lst_price
                 line.price_unit = line.product_id._get_tax_included_unit_price(
                     line.company_id,
                     line.order_id.currency_id,
