@@ -62,14 +62,15 @@ class StockMoveLine(models.Model):
         move_ids = self.env['stock.move'].search([('picking_id', '=', res.get('picking_id')),('product_id', '=', res.get('product_id'))],limit=1)
         if move_ids:           
             cost_value = move_ids.purchase_line_id.price_unit + (move_ids.purchase_line_id.price_tax / move_ids.purchase_line_id.product_qty)
-            if cost_value > 0.00:                
-                markup_table_line = self.env['price.markup.table'].search([('lower_price', '<', cost_value),
-                                                                           '|', ('higher_price', '>=', cost_value),
+            cost_value_per_unit = float(cost_value) * float(move_ids.purchase_line_id.product_uom.factor)
+            if cost_value_per_unit > 0.00:                
+                markup_table_line = self.env['price.markup.table'].search([('lower_price', '<', cost_value_per_unit),
+                                                                           '|', ('higher_price', '>=', cost_value_per_unit),
                                                                            ('higher_price', '=', 0)],limit=1)
                 if markup_table_line:
-                    res.update({'cost_price': cost_value,'sale_price': cost_value + (cost_value * markup_table_line.markup_percentage / 100)})
+                    res.update({'cost_price': cost_value_per_unit,'sale_price': cost_value_per_unit + (cost_value_per_unit * markup_table_line.markup_percentage / 100)})
                 else:
-                    res.update({'cost_price': cost_value,'sale_price': cost_value })
+                    res.update({'cost_price': cost_value_per_unit,'sale_price': cost_value_per_unit })
             else:
                 pass
         return res
