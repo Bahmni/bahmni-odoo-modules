@@ -22,11 +22,10 @@ Bahmni API Feed
          'data/mrs_person_attributes_data.xml',
 	 'views/menus.xml',
          #'data/order_type.xml',
-         'data/sale_shop.xml',
-         #'data/order_type_shop_map.xml',         
+         #'data/order_type_shop_map.xml',
          'data/syncable_units_mapping.xml',
 
-             
+
              ],
     'demo': [],
     'qweb': [],
