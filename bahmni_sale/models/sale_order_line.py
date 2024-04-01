@@ -90,7 +90,7 @@ class SaleOrderLine(models.Model):
                 id = line.lot_id.id
                 already_used_batch_ids.append(id.__str__())
         query = ['&', ('product_id', '=', product_id.id if type(product_id) != list else product_id[0]), 
-                ('id', 'in', [lot_id.lot_id.id for lot_id in stock_quant_lot])
+                ('id', 'in', [lot_id.lot_id.id for lot_id in stock_quant_lot]),
                  ('id', 'not in', already_used_batch_ids if already_used_batch_ids else False)]\
                  if len(already_used_batch_ids) > 0 else [('id', 'in', [lot_id.lot_id.id for lot_id in stock_quant_lot]),('product_id','=', product_id.id if type(product_id) != list else product_id[0])]
                  
