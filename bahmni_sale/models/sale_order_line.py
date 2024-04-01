@@ -78,16 +78,20 @@ class SaleOrderLine(models.Model):
         sale_order = self.env['sale.order'].browse(sale_order)
         context['location_id'] = sale_order.location_id and sale_order.location_id.id or False
         context['search_in_child'] = True
-        stock_prod_lot = self.env['stock.lot'].search([('product_id','=', product_id.id if type(product_id) != list else product_id[0])])
-
+        stock_quant_lot = self.env['stock.quant'].search([
+        ('product_id','=', product_id.id if type(product_id) != list else product_id[0]),
+        ('location_id', '=', self.order_id.shop_id.location_id.id),
+        ('quantity', '>' , 0)])
+        stock_prod_lot = self.env['stock.lot'].search([('id', 'in', [lot_id.lot_id.id for lot_id in stock_quant_lot])])
         already_used_batch_ids = []
         for line in sale_order.order_line:
             if line.lot_id:
                 id = line.lot_id.id
                 already_used_batch_ids.append(id.__str__())
         query = ['&', ('product_id', '=', product_id.id if type(product_id) != list else product_id[0]), 
+                ('id', 'in', [lot_id.lot_id.id for lot_id in stock_quant_lot])
                  ('id', 'not in', already_used_batch_ids if already_used_batch_ids else False)]\
-                 if len(already_used_batch_ids) > 0 else [('product_id','=', product_id.id if type(product_id) != list else product_id[0])]
+                 if len(already_used_batch_ids) > 0 else [('id', 'in', [lot_id.lot_id.id for lot_id in stock_quant_lot]),('product_id','=', product_id.id if type(product_id) != list else product_id[0])]
                  
         for prodlot in stock_prod_lot.search(query, order='expiration_date asc'):   
             if prodlot.expiration_date and prodlot.product_qty > 0:        
