@@ -78,9 +78,10 @@ class SaleOrderLine(models.Model):
         sale_order = self.env['sale.order'].browse(sale_order)
         context['location_id'] = sale_order.location_id and sale_order.location_id.id or False
         context['search_in_child'] = True
+        shop_location_id = sale_order.shop_id.location_id.id if sale_order.shop_id.location_id.id else self.order_id.shop_id.location_id.id
         stock_quant_lot = self.env['stock.quant'].search([
         ('product_id','=', product_id.id if type(product_id) != list else product_id[0]),
-        ('location_id', '=', self.order_id.shop_id.location_id.id),
+        ('location_id', '=', shop_location_id),
         ('quantity', '>' , 0)])
         stock_prod_lot = self.env['stock.lot'].search([('id', 'in', [lot_id.lot_id.id for lot_id in stock_quant_lot])])
         already_used_batch_ids = []
