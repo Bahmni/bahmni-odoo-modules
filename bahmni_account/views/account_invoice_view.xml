@@ -15,20 +15,20 @@
 					   options="{'currency_field': 'currency_id'}"/>
 				<field name="amount_tax" widget='monetary'
 					   options="{'currency_field': 'currency_id'}"/>
-				<field name="discount_type" required="1" attrs="{'invisible': [('amount_untaxed', '=', 0.00)]}"/>
+				<field name="discount_type" required="1" attrs="{'invisible': [('amount_untaxed', '=', 0.00)], 'readonly': [('state', '!=', 'draft')]}"/>
 				
 				<field name="discount_percentage" widget='monetary'
 					   options="{'currency_field': 'currency_id'}"
-					   attrs="{'readonly': [('discount_type', '=', 'fixed')],'invisible': [('discount_type', 'in', ('fixed','none'))]}"/>
+					   attrs="{'readonly': ['|',('state', '!=', 'draft'),('discount_type', '=', 'fixed')],'invisible': [('discount_type', 'in', ('fixed','none'))]}"/>
 					   
 				<field name="discount" widget='monetary'
 					   options="{'currency_field': 'currency_id'}"
-					   attrs="{'readonly': [('discount_type', '=', 'percentage')],'invisible': [('discount_type', 'in', ('none'))]}"/>
+					   attrs="{'readonly': ['|',('state', '!=', 'draft'),('discount_type', '=', 'percentage')],'invisible': [('discount_type', 'in', ('none'))]}"/>
 				
 				<field name="disc_acc_id"                                    
-					   attrs="{'required': [('discount', '!=', 0.0)],'invisible': ['|', ('discount_type', '=', 'none'),('discount', '=', 0.0)]}"/>
+					   attrs="{'readonly': [('state', '!=', 'draft')],'required': [('discount', '!=', 0.0)],'invisible': ['|', ('discount_type', '=', 'none'),('discount', '=', 0.0)]}"/>
 				
-				<field name="round_off_amount" widget='monetary'
+				<field name="round_off_amount" widget='monetary' attrs="{'readonly': [('state', '!=', 'draft')]}"
 					   options="{'currency_field': 'currency_id'}"/>
 					   
 										  
