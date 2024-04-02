@@ -94,5 +94,5 @@ class AccountPayment(models.Model):
     
     def invoice_search(self):
         """ Using ref find the invoice obj """
-        return self.env['account.move'].search([('name', '=', self.move_id.ref),('move_type', '=', 'out_invoice')], limit=1)
+        return self.env['account.move'].search([('id', '=', self.reconciled_invoice_ids.id),('move_type', '=', 'out_invoice')], limit=1)
    
