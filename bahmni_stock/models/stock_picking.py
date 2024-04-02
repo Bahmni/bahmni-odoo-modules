@@ -21,12 +21,13 @@ class StockPicking(models.Model):
             stock_picking_type = self.env['stock.picking.type'].search([('id','=', ctx['default_picking_type_id'])])
             if stock_picking_type.code == 'internal':
                 for line in self.move_line_ids:
-                    stock_quant_lot = self.env['stock.quant'].search([
-                        ('product_id','=', line.product_id.id),('location_id', '=', line.location_id.id),
-                        ('lot_id', '=', line.lot_id.id),('quantity', '>' , 0)])
-                    if stock_quant_lot.quantity < line.qty_done:
-                        raise UserError("Insufficient batch(%s) quantity for %s and available quantity is %s"\
-                            %(line.lot_id.name, line.product_id.name, stock_quant_lot.quantity))
+                    if line.product_id.tracking != 'none':
+                        stock_quant_lot = self.env['stock.quant'].search([
+                            ('product_id','=', line.product_id.id),('location_id', '=', line.location_id.id),
+                            ('lot_id', '=', line.lot_id.id),('quantity', '>' , 0)])
+                        if stock_quant_lot.quantity < line.qty_done:
+                            raise UserError("Insufficient batch(%s) quantity for %s and available quantity is %s"\
+                                %(line.lot_id.name, line.product_id.name, stock_quant_lot.quantity))
         # Sanity checks.
         if not self.env.context.get('skip_sanity_check', False):
             self._sanity_check()
