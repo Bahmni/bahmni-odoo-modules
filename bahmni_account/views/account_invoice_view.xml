@@ -62,7 +62,7 @@
 				<field name="partner_id"/>				
 			</xpath>
 			<xpath expr="//field[@name='payment_state']" position="before">
-				<field name="amount_residual"/>				
+				<field name="amount_residual" sum="Total"/>				
 			</xpath>
 		</field>
 	</record>
