@@ -27,7 +27,7 @@ class StockPicking(models.Model):
                             ('lot_id', '=', line.lot_id.id),('quantity', '>' , 0)])
                         if stock_quant_lot.quantity < line.qty_done:
                             raise UserError("Insufficient batch(%s) quantity for %s and available quantity is %s"\
-                                %(line.lot_id.name, line.product_id.name, stock_quant_lot.quantity))8
+                                %(line.lot_id.name, line.product_id.name, stock_quant_lot.quantity))
         # Sanity checks.
         if not self.env.context.get('skip_sanity_check', False):
             self._sanity_check()
