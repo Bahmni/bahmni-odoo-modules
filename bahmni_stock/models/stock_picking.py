@@ -17,8 +17,8 @@ class StockPicking(models.Model):
         ctx.pop('default_immediate_transfer', None)
         self = self.with_context(ctx)
         ### Internal Transfer Batch based code write
-        if ctx['default_picking_type_id']:
-            stock_picking_type = self.env['stock.picking.type'].search([('id','=', ctx['default_picking_type_id'])])
+        if self.picking_type_id:
+            stock_picking_type = self.env['stock.picking.type'].search([('id','=', self.picking_type_id.id)])
             if stock_picking_type.code == 'internal':
                 for line in self.move_line_ids:
                     if line.product_id.tracking != 'none':
