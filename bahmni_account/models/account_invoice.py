@@ -95,4 +95,6 @@ class AccountPayment(models.Model):
     def invoice_search(self):
         """ Using ref find the invoice obj """
         return self.env['account.move'].search([('id', '=', self.reconciled_invoice_ids.id),('move_type', '=', 'out_invoice')], limit=1)
-   
+    
+    def generate_report_action(self):
+        return self.env.ref("bahmni_account.account_summarized_invoices_payment").report_action(self)

@@ -12,6 +12,18 @@
 		</field>
 	</record>
 	
+	<record id="inherit_view_account_payment_form" model="ir.ui.view">
+    <field name="name">account.payment.form</field>
+    <field name="model">account.payment</field>
+    <field name="inherit_id" ref="account.view_account_payment_form"/>
+    <field name="arch" type="xml">
+        <xpath expr="//header" position="inside">
+            <button name="generate_report_action" string="Summarized Bill(ALT+Z)" type="object" data-hotkey="z" class="btn btn-secondary" />
+        </xpath>
+    </field>
+	</record>
+
+	
 	<record id="inherit_view_account_payment_search_bahmni" model="ir.ui.view">
 		<field name="name">Payment Search View Changes</field>
 		<field name="model">account.payment</field>
