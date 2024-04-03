@@ -28,6 +28,9 @@
         />
         <field name="arch" type="xml">
             <field name="lot_id" position="attributes">
+                <attribute 
+                    name="context"
+                >{'default_internal_location_id': location_id}</attribute>
                 <attribute
                     name="domain"
                 >[('product_id','=', product_id), ('company_id', '=', company_id), ('location_ids', 'child_of', location_id)]</attribute>
