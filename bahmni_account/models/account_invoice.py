@@ -96,5 +96,18 @@ class AccountPayment(models.Model):
         """ Using ref find the invoice obj """
         return self.env['account.move'].search([('id', '=', self.reconciled_invoice_ids.id),('move_type', '=', 'out_invoice')], limit=1)
     
+    def total_receivable(self):
+        receivable = 0.0
+        if self.partner_id:
+            self._cr.execute("""select sum(amount_residual) from account_move where 
+                          amount_residual > 0 and partner_id = %s
+                          """, (self.partner_id.id,))
+            outstaning_value = self._cr.fetchall()
+            if outstaning_value[0][0] != None: 
+                receivable = outstaning_value[0][0]
+            else:
+                receivable = 0.00                
+        return receivable
+    
     def generate_report_action(self):
         return self.env.ref("bahmni_account.account_summarized_invoices_payment").report_action(self)

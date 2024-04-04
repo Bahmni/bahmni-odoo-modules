@@ -59,7 +59,7 @@
                                    widget='monetary'
                                    options="{'currency_field': 'currency_id'}"/>
                                    
-                            <field name="prev_outstanding_balance" widget='monetary' attrs="{'readonly': [('state', 'not in', ['draft', 'sent'])]}"
+                            <field name="prev_outstanding_balance" widget='monetary' readonly="1" force_save = "1" 
                                    options="{'currency_field': 'currency_id'}"/>
                                    
                                    
@@ -68,7 +68,7 @@
                                 
                             </div>
                             
-                            <field name="total_outstanding_balance" nolabel="1" readonly="1"
+                            <field name="total_outstanding_balance" nolabel="1" readonly="1" force_save = "1"
                                    class="oe_subtotal_footer_separator"
                                    widget='monetary'
                                    options="{'currency_field': 'currency_id'}"/>
