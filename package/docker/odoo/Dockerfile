@@ -16,7 +16,7 @@ COPY community_modules/base_account_budget ${ADDON_PATH}/base_account_budget/
 COPY community_modules/base_accounting_kit ${ADDON_PATH}/base_accounting_kit/
 COPY community_modules/report_pdf_options ${ADDON_PATH}/report_pdf_options/
 COPY community_modules/stock_picking_filter_lot ${ADDON_PATH}/stock_picking_filter_lot
-COPY community_modules/rowno_in_tree ${ADDON_PATH}/rowno_in_tree
+COPY community_modules/br_custom_list_view ${ADDON_PATH}/br_custom_list_view
 COPY openerp7_data_import ${ADDON_PATH}/openerp7_data_import/
 COPY package/resources/data/address.seed.csv ${ADDON_PATH}/bahmni_initializer/data/
 COPY bahmni_reports ${ADDON_PATH}/bahmni_reports
