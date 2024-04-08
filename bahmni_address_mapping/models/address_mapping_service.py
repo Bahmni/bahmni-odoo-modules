@@ -242,7 +242,10 @@ class AddressMappingService(models.Model):
                 _logger.warning(
                     'Multiple village entry for %s with subdistrict %s, district %s, state %s, country %s',
                     village_name,
-                    subdistrict.name, district.name, state.name, country.name)
+                    subdistrict.name if subdistrict else 'None',
+                    district.name if district else 'None',
+                    state.name if state else 'None',
+                    country.name if country else 'None')
                 return None
         if auto_create_customer_address_levels:
             _logger.info(
