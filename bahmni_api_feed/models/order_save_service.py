@@ -432,7 +432,7 @@ class OrderSaveService(models.Model):
                 unprocessed_orders.append(order)
             else:
                 sale_order_line = existing_order_line[0]
-                if not sale_order_line.dispensed:
+                if not sale_order_line.dispensed and dispensed_status:
                     unprocessed_orders.append(order)
 
         return self._filter_products_undefined(unprocessed_orders)
