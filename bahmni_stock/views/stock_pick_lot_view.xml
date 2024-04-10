@@ -25,6 +25,12 @@
 			<xpath expr="//tree/field[@name='qty_done']" position="after">	
 				<field name="balance"/>
 			</xpath>
+			<xpath expr="//tree/field[@name='location_id'][2]" position="attributes">
+				<attribute name="attrs">{'column_invisible': [['parent.picking_type_code', 'in', ['incoming','internal']]]}</attribute>
+			</xpath>
+			<xpath expr="//tree/field[@name='location_dest_id'][2]" position="attributes">
+				<attribute name="attrs">{'column_invisible': [['parent.picking_type_code', 'in', ['incoming','internal']]]}</attribute>
+			</xpath>
 		</field>
 	</record>
 	
