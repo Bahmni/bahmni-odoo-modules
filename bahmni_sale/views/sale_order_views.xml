@@ -18,8 +18,14 @@
 			<xpath expr="//field[@name='payment_term_id']" position="after">
 				<field name="shop_id" attrs="{'readonly': [('state', 'not in', ['draft', 'sent'])]}"/>
 			</xpath>
-			
-			
+
+
+			<xpath expr="//tree" position="attributes">
+				<attribute name="decoration-danger">product_uom_qty&lt;=0</attribute>
+				<attribute name="decoration-bf">product_uom_qty&lt;=0</attribute>
+				<attribute name="decoration-it">product_uom_qty&lt;=0</attribute>
+			</xpath>
+
 			<xpath expr="//group[@name='note_group']" position="replace">
                     <group name="note_group" col="6">
                         <group name="discount" colspan="2">
