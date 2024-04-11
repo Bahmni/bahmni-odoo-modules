@@ -382,6 +382,8 @@ class SaleOrder(models.Model):
     #So Once we Confirm the sale order it will create the invoice and ask for the register payment.
     def action_confirm(self):
         for line in self.order_line:
+           if line.product_uom_qty <=0:
+               raise UserError("Quantity for %s is %s. Please update the quantity or remove the product line."%(line.product_id.name,line.product_uom_qty))
            if line.product_id.tracking == 'lot' and not line.lot_id:
                raise UserError("Kindly choose batch no for %s to proceed further."%(line.product_id.name))
                 
