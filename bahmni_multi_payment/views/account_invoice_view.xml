@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	
+	<record id="inherit_muliti_invoice_form" model="ir.ui.view">
+		<field name="name">inherit.invoice.form</field>
+		<field name="model">account.move</field>
+		<field name="inherit_id" ref="account.view_move_form"/>
+		<field name="arch" type="xml">
+			<xpath expr="//button[@name='action_register_payment']" position="replace">                
+				<button
+				name="action_register_payment"
+				class="btn"
+				states="draft"
+				string="Register Payment"
+				type="object"
+				invisible="1"
+				/>
+			</xpath>	
+			
+		</field>
+	</record>
+	
+	
+
+	
+
+	
+</odoo>

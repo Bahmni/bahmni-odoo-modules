@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_account_payment_form_custom" model="ir.ui.view">
+    <field name="name">account.payment.form.custom</field>
+    <field name="model">account.payment</field>
+    <field name="arch" type="xml">
+        <form string="Customer Payments">	    
+	    <header>
+		<button name="action_post" string="Confirm" type="object" class="oe_highlight"
+			attrs="{'invisible': [('state', '!=', 'draft')]}" data-hotkey="v"/>
+		<button name="generate_report_action" string="Summarized Bill(ALT+Z)" type="object" data-hotkey="z" class="btn btn-secondary" attrs="{'invisible': [('state', '=', 'draft')]}"/>
+	        <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+	    </header>
+	    
+	    <div class="alert alert-info text-center" role="alert" attrs="{'invisible': ['|','|',('paired_internal_transfer_payment_id','!=',False),('is_internal_transfer','=',False),('state','!=','draft')]}">
+		A second payment will be created automatically in the destination journal.
+	    </div>
+	    <div class="alert alert-warning text-center" role="alert" attrs="{
+		    'invisible': ['|', '|', ('is_internal_transfer','=',False), ('require_partner_bank_account', '=', False), ('partner_bank_id', '!=', False)]}">
+		The selected payment method requires a bank account but none is set on
+		<button class="oe_link alert-link" type="object" name="action_open_destination_journal" style="padding: 0; vertical-align: baseline;">the destination journal</button>.
+	    </div>
+	    
+	    <sheet>
+            <!-- Define your form fields here -->            
+            
+		
+	    <div class="oe_button_box" name="button_box">
+		<!-- Invoice stat button -->
+		<button name="button_open_invoices" type="object"
+			class="oe_stat_button" icon="fa-bars"
+			attrs="{'invisible': [('reconciled_invoices_count','=', 0)]}">
+		    <div class="o_form_field o_stat_info">
+			<span class="o_stat_text">
+			    <field name="reconciled_invoices_count"/>
+			    <span attrs="{'invisible': [('reconciled_invoices_type', '!=', 'invoice')]}"> Invoice</span>
+			    <span attrs="{'invisible': [('reconciled_invoices_type', '=', 'invoice')]}"> Credit Note</span>
+			</span>
+		    </div>
+		</button>
+
+		<!-- Bill stat button -->
+		<button name="button_open_bills" type="object"
+			class="oe_stat_button" icon="fa-bars"
+			attrs="{'invisible': [('reconciled_bills_count','=', 0)]}">
+		    <div class="o_form_field o_stat_info">
+			<span class="o_stat_text">
+			    <field name="reconciled_bills_count"/>
+			    <span> Bill</span>
+			</span>
+		    </div>
+		</button>
+
+		<!-- Statement stat button -->
+		<button name="button_open_statement_lines" type="object"
+			class="oe_stat_button" icon="fa-bars"
+			attrs="{'invisible': [('reconciled_statement_lines_count','=', 0)]}">
+		    <div class="o_form_field o_stat_info">
+			<field name="reconciled_statement_lines_count"/>
+			<span> Transaction</span>
+		    </div>
+		</button>
+
+		<!-- Journal Entry  button -->
+		<button name="button_open_journal_entry"
+			type="object"
+			class="oe_stat_button"
+			icon="fa-bars"
+			groups="account.group_account_user,account.group_account_readonly">
+		    <div class="o_stat_info">
+			<span class="o_stat_text">Journal Entry</span>
+		    </div>
+		</button>
+		</div>
+
+		<widget name="web_ribbon" text="Invoicing App Legacy"
+			bg_color="bg-info"
+			attrs="{'invisible': [('state', '!=', 'invoicing_legacy')]}"
+			tooltip="This payment has been generated through the Invoicing app, before installing Accounting. It has been disabled by the 'Invoicing Switch Threshold Date' setting so that it does not impact your accounting."
+		/>
+
+		<div class="oe_title">
+		    <h1 attrs="{'invisible': [('state', '!=', 'draft')]}"><span>Draft</span></h1>
+		    <h1 attrs="{'invisible': [('state', '=', 'draft')]}"><field name="name" readonly="1"/></h1>
+		</div>
+		    
+		
+		<group>
+		<group>
+		
+		<field name="is_internal_transfer" attrs="{'readonly': [('state', '!=', 'draft')]}" invisible="1"/>
+		<field name="payment_type" widget="radio" options="{'horizontal': True}"
+                                        attrs="{'readonly': [('state', '!=', 'draft')]}" invisible="1"/>
+                <field name="partner_id" string ="Customer" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+		<field name="prev_outstanding_balance" widget='monetary' readonly="1" force_save="1"/>
+                <field name="amount" string="Paid Amount" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+		<field name="balance_outstanding" widget='monetary' readonly="1" force_save="1"/>
+		<field name="ref" string="Memo" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+		<field name="id" invisible="1"/>
+		<field name="is_move_sent" invisible="1"/>
+		<field name="is_reconciled" invisible="1"/>
+		<field name="is_matched" invisible="1"/>
+		<field name="payment_method_code" invisible="1"/>
+		<field name="show_partner_bank_account" invisible="1"/>
+		<field name="require_partner_bank_account" invisible="1"/>
+		<field name="available_payment_method_line_ids" invisible="1"/>
+		<field name="available_partner_bank_ids" invisible="1"/>
+		<field name="suitable_journal_ids" invisible="1"/>
+		<field name="country_code" invisible="1"/>
+		<field name="partner_type" invisible="1"/>
+		<field name="posted_before" invisible="1"/>
+		<field name="reconciled_invoices_type" invisible="1"/>
+		<field name="company_id" invisible="1"/>
+		<field name="paired_internal_transfer_payment_id" invisible="1"/>
+		<field name="available_journal_ids" invisible="1"/>   
+                
+                <!-- Add more fields as needed -->
+		
+            </group>
+	    
+	    <group>
+		<field name="date" string="Date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+		
+		<field name="journal_id"
+		       domain="[('id', 'in', available_journal_ids)]"
+		       attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+		<field name="payment_method_line_id" required="1" options="{'no_create': True, 'no_open': True}"
+		       attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+		<field name="partner_bank_id" string="Customer Bank Account"
+		      context="{'default_partner_id': partner_id, 'default_allow_out_payment': True}"
+			attrs="{
+			    'invisible': ['|', '|', '|', ('show_partner_bank_account', '=', False), ('partner_type','!=','customer'), ('is_internal_transfer', '=', True), ('payment_type', '=', 'inbound')],
+			    'required': [('require_partner_bank_account', '=', True), ('is_internal_transfer', '=', False)],
+			}"/>
+		<field name="state" invisible="1"/>
+	    </group>
+	    
+	    </group>
+	    
+	    <notebook>
+	    <page string="Credit Invoice Lines">
+		<field name="line_payment_invoice_credit_ids">		    
+		<tree editable="bottom" delete ="false" create ="false">
+		    <field name="invoice_id" readonly="1" force_save="1"/>	
+		    <field name="date" readonly="1" force_save="1"/>		    
+		    <field name="care_setting" readonly="1" force_save="1"/>			    
+		    <field name="invoice_amt" readonly="1" force_save="1" sum ="Total"/>
+		    <field name="amount" readonly="1" force_save="1" sum ="Total"/>
+		    <field name="remaining_amt" readonly="1" force_save="1" sum ="Total"/>
+		    <field name="selected" readonly="1" force_save="1"/>
+		</tree>
+		</field>  
+	    </page>
+	    </notebook>
+	    
+	    <notebook>
+	    <page string="Debit Invoice Lines">
+		<field name="line_payment_invoice_debit_ids" >		    
+		<tree editable="bottom" delete ="false" create ="false">
+		    <field name="invoice_id" readonly="1" force_save="1"/>	
+		    <field name="date" readonly="1" force_save="1"/>		    
+		    <field name="care_setting" readonly="1" force_save="1"/>			    
+		    <field name="invoice_amt" readonly="1" force_save="1" sum ="Total"/>
+		    <field name="amount" readonly="1" force_save="1" sum ="Total"/>
+		    <field name="remaining_amt" readonly="1" force_save="1" sum ="Total"/>
+		    <field name="selected" readonly="1" force_save="1"/>
+		</tree>
+		</field>  
+	    </page>
+	    </notebook>
+	    
+	    </sheet>
+	    <div class="o_attachment_preview"/>
+	    <div class="oe_chatter">
+		<field name="message_follower_ids" groups="base.group_user"/>
+		<field name="activity_ids"/>
+		<field name="message_ids"/>
+	    </div>
+        </form>
+    </field>
+    </record>
+    
+    
+    
+   <record id="multi_view_account_payment_tree" model="ir.ui.view">
+            <field name="name">account.payment.tree</field>
+            <field name="model">account.payment</field>
+            <field name="arch" type="xml">
+                <tree edit="false" sample="1" decoration-info="state == 'draft'" decoration-muted="state == 'cancel'">
+                    <header>
+                        <button name="action_post" type="object" string="Confirm"/>
+                    </header>
+                    <field name="company_currency_id" invisible="1"/>
+                    <field name="suitable_journal_ids" invisible="1"/>
+                    <field name="available_payment_method_line_ids" invisible="1"/>
+                    <field name="date"/>
+                    <field name="name"/>
+                    <field name="journal_id"/>
+                    <field name="payment_method_line_id"/>
+                    <field name="partner_id" string="Customer"/>
+                    <field name="amount_signed" string="Amount in Currency" groups="base.group_multi_currency" optional="hide"/>
+                    <field name="currency_id" string="Payment Currency" groups="base.group_multi_currency" optional="hide"/>
+                    <field name="create_uid" string="Cashier"/>
+		    <field name="amount_company_currency_signed" widget="monetary" string="Amount" sum="Total"/>		    
+                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'"/>
+                </tree>
+            </field>
+        </record> 
+
+    
+   <record id="tma_customer_payments" model="ir.actions.act_window">
+	<field name="name">Customer Payments</field>
+	<field name="res_model">account.payment</field>
+	<field name="view_mode">tree,kanban,form,graph</field>
+	<field name="context">{
+	    'default_payment_type': 'inbound',
+	    'default_partner_type': 'customer',
+	    'search_default_inbound_filter': 1,
+	    'default_move_journal_types': ('bank', 'cash'),
+	}</field>	
+	<field name="help" type="html">
+	    <p class="o_view_nocontent_smiling_face">
+	      Register a payment
+	    </p><p>
+	      Payments are used to register liquidity movements. You can process those payments by your own means or by using installed facilities.
+	    </p>
+	</field>
+    </record>    
+    <record id="delivery_pending_tree" model="ir.actions.act_window.view">
+	    <field eval="1" name="sequence"/>
+	    <field name="view_mode">tree</field>
+	    <field name="view_id" ref="multi_view_account_payment_tree"/>
+	    <field name="act_window_id" ref="tma_customer_payments"/>
+    </record>    
+    <record id="delivery_pending_form" model="ir.actions.act_window.view">
+	    <field eval="2" name="sequence"/>
+	    <field name="view_mode">form</field>
+	    <field name="view_id" ref="view_account_payment_form_custom"/>
+	    <field name="act_window_id" ref="tma_customer_payments"/>
+    </record>  
+    
+       
+    <menuitem id="menu_action_account_payments_receivablessss" action="tma_customer_payments" parent="account.menu_finance_receivables" sequence="15"/>  
+       
+</odoo>
