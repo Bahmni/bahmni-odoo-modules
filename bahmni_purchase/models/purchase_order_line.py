@@ -48,4 +48,4 @@ class PurchaseOrderLine(models.Model):
         if mrp and self.product_uom and seller.product_uom != self.product_uom:
             mrp = seller.product_uom._compute_price(mrp, self.product_uom)
         self.price_unit = price_unit
-        self.mrp = mrp
+        self.mrp = self.product_id.mrp
