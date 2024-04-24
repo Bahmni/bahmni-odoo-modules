@@ -80,7 +80,7 @@ class PurchaseOrderRegister(models.Model):
                 'tax_type': rec.tax_type,
                 'po_details': [{
                               'po_no': po_details.name,
-                              'date': po_details.date_approve.strftime("%d/%m/%Y"),
+                              'date': po_details.date_order.strftime("%d/%m/%Y"),
                               'supplier_ref': po_details.partner_ref if po_details.partner_ref else '-',
                               'vendor_name': po_details.partner_id.name,
                               'product_details': [{
