@@ -10,7 +10,7 @@
 				<field name="existing_lot_id" string ="Existing Lots" options="{'no_create': True, 'no_quick_create': True, 'no_create_edit':True}" invisible="not context.get('show_lots_text')"/>
 			</xpath>
 			<xpath expr="//field[@name='lot_name']" position="replace">
-				<field name="lot_name" attrs="{'readonly': [('existing_lot_id', '!=', False)]}"/>		
+				<field name="lot_name" attrs="{'readonly': [('existing_lot_id', '!=', False)]}" force_save="1"/>		
 			</xpath>			
 			<xpath expr="//tree/field[@name='product_uom_id']" position="after">				
 				<field name="cost_price" invisible="not context.get('show_lots_text')"/>
