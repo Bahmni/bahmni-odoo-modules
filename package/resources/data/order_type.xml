@@ -12,4 +12,22 @@
         <field name="name">Radiology Order</field>
         <field name="description">Radiology orders are used to request imaging studies such as X-rays, CT scans, MRI scans, and ultrasound examinations for patients. These orders provide details about the type of imaging study needed, the body part to be examined, and any relevant clinical information.</field>
     </record>
+    <record id="order_type_shop_map_drug" model="order.type.shop.map">              
+        <field name="order_type" ref="order_type_drug"/>
+        <field name="shop_id" ref="sale_shop_pharmacy"/>
+        <field name="location_name">General Ward</field>
+        <field name="location_id">8</field>
+    </record>
+    <record id="order_type_shop_map_lab" model="order.type.shop.map">
+		<field name="order_type" ref="order_type_lab"/>
+        <field name="shop_id" ref="sale_shop_pharmacy"/>
+        <field name="location_name">General Ward</field>
+        <field name="location_id">8</field>
+    </record>
+    <record id="order_type_shop_map_radio" model="order.type.shop.map">
+		<field name="order_type" ref="order_type_radiology"/>
+        <field name="shop_id" ref="sale_shop_pharmacy"/>
+        <field name="location_name">General Ward</field>
+        <field name="location_id">8</field>
+    </record>
 </odoo>

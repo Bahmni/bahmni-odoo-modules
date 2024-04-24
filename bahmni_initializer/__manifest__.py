@@ -17,8 +17,8 @@ Bahmni Initializer
         'security/ir.model.access.csv',
         'data/address.seed.csv',
         'data/uom_seed.xml',
-        'data/order_type.xml',
-        'data/sale_shop.xml'
+        'data/sale_shop.xml',
+        'data/order_type.xml'
     ],
     'demo': [],
     'qweb': [],
