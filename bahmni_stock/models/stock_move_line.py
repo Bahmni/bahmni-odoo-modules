@@ -1,4 +1,3 @@
-
 import datetime
 from dateutil import tz
 from collections import Counter, defaultdict
@@ -18,9 +17,9 @@ class StockMoveLine(models.Model):
     existing_lot_id = fields.Many2one(
         'stock.lot', 'Lot/Serial Number',
         domain="[('product_id', '=', product_id), ('company_id', '=', company_id)]", check_company=True)
-    
+
     @api.onchange('product_id','qty_done')
-    def _onchange_balance_qty(self): 
+    def _onchange_balance_qty(self):
         if self.location_id and self.product_id:
             self.balance = (sum([stock.inventory_quantity_auto_apply for stock in self.env['stock.quant'].search([('location_id', '=', self.location_id.id),('product_id', '=', self.product_id.id)])])) - self.qty_done
     
@@ -32,7 +31,25 @@ class StockMoveLine(models.Model):
         else:
             self.lot_name = '' 
             self.expiration_date = fields.Datetime.today() + datetime.timedelta(days=self.product_id.expiration_time)
-    
+
+    @api.onchange('expiration_date')
+    def _onchange_expiration_date(self):
+        today_date = fields.Datetime.now().date()
+
+        if self.expiration_date:
+            expiration_date = self.expiration_date.date()
+            if expiration_date != today_date:
+                days_difference = (expiration_date - today_date).days
+                if days_difference < 30:
+                    return {
+                        'warning': {
+                            'title': 'Warning',
+                            'message': 'The selected expiration date is less than 30 days from today and the product will expire soon.'
+                        }
+                    }
+        return {}
+
+
     @api.constrains('mrp')
     def _check_fields_values(self):
         for rec in self:
@@ -96,7 +113,6 @@ class StockMoveLine(models.Model):
             
     def _get_value_production_lot(self):
         self.ensure_one()
-        
         return {
             'company_id': self.company_id.id,
             'name': self.lot_name,
@@ -106,4 +122,3 @@ class StockMoveLine(models.Model):
             'mrp': self.mrp,
             'expiration_date': self.expiration_date
         }
-    
