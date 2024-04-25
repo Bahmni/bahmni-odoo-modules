@@ -12,13 +12,9 @@ COPY bahmni_purchase ${ADDON_PATH}/bahmni_purchase/
 COPY bahmni_sale ${ADDON_PATH}/bahmni_sale/
 COPY bahmni_stock ${ADDON_PATH}/bahmni_stock/
 COPY restful_api ${ADDON_PATH}/restful_api/
-COPY community_modules/base_account_budget ${ADDON_PATH}/base_account_budget/
-COPY community_modules/base_accounting_kit ${ADDON_PATH}/base_accounting_kit/
-COPY community_modules/report_pdf_options ${ADDON_PATH}/report_pdf_options/
-COPY community_modules/stock_picking_filter_lot ${ADDON_PATH}/stock_picking_filter_lot
-COPY community_modules/br_custom_list_view ${ADDON_PATH}/br_custom_list_view
 COPY openerp7_data_import ${ADDON_PATH}/openerp7_data_import/
 COPY bahmni_reports ${ADDON_PATH}/bahmni_reports
+COPY community_modules ${ADDON_PATH}/community_modules/
 COPY package/resources/data/address.seed.csv ${ADDON_PATH}/bahmni_initializer/data/
 COPY package/resources/data/uom_seed.xml ${ADDON_PATH}/bahmni_initializer/data/
 COPY package/resources/data/order_type.xml ${ADDON_PATH}/bahmni_initializer/data/
