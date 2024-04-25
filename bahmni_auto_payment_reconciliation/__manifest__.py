@@ -1,11 +1,11 @@
-## This module developed by KGISL 
+## This module developed by KGISL
 
 {
-    "name": "Multi Payment Process",
-    "summary": """Multi Invoice Payment """,
+    "name": "Bahmni Auto Payment Reconciliation",
+    "summary": """This module extends the Customer payment functionality to allocate the payment amount automatically across multiple open invoices """,
     "author": "Karthikeyan",
     "website": "https://www.bahmni.org/",
-    "category": "Account",    
+    "category": "Accounting",
     "license": "LGPL-3",
     "depends": ["account"],
     "data": [
@@ -14,8 +14,8 @@
         'views/custom_account_payment_views.xml',
         'views/account_report.xml',
         'report/report_invoice_inherit.xml',
-    ],    
+    ],
     "installable": True,
-    "application": True,    
+    "application": True,
     "auto_install": False,
 }
