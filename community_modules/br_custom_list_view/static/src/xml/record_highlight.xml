@@ -3,6 +3,17 @@
         <xpath expr="//table/thead/tr/th[@t-if='hasSelectors']" position="before">
             <th>Sl No</th>
         </xpath>
+        <xpath expr="//table/tfoot/tr/td[1]" position="before">
+            <td></td>
+        </xpath>
+    </t>
+    <t t-name="br_custom_list_view.AccountRenderer" t-inherit="account.ListRenderer" t-inherit-mode="extension" owl="1">
+        <xpath expr="//table/thead/tr/th[@t-if='hasSelectors']" position="before">
+            <th>Sl No</th>
+        </xpath>
+        <xpath expr="//table/tfoot/tr/td[1]" position="before">
+            <td></td>
+        </xpath>
     </t>
     <t t-name="br_custom_list_view.add_number" t-inherit="web.ListRenderer.Rows" t-inherit-mode="extension" owl="1">
         <xpath expr="//t[@t-foreach='list.records']" position="before">
