@@ -11,7 +11,7 @@ class AccountInvoice(models.Model):
     _inherit = 'account.move'
 
     order_id = fields.Many2one('sale.order',string="Sale ID")
-    
+
     discount_type = fields.Selection([('none', 'No Discount'),
                                       ('fixed', 'Fixed'),
                                       ('percentage', 'Percentage')],
@@ -21,6 +21,10 @@ class AccountInvoice(models.Model):
     discount_percentage = fields.Float(string="Discount Percentage")
     disc_acc_id = fields.Many2one('account.account',string="Discount Account Head" ,domain=[('account_type', '=', 'income_other')])
     round_off_amount = fields.Monetary(string="Round Off Amount")
+    invoice_total = fields.Monetary(
+        string='Invoice Total',
+        compute='_compute_invoice_total', readonly=True
+    )
 
     @contextmanager
     def _check_balanced(self, container):
@@ -51,51 +55,44 @@ class AccountInvoice(models.Model):
             if self.discount_type == 'percentage':
                 self.discount = 0
             if self.discount_type == 'fixed':
-                self.discount_percentage = 0            
+                self.discount_percentage = 0
             if self.discount_percentage:
                 self.discount = amount_total * self.discount_percentage / 100
         else:
             pass
 
 
-    
+
     def button_dummy(self):
         return True
-    
-    
-    
-    
-    def action_post(self):
-        
-        for inv in self: 
-            
-            find_val = (inv.amount_total - inv.discount ) + inv.round_off_amount
-            
-            differnece_vals = inv.amount_total - find_val
-            
-                      
-            for move_line in inv.line_ids:
-                update = False
-                if move_line.display_type =='payment_term':
-                    move_line.debit = move_line.debit - differnece_vals
 
-                    
-        
-        moves_with_payments = self.filtered('payment_id')
-        other_moves = self - moves_with_payments
-        if moves_with_payments:
-            moves_with_payments.payment_id.action_post()
-        if other_moves:
-            other_moves._post(soft=False)
-        return False
-    
+
+
+
+    def action_post(self):
+
+        for inv in self:
+            final_invoice_value = (inv.amount_total - inv.discount ) + inv.round_off_amount
+            for move_line in inv.line_ids:
+                if move_line.display_type == 'payment_term':
+                    if inv.move_type == 'out_invoice':
+                        move_line.debit = final_invoice_value
+                    if inv.move_type == 'out_refund':
+                        move_line.credit = final_invoice_value
+        return super(AccountInvoice, self).action_post()
+
+    @api.depends('discount', 'discount_percentage', 'amount_total', 'round_off_amount')
+    def _compute_invoice_total(self):
+        for invoice in self:
+            invoice.invoice_total = (invoice.amount_total - invoice.discount ) + invoice.round_off_amount
+
 class AccountPayment(models.Model):
     _inherit = 'account.payment'
-    
+
     def invoice_search(self):
         """ Using ref find the invoice obj """
         return self.env['account.move'].search([('id', '=', self.reconciled_invoice_ids.id),('move_type', '=', 'out_invoice')], limit=1)
-    
+
     def total_receivable(self):
         receivable = 0.0
         if self.partner_id:
@@ -103,11 +100,11 @@ class AccountPayment(models.Model):
                           amount_residual > 0 and partner_id = %s
                           """, (self.partner_id.id,))
             outstaning_value = self._cr.fetchall()
-            if outstaning_value[0][0] != None: 
+            if outstaning_value[0][0] != None:
                 receivable = outstaning_value[0][0]
             else:
-                receivable = 0.00                
+                receivable = 0.00
         return receivable
-    
+
     def generate_report_action(self):
         return self.env.ref("bahmni_account.account_summarized_invoices_payment").report_action(self)
