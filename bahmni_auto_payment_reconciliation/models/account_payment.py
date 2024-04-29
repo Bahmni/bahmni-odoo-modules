@@ -47,8 +47,8 @@ class AccountPayment(models.Model):
     def total_debits(self):
         debit_balance = 0.0
         if self.partner_id:
-            self._cr.execute("""select ABS(sum(amount_residual)) from account_move where 
-                          amount_residual < 0 and partner_id = %s
+            self._cr.execute("""select sum(ABS(amount_residual)) from account_move where 
+                          (amount_residual < 0 or (move_type='out_refund' and amount_residual > 0)) and partner_id = %s
                           """, (self.partner_id.id,))
             debit_value = self._cr.fetchall()
             if debit_value[0][0] != None:
@@ -132,6 +132,7 @@ class AccountPayment(models.Model):
                                                             ("amount_residual", ">", 0.0),
                                                             ("state", "=", "posted"),
                                                             ("company_id", "=", self.company_id.id),
+                                                            ("move_type", "=", "out_invoice")
                                                             ], order="invoice_date_due,id ASC")
 
             debit_total_value = self.total_debits()
@@ -169,10 +170,12 @@ class AccountPayment(models.Model):
             self.prev_outstanding_balance = self.total_receivable() - self.total_debits()
             self.balance_outstanding = self.total_receivable() - self.total_debits()
             debit_invoice_data = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
-                                                                  ("amount_residual", "<", 0.0),
                                                                   ("state", "=", "posted"),
                                                                   ("company_id", "=", self.company_id.id),
-                                                                  ], order="invoice_date_due ASC")
+                                                                  '|', ("amount_residual", "<", 0.0),
+                                                                  '&', ("amount_residual", ">", 0.0),
+                                                                  ("move_type", "=", "out_refund"),
+                                                                  ], order="invoice_date_due,id ASC")
 
             for debit_invoice in debit_invoice_data:
                 debit_vals.append((0, 0, {
