@@ -44,18 +44,35 @@ class AccountPayment(models.Model):
         initials = ''.join(word[0].upper() for word in words)
         return initials
 
-    def total_debits(self):
-        debit_balance = 0.0
+    def total_credit(self):
+        credit_value = 0.0
         if self.partner_id:
             self._cr.execute("""select sum(ABS(amount_residual)) from account_move where 
                           (amount_residual < 0 or (move_type='out_refund' and amount_residual > 0)) and partner_id = %s
                           """, (self.partner_id.id,))
-            debit_value = self._cr.fetchall()
-            if debit_value[0][0] != None:
-                debit_balance = debit_value[0][0]
+            result = self._cr.fetchall()
+            if result[0][0] is not None:
+                credit_value = result[0][0]
             else:
-                debit_balance = 0.00
-        return debit_balance
+                credit_value = 0.00
+        return credit_value
+
+    def total_outstanding(self):
+        outstanding = 0.0
+        if self.partner_id:
+            self._cr.execute("""select sum(amount_residual) from account_move where 
+                              amount_residual > 0 and move_type='out_invoice' and partner_id = %s
+                              """, (self.partner_id.id,))
+            outstanding_value = self._cr.fetchall()
+            if outstanding_value[0][0] is not None:
+                outstanding = outstanding_value[0][0]
+            else:
+                outstanding = 0.00
+        return outstanding
+
+    def total_receivable(self):
+
+        return self.total_outstanding() - self.total_credit()
 
     def action_post(self):
         res = super(AccountPayment, self).action_post()
@@ -68,16 +85,16 @@ class AccountPayment(models.Model):
         return res
 
     def assign_credit_invoices_to_outstanding_invoices(self):
-        for debit_rec in self.line_payment_invoice_debit_ids:
+        for credit_invoice in self.line_payment_invoice_debit_ids:
             associated_invoices = []
-            if debit_rec.selected:
-                payment_term_line_id = debit_rec.invoice_id.line_ids.filtered(
+            if credit_invoice.selected:
+                payment_term_line_id = credit_invoice.invoice_id.line_ids.filtered(
                     lambda l: l.display_type == 'payment_term')
-                for credit_rec in self.get_unprocessed_outstanding_invoices():
-                    credit_rec.invoice_id.js_assign_outstanding_line(payment_term_line_id.id)
-                    associated_invoices.append(credit_rec.invoice_id.name)
-                    if debit_rec.invoice_id.amount_residual == 0:
-                        _logger.info("Credit Invoice %s assigned to : %s" % (debit_rec.invoice_id.name,
+                for outstanding_invoice in self.get_unprocessed_outstanding_invoices():
+                    outstanding_invoice.invoice_id.js_assign_outstanding_line(payment_term_line_id.id)
+                    associated_invoices.append(outstanding_invoice.invoice_id.name)
+                    if credit_invoice.invoice_id.amount_residual == 0:
+                        _logger.info("Credit Invoice %s assigned to : %s" % (credit_invoice.invoice_id.name,
                                                                              ', '.join(associated_invoices)))
                         break
 
@@ -101,8 +118,8 @@ class AccountPayment(models.Model):
 
     @api.onchange('amount')
     def paid_amount_onchange(self):
-        self.balance_outstanding = (self.total_receivable() - self.total_debits()) - self.amount
-        paid_amt = self.amount + self.total_debits()
+        self.balance_outstanding = self.total_receivable() - self.amount
+        paid_amt = self.amount + self.total_credit()
         for line in self.line_payment_invoice_credit_ids:
             line.remaining_amt = line.invoice_amt
             line.amount = 0.00
@@ -123,53 +140,53 @@ class AccountPayment(models.Model):
     @api.onchange('partner_id')
     def partner_id_onchange(self):
 
-        credit_vals = []
+        outstanding_vals = []
         self.line_payment_invoice_credit_ids.unlink()
         if self.partner_id:
-            self.prev_outstanding_balance = self.total_receivable() - self.total_debits()
-            self.balance_outstanding = self.total_receivable() - self.total_debits()
-            invoice_data = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
+            self.prev_outstanding_balance = self.total_receivable()
+            self.balance_outstanding = self.total_receivable()
+            outstanding_invoices = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
                                                             ("amount_residual", ">", 0.0),
                                                             ("state", "=", "posted"),
                                                             ("company_id", "=", self.company_id.id),
                                                             ("move_type", "=", "out_invoice")
                                                             ], order="invoice_date_due,id ASC")
 
-            debit_total_value = self.total_debits()
-            for credit_invoice in invoice_data:
-                if credit_invoice.amount_residual >= debit_total_value and debit_total_value > 0:
-                    amount = debit_total_value
-                    remaining_amt = credit_invoice.amount_residual - debit_total_value
+            total_outstanding = self.total_credit()
+            for outstanding_invoice in outstanding_invoices:
+                if outstanding_invoice.amount_residual >= total_outstanding > 0:
+                    amount = total_outstanding
+                    remaining_amt = outstanding_invoice.amount_residual - total_outstanding
                     selected = True
-                    debit_total_value = 0
+                    total_outstanding = 0
 
-                elif credit_invoice.amount_residual < debit_total_value:
-                    debit_total_value = debit_total_value - credit_invoice.amount_residual
-                    amount = credit_invoice.amount_residual
+                elif outstanding_invoice.amount_residual < total_outstanding:
+                    total_outstanding = total_outstanding - outstanding_invoice.amount_residual
+                    amount = outstanding_invoice.amount_residual
                     remaining_amt = 0
                     selected = True
                 else:
                     amount = 0
                     selected = False
-                    remaining_amt = credit_invoice.amount_residual
+                    remaining_amt = outstanding_invoice.amount_residual
 
-                credit_vals.append((0, 0, {
-                    'invoice_id': credit_invoice.id,
-                    'partner_id': credit_invoice.partner_id.id,
-                    'care_setting': credit_invoice.order_id.care_setting,
-                    'date': credit_invoice.invoice_date_due,
-                    'remaining_amt': remaining_amt,
+                outstanding_vals.append((0, 0, {
+                    'invoice_id': outstanding_invoice.id,
+                    'partner_id': outstanding_invoice.partner_id.id,
+                    'care_setting': outstanding_invoice.order_id.care_setting,
+                    'date': outstanding_invoice.invoice_date_due,
+                    'invoice_amt': outstanding_invoice.amount_residual,
                     'amount': amount,
+                    'remaining_amt': remaining_amt,
                     'selected': selected,
-                    'invoice_amt': credit_invoice.amount_residual,
                 }))
 
-        debit_vals = []
+        credit_vals = []
         self.line_payment_invoice_debit_ids.unlink()
         if self.partner_id:
-            self.prev_outstanding_balance = self.total_receivable() - self.total_debits()
-            self.balance_outstanding = self.total_receivable() - self.total_debits()
-            debit_invoice_data = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
+            self.prev_outstanding_balance = self.total_receivable()
+            self.balance_outstanding = self.total_receivable()
+            credit_invoices = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
                                                                   ("state", "=", "posted"),
                                                                   ("company_id", "=", self.company_id.id),
                                                                   '|', ("amount_residual", "<", 0.0),
@@ -177,19 +194,36 @@ class AccountPayment(models.Model):
                                                                   ("move_type", "=", "out_refund"),
                                                                   ], order="invoice_date_due,id ASC")
 
-            for debit_invoice in debit_invoice_data:
-                debit_vals.append((0, 0, {
-                    'invoice_id': debit_invoice.id,
-                    'partner_id': debit_invoice.partner_id.id,
-                    'care_setting': debit_invoice.order_id.care_setting,
-                    'date': debit_invoice.invoice_date_due,
-                    'remaining_amt': abs(debit_invoice.amount_residual),
-                    'invoice_amt': abs(debit_invoice.amount_residual),
-                    'amount': abs(debit_invoice.amount_residual),
-                    'selected': True,
+            total_outstanding = self.total_outstanding()
+            for credit_invoice in credit_invoices:
+                amount_residual = abs(credit_invoice.amount_residual)
+                if amount_residual >= total_outstanding > 0:
+                    amount = total_outstanding
+                    remaining_amt = amount_residual - total_outstanding
+                    selected = True
+                    total_outstanding = 0
+
+                elif amount_residual < total_outstanding:
+                    total_outstanding = total_outstanding - amount_residual
+                    amount = amount_residual
+                    remaining_amt = 0
+                    selected = True
+                else:
+                    amount = 0
+                    selected = False
+                    remaining_amt = amount_residual
+                credit_vals.append((0, 0, {
+                    'invoice_id': credit_invoice.id,
+                    'partner_id': credit_invoice.partner_id.id,
+                    'care_setting': credit_invoice.order_id.care_setting,
+                    'date': credit_invoice.invoice_date_due,
+                    'invoice_amt': amount_residual,
+                    'remaining_amt': remaining_amt,
+                    'amount': amount,
+                    'selected': selected,
 
                 }))
-        return {'value': {'line_payment_invoice_credit_ids': credit_vals, 'line_payment_invoice_debit_ids': debit_vals}}
+        return {'value': {'line_payment_invoice_credit_ids': outstanding_vals, 'line_payment_invoice_debit_ids': credit_vals}}
 
     ## Entry Deletion ##
     def unlink(self):
