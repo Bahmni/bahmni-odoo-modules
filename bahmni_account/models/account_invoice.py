@@ -6,25 +6,15 @@ from odoo.exceptions import UserError, ValidationError
 import logging
 _logger = logging.getLogger(__name__)
 
-
 class AccountInvoice(models.Model):
     _inherit = 'account.move'
-
     order_id = fields.Many2one('sale.order',string="Sale ID")
-
-    discount_type = fields.Selection([('none', 'No Discount'),
-                                      ('fixed', 'Fixed'),
-                                      ('percentage', 'Percentage')],
-                                     string="Discount Method",
-                                     default='none')
+    discount_type = fields.Selection([('none', 'No Discount'), ('fixed', 'Fixed'), ('percentage', 'Percentage')], string="Discount Method", default='none')
     discount = fields.Monetary(string="Discount")
     discount_percentage = fields.Float(string="Discount Percentage")
     disc_acc_id = fields.Many2one('account.account',string="Discount Account Head" ,domain=[('account_type', '=', 'income_other')])
     round_off_amount = fields.Monetary(string="Round Off Amount")
-    invoice_total = fields.Monetary(
-        string='Invoice Total',
-        compute='_compute_invoice_total', readonly=True
-    )
+    invoice_total = fields.Monetary(string='Invoice Total', compute='_compute_invoice_total', readonly=True)
 
     @contextmanager
     def _check_balanced(self, container):
@@ -36,6 +26,7 @@ class AccountInvoice(models.Model):
             if disabled:
                 return
         unbalanced_moves = self._get_unbalanced_moves(container)
+
     @api.onchange('invoice_line_ids')
     def onchange_invoice_lines(self):
         amount_total = self.amount_untaxed + self.amount_tax
@@ -61,16 +52,10 @@ class AccountInvoice(models.Model):
         else:
             pass
 
-
-
     def button_dummy(self):
         return True
 
-
-
-
     def action_post(self):
-
         for inv in self:
             final_invoice_value = (inv.amount_total - inv.discount ) + inv.round_off_amount
             for move_line in inv.line_ids:
