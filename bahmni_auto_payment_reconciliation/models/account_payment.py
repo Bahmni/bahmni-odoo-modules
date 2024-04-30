@@ -225,6 +225,25 @@ class AccountPayment(models.Model):
                 }))
         return {'value': {'line_payment_invoice_credit_ids': outstanding_vals, 'line_payment_invoice_debit_ids': credit_vals}}
 
+    def action_draft(self):
+        super(AccountPayment, self).action_draft()
+        _logger.info("Default Payment Reset Flow completed. Resetting credit invoice allocations.")
+        self.unlink_credit_invoice_associations()
+
+    def unlink_credit_invoice_associations(self):
+        allocated_credit_invoices = self.line_payment_invoice_debit_ids.filtered(lambda l: l.selected)
+        for allocated_credit_invoice in allocated_credit_invoices:
+            partial_reconciles, exchange_move_diffs = allocated_credit_invoice.invoice_id._get_reconciled_invoices_partials()
+            _logger.info("Reconciles:" + str(partial_reconciles))
+            for (partial_reconcile, amount, move_line) in partial_reconciles:
+                associated_outstanding_invoice = self.line_payment_invoice_credit_ids.filtered(
+                    lambda l: l.selected and l.invoice_id == move_line.move_id)
+                if associated_outstanding_invoice:
+                    _logger.info("Un reconciling credit invoice %s from %s for amount %s" % (
+                        allocated_credit_invoice.invoice_id.name, associated_outstanding_invoice.invoice_id.name,
+                        amount))
+                    associated_outstanding_invoice.invoice_id.js_remove_outstanding_partial(partial_reconcile.id)
+
     ## Entry Deletion ##
     def unlink(self):
         """ unlink """
