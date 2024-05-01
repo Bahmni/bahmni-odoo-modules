@@ -11,6 +11,7 @@ _logger = logging.getLogger(__name__)
 class AccountPayment(models.Model):
     _inherit = "account.payment"
 
+    is_auto_reconciliation_applicable = fields.Boolean(compute="_compute_is_auto_reconciliation_applicable")
     prev_outstanding_balance = fields.Float(string="Previous Outstanding")
     balance_outstanding = fields.Float(string="Balance Outstanding")
 
@@ -29,6 +30,14 @@ class AccountPayment(models.Model):
         readonly=True,
         states={"draft": [("readonly", False)]},
         help="Use these lines to add matching lines, for example in a credit", )
+
+    @api.depends('is_internal_transfer')
+    def _compute_is_auto_reconciliation_applicable(self):
+        for payment in self:
+            payment.is_auto_reconciliation_applicable = \
+                bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_auto_payment_reconciliation.enabled')) \
+                and not self.is_internal_transfer \
+                and self.env.context.get('default_partner_type') == 'customer'
 
     def multi_invoice_search(self):
         """ Using ref find the invoice obj """
@@ -76,12 +85,12 @@ class AccountPayment(models.Model):
 
     def action_post(self):
         res = super(AccountPayment, self).action_post()
-
-        if len(self.line_payment_invoice_debit_ids) > 0:
-            self.assign_credit_invoices_to_outstanding_invoices()
-        unprocessed_outstanding_invoices = self.get_unprocessed_outstanding_invoices()
-        if unprocessed_outstanding_invoices and self.amount > 0 and self.payment_type == 'inbound':
-            self.assign_payment_to_outstanding_invoices(unprocessed_outstanding_invoices)
+        if self.is_auto_reconciliation_applicable:
+            if len(self.line_payment_invoice_debit_ids) > 0:
+                self.assign_credit_invoices_to_outstanding_invoices()
+            unprocessed_outstanding_invoices = self.get_unprocessed_outstanding_invoices()
+            if unprocessed_outstanding_invoices and self.amount > 0 and self.payment_type == 'inbound':
+                self.assign_payment_to_outstanding_invoices(unprocessed_outstanding_invoices)
         return res
 
     def assign_credit_invoices_to_outstanding_invoices(self):
@@ -118,112 +127,114 @@ class AccountPayment(models.Model):
 
     @api.onchange('amount')
     def paid_amount_onchange(self):
-        self.balance_outstanding = self.total_receivable() - self.amount
-        paid_amt = self.amount + self.total_credit()
-        for line in self.line_payment_invoice_credit_ids:
-            line.remaining_amt = line.invoice_amt
-            line.amount = 0.00
-            line.selected = False
-            if line.remaining_amt >= paid_amt and paid_amt > 0:
-                line.amount = paid_amt
-                line.remaining_amt = line.remaining_amt - paid_amt
-                line.selected = True
-                paid_amt = 0
-            else:
-                if line.remaining_amt < paid_amt:
-                    remaining_bal = 0
-                    paid_amt = paid_amt - line.remaining_amt
-                    line.amount = line.remaining_amt
-                    line.remaining_amt = remaining_bal
+        if self.is_auto_reconciliation_applicable:
+            self.balance_outstanding = self.total_receivable() - self.amount
+            paid_amt = self.amount + self.total_credit()
+            for line in self.line_payment_invoice_credit_ids:
+                line.remaining_amt = line.invoice_amt
+                line.amount = 0.00
+                line.selected = False
+                if line.remaining_amt >= paid_amt and paid_amt > 0:
+                    line.amount = paid_amt
+                    line.remaining_amt = line.remaining_amt - paid_amt
                     line.selected = True
+                    paid_amt = 0
+                else:
+                    if line.remaining_amt < paid_amt:
+                        remaining_bal = 0
+                        paid_amt = paid_amt - line.remaining_amt
+                        line.amount = line.remaining_amt
+                        line.remaining_amt = remaining_bal
+                        line.selected = True
 
     @api.onchange('partner_id')
     def partner_id_onchange(self):
+        if self.is_auto_reconciliation_applicable:
+            outstanding_vals = []
+            self.line_payment_invoice_credit_ids.unlink()
+            if self.partner_id:
+                self.prev_outstanding_balance = self.total_receivable()
+                self.balance_outstanding = self.total_receivable()
+                outstanding_invoices = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
+                                                                        ("amount_residual", ">", 0.0),
+                                                                        ("state", "=", "posted"),
+                                                                        ("company_id", "=", self.company_id.id),
+                                                                        ("move_type", "=", "out_invoice")
+                                                                        ], order="invoice_date_due,id ASC")
 
-        outstanding_vals = []
-        self.line_payment_invoice_credit_ids.unlink()
-        if self.partner_id:
-            self.prev_outstanding_balance = self.total_receivable()
-            self.balance_outstanding = self.total_receivable()
-            outstanding_invoices = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
-                                                            ("amount_residual", ">", 0.0),
-                                                            ("state", "=", "posted"),
-                                                            ("company_id", "=", self.company_id.id),
-                                                            ("move_type", "=", "out_invoice")
-                                                            ], order="invoice_date_due,id ASC")
+                total_outstanding = self.total_credit()
+                for outstanding_invoice in outstanding_invoices:
+                    if outstanding_invoice.amount_residual >= total_outstanding > 0:
+                        amount = total_outstanding
+                        remaining_amt = outstanding_invoice.amount_residual - total_outstanding
+                        selected = True
+                        total_outstanding = 0
 
-            total_outstanding = self.total_credit()
-            for outstanding_invoice in outstanding_invoices:
-                if outstanding_invoice.amount_residual >= total_outstanding > 0:
-                    amount = total_outstanding
-                    remaining_amt = outstanding_invoice.amount_residual - total_outstanding
-                    selected = True
-                    total_outstanding = 0
+                    elif outstanding_invoice.amount_residual < total_outstanding:
+                        total_outstanding = total_outstanding - outstanding_invoice.amount_residual
+                        amount = outstanding_invoice.amount_residual
+                        remaining_amt = 0
+                        selected = True
+                    else:
+                        amount = 0
+                        selected = False
+                        remaining_amt = outstanding_invoice.amount_residual
 
-                elif outstanding_invoice.amount_residual < total_outstanding:
-                    total_outstanding = total_outstanding - outstanding_invoice.amount_residual
-                    amount = outstanding_invoice.amount_residual
-                    remaining_amt = 0
-                    selected = True
-                else:
-                    amount = 0
-                    selected = False
-                    remaining_amt = outstanding_invoice.amount_residual
+                    outstanding_vals.append((0, 0, {
+                        'invoice_id': outstanding_invoice.id,
+                        'partner_id': outstanding_invoice.partner_id.id,
+                        'care_setting': outstanding_invoice.order_id.care_setting,
+                        'date': outstanding_invoice.invoice_date_due,
+                        'invoice_amt': outstanding_invoice.amount_residual,
+                        'amount': amount,
+                        'remaining_amt': remaining_amt,
+                        'selected': selected,
+                    }))
 
-                outstanding_vals.append((0, 0, {
-                    'invoice_id': outstanding_invoice.id,
-                    'partner_id': outstanding_invoice.partner_id.id,
-                    'care_setting': outstanding_invoice.order_id.care_setting,
-                    'date': outstanding_invoice.invoice_date_due,
-                    'invoice_amt': outstanding_invoice.amount_residual,
-                    'amount': amount,
-                    'remaining_amt': remaining_amt,
-                    'selected': selected,
-                }))
+            credit_vals = []
+            self.line_payment_invoice_debit_ids.unlink()
+            if self.partner_id:
+                self.prev_outstanding_balance = self.total_receivable()
+                self.balance_outstanding = self.total_receivable()
+                credit_invoices = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
+                                                                   ("state", "=", "posted"),
+                                                                   ("company_id", "=", self.company_id.id),
+                                                                   '|', ("amount_residual", "<", 0.0),
+                                                                   '&', ("amount_residual", ">", 0.0),
+                                                                   ("move_type", "=", "out_refund"),
+                                                                   ], order="invoice_date_due,id ASC")
 
-        credit_vals = []
-        self.line_payment_invoice_debit_ids.unlink()
-        if self.partner_id:
-            self.prev_outstanding_balance = self.total_receivable()
-            self.balance_outstanding = self.total_receivable()
-            credit_invoices = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
-                                                                  ("state", "=", "posted"),
-                                                                  ("company_id", "=", self.company_id.id),
-                                                                  '|', ("amount_residual", "<", 0.0),
-                                                                  '&', ("amount_residual", ">", 0.0),
-                                                                  ("move_type", "=", "out_refund"),
-                                                                  ], order="invoice_date_due,id ASC")
+                total_outstanding = self.total_outstanding()
+                for credit_invoice in credit_invoices:
+                    amount_residual = abs(credit_invoice.amount_residual)
+                    if amount_residual >= total_outstanding > 0:
+                        amount = total_outstanding
+                        remaining_amt = amount_residual - total_outstanding
+                        selected = True
+                        total_outstanding = 0
 
-            total_outstanding = self.total_outstanding()
-            for credit_invoice in credit_invoices:
-                amount_residual = abs(credit_invoice.amount_residual)
-                if amount_residual >= total_outstanding > 0:
-                    amount = total_outstanding
-                    remaining_amt = amount_residual - total_outstanding
-                    selected = True
-                    total_outstanding = 0
+                    elif amount_residual < total_outstanding:
+                        total_outstanding = total_outstanding - amount_residual
+                        amount = amount_residual
+                        remaining_amt = 0
+                        selected = True
+                    else:
+                        amount = 0
+                        selected = False
+                        remaining_amt = amount_residual
+                    credit_vals.append((0, 0, {
+                        'invoice_id': credit_invoice.id,
+                        'partner_id': credit_invoice.partner_id.id,
+                        'care_setting': credit_invoice.order_id.care_setting,
+                        'date': credit_invoice.invoice_date_due,
+                        'invoice_amt': amount_residual,
+                        'remaining_amt': remaining_amt,
+                        'amount': amount,
+                        'selected': selected,
 
-                elif amount_residual < total_outstanding:
-                    total_outstanding = total_outstanding - amount_residual
-                    amount = amount_residual
-                    remaining_amt = 0
-                    selected = True
-                else:
-                    amount = 0
-                    selected = False
-                    remaining_amt = amount_residual
-                credit_vals.append((0, 0, {
-                    'invoice_id': credit_invoice.id,
-                    'partner_id': credit_invoice.partner_id.id,
-                    'care_setting': credit_invoice.order_id.care_setting,
-                    'date': credit_invoice.invoice_date_due,
-                    'invoice_amt': amount_residual,
-                    'remaining_amt': remaining_amt,
-                    'amount': amount,
-                    'selected': selected,
-
-                }))
-        return {'value': {'line_payment_invoice_credit_ids': outstanding_vals, 'line_payment_invoice_debit_ids': credit_vals}}
+                    }))
+            return {'value': {'line_payment_invoice_credit_ids': outstanding_vals,
+                              'line_payment_invoice_debit_ids': credit_vals}}
 
     def action_draft(self):
         super(AccountPayment, self).action_draft()
