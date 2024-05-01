@@ -41,20 +41,17 @@
                     '=', True]]}
                 </attribute>
             </xpath>
-            <xpath expr="//field[@name='partner_id'][1]" position="after">
-                <field name="partner_id" domain="[('customer_rank', '>', 0)]"/>
-            </xpath>
 
             <xpath expr="//sheet/group" position="after">
                 <notebook attrs="{'invisible':[('is_auto_reconciliation_applicable','!=',True)]}">
-                    <page string="Credit Invoice Lines">
-                        <field name="line_payment_invoice_credit_ids">
+                    <page string="Outstanding Invoices">
+                        <field name="outstanding_invoice_lines">
                             <tree editable="bottom" delete="false" create="false">
                                 <field name="invoice_id" readonly="1" force_save="1"/>
                                 <field name="date" readonly="1" force_save="1"/>
                                 <field name="care_setting" readonly="1" force_save="1"/>
                                 <field name="invoice_amt" readonly="1" force_save="1" sum="Total"/>
-                                <field name="amount" readonly="1" force_save="1" sum="Total"/>
+                                <field name="allocated_amount" readonly="1" force_save="1" sum="Total"/>
                                 <field name="remaining_amt" readonly="1" force_save="1" sum="Total"/>
                                 <field name="selected" readonly="1" force_save="1"/>
                             </tree>
@@ -63,14 +60,14 @@
 
                 </notebook>
                 <notebook attrs="{'invisible':[('is_auto_reconciliation_applicable','!=',True)]}">
-                    <page string="Debit Invoice Lines">
-                        <field name="line_payment_invoice_debit_ids">
+                    <page string="Credit Invoices">
+                        <field name="credit_invoice_lines">
                             <tree editable="bottom" delete="false" create="false">
                                 <field name="invoice_id" readonly="1" force_save="1"/>
                                 <field name="date" readonly="1" force_save="1"/>
                                 <field name="care_setting" readonly="1" force_save="1"/>
                                 <field name="invoice_amt" readonly="1" force_save="1" sum="Total"/>
-                                <field name="amount" readonly="1" force_save="1" sum="Total"/>
+                                <field name="allocated_amount" readonly="1" force_save="1" sum="Total"/>
                                 <field name="remaining_amt" readonly="1" force_save="1" sum="Total"/>
                                 <field name="selected" readonly="1" force_save="1"/>
                             </tree>
