@@ -6,10 +6,8 @@ from odoo.exceptions import UserError, ValidationError
 import logging
 _logger = logging.getLogger(__name__)
 
-
 class AccountInvoice(models.Model):
     _inherit = 'account.move'
-
     order_id = fields.Many2one('sale.order',string="Sale ID")
 
     discount_type = fields.Selection([('none', 'No Discount'),
@@ -36,6 +34,7 @@ class AccountInvoice(models.Model):
             if disabled:
                 return
         unbalanced_moves = self._get_unbalanced_moves(container)
+
     @api.onchange('invoice_line_ids')
     def onchange_invoice_lines(self):
         amount_total = self.amount_untaxed + self.amount_tax
@@ -66,9 +65,6 @@ class AccountInvoice(models.Model):
     def button_dummy(self):
         return True
 
-
-
-
     def action_post(self):
 
         for inv in self:
@@ -92,6 +88,5 @@ class AccountPayment(models.Model):
     def invoice_search(self):
         """ Using ref find the invoice obj """
         return self.env['account.move'].search([('id', '=', self.reconciled_invoice_ids.id),('move_type', '=', 'out_invoice')], limit=1)
-
     def generate_report_action(self):
         return self.env.ref("bahmni_account.account_summarized_invoices_payment").report_action(self)

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
 	<record id="inherit_invoice_form" model="ir.ui.view">
 		<field name="name">inherit.invoice.form</field>
 		<field name="model">account.move</field>
@@ -31,19 +30,13 @@
 				<field name="round_off_amount" widget='monetary' attrs="{'readonly': [('state', '!=', 'draft')]}"
 					   options="{'currency_field': 'currency_id'}"/>
 
-
 				<div class="oe_subtotal_footer_separator oe_inline o_td_label">
 					<label for="invoice_total"/>
 				</div>
-				<field name="invoice_total" nolabel="1"
-					   class="oe_subtotal_footer_separator"
-					   widget='monetary'
-					   options="{'currency_field': 'currency_id'}"/>
+				<field name="invoice_total" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'currency_id'}"/>
 			</xpath>
 		</field>
 	</record>
-
-
 	<record id="inherit_view_invoice_tree_bahmni" model="ir.ui.view">
 		<field name="name">Invoice View Changes</field>
 		<field name="model">account.move</field>
@@ -58,17 +51,13 @@
 			</xpath>
 		</field>
 	</record>
-
-
 	<record id="account.action_move_out_invoice_type" model="ir.actions.act_window">
 		<field name="name">Customer Invoices</field>
 		<field name="res_model">account.move</field>
 		<field name="view_mode">tree,kanban,form,pivot,graph</field>
 		<field eval="False" name="view_id"/>
 		<field name="domain">[('move_type','in',('out_invoice', 'out_refund'))]</field>
-		<field name="context">{'move_type':'out_invoice', 'journal_type': 'sale',
-								'readonly_by_pass': True}
-		</field>
+		<field name="context">{'move_type':'out_invoice', 'journal_type': 'sale','readonly_by_pass': True}</field>
 		<field name="search_view_id" ref="account.view_account_invoice_filter"/>
 		<field name="help" type="html">
 			<p class="oe_view_nocontent_create">
@@ -86,8 +75,4 @@
 			</p>
 		</field>
 	</record>
-
-
-
-
 </odoo>
