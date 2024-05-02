@@ -4,11 +4,13 @@ from contextlib import ExitStack, contextmanager
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError, ValidationError
 import logging
+
 _logger = logging.getLogger(__name__)
+
 
 class AccountInvoice(models.Model):
     _inherit = 'account.move'
-    order_id = fields.Many2one('sale.order',string="Sale ID")
+    order_id = fields.Many2one('sale.order', string="Sale ID")
 
     discount_type = fields.Selection([('none', 'No Discount'),
                                       ('fixed', 'Fixed'),
@@ -17,7 +19,8 @@ class AccountInvoice(models.Model):
                                      default='none')
     discount = fields.Monetary(string="Discount")
     discount_percentage = fields.Float(string="Discount Percentage")
-    disc_acc_id = fields.Many2one('account.account',string="Discount Account Head" ,domain=[('account_type', '=', 'income_other')])
+    disc_acc_id = fields.Many2one('account.account', string="Discount Account Head",
+                                  domain=[('account_type', '=', 'income_other')])
     round_off_amount = fields.Monetary(string="Round Off Amount")
     invoice_total = fields.Monetary(
         string='Invoice Total',
@@ -60,15 +63,12 @@ class AccountInvoice(models.Model):
         else:
             pass
 
-
-
     def button_dummy(self):
         return True
 
     def action_post(self):
-
         for inv in self:
-            final_invoice_value = (inv.amount_total - inv.discount ) + inv.round_off_amount
+            final_invoice_value = (inv.amount_total - inv.discount) + inv.round_off_amount
             for move_line in inv.line_ids:
                 if move_line.display_type == 'payment_term':
                     if inv.move_type == 'out_invoice':
@@ -80,13 +80,16 @@ class AccountInvoice(models.Model):
     @api.depends('discount', 'discount_percentage', 'amount_total', 'round_off_amount')
     def _compute_invoice_total(self):
         for invoice in self:
-            invoice.invoice_total = (invoice.amount_total - invoice.discount ) + invoice.round_off_amount
+            invoice.invoice_total = (invoice.amount_total - invoice.discount) + invoice.round_off_amount
+
 
 class AccountPayment(models.Model):
     _inherit = 'account.payment'
 
     def invoice_search(self):
         """ Using ref find the invoice obj """
-        return self.env['account.move'].search([('id', '=', self.reconciled_invoice_ids.id),('move_type', '=', 'out_invoice')], limit=1)
+        return self.env['account.move'].search(
+            [('id', '=', self.reconciled_invoice_ids.id), ('move_type', '=', 'out_invoice')], limit=1)
+
     def generate_report_action(self):
         return self.env.ref("bahmni_account.account_summarized_invoices_payment").report_action(self)
