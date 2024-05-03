@@ -174,7 +174,7 @@ class AccountPayment(models.Model):
         self.unlink_credit_invoice_associations()
 
     def generate_report_action(self):
-        return self.env.ref("bahmni_multi_payment.account_summarized_multi_invoices_payment").report_action(self)
+        return self.env.ref("bahmni_auto_payment_reconciliation.account_payment_summary_receipt").report_action(self)
 
     def multi_invoice_search(self):
         """ Using ref find the invoice obj """
