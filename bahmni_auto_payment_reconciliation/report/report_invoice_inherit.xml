@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-     <data> 
-	
-	<template id="report_multi_invoice_recipt">
+     <data>
+
+	<template id="report_payment_invoice">
 	   <t t-call="web.html_container">
 	       <t t-foreach="docs" t-as="o">
 		   <t t-call="web.external_layout">
@@ -38,7 +38,7 @@
 					  padding-bottom: 5px;
 					  padding-left: 10px;
 					  padding-right: 10px;
-					}					    
+					}
 				    </style>
 				</head>
 			     <div class="oe_structure"/>
@@ -81,11 +81,11 @@
 					    <th style="width:5%; height: 30px;">S.No</th>
 					    <th style="width:50%; height: 30px;">Product</th>
 					    <th style="width:15%; height: 30px;">Expiry Date</th>
-					    <th style="width:10%; height: 30px;">Quantity</th>						
+					    <th style="width:10%; height: 30px;">Quantity</th>
 					    <th style="width:25%; height: 30px;">Unit Price</th>
-					    <th style="width:25%; height: 30px;">SubTotal</th>						
+					    <th style="width:25%; height: 30px;">SubTotal</th>
 				    </tr>
-			            <t t-set="serial" t-value="1"/>		    
+			            <t t-set="serial" t-value="1"/>
 				    <t t-foreach="o.multi_invoice_search().order_id.order_line.sorted(key=lambda item : item.product_id.name)" t-as="item">
 				    <tr>
         				<td style="width:10%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:20px;padding-right: 20px;">
@@ -111,7 +111,7 @@
         				<td style="width:10%;height:20px;padding-top:10px;padding-bottom:5px;padding-left:20px;padding-right: 10px;">
              				   <t t-esc="'%.2f'%(item.price_subtotal)"/>
 				        </td>
-			            	<t t-set="serial" t-value="serial+1"/>		    
+			            	<t t-set="serial" t-value="serial+1"/>
 				    </tr>
 				    </t>
 			        </table>
@@ -119,7 +119,7 @@
 			    <div style="width: 100%; float: right;margin-bottom: 50px;">
 				    <div style="float:left;margin-bottom: 50px; position: absolute;top: 150px;">
 				    </div>
-				    <div style="float:left;position: relative;top: 50px;">					    
+				    <div style="float:left;position: relative;top: 50px;">
 					    <p style="margin-bottom: 2px;">This is a computer generated receipt and does not require a signature.</p>
 					    <p style="margin-bottom: 2px;">Bill Created : <span id="out_bal" t-field="o.create_date"></span></p>
 					    <p style="margin-bottom: 2px;">Bill Confirmed : <span id="out_bal" t-field="o.date"></span></p>
@@ -132,7 +132,7 @@
 					 <label for="net_amt" class="answer"><span style="margin-right: 78px;"> Net Amount</span>:</label>
 					 <span id="net_amt" class="answer" t-esc="'%.2f'%((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount)"></span><br></br>
 					 <label for="pre_bal"><span style="margin-right: 40px;">Previous Balance</span>:</label>
-					 
+
 					 <t id="description" t-if="(o.prev_outstanding_balance - ((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount)) &lt;= 0 ">
 					    <span id="pre_bal" t-esc="'%.2f'%(0.00)"></span><br></br>
 					 </t>
@@ -140,9 +140,9 @@
 					    <span id="pre_bal" t-esc="'%.2f'%(o.prev_outstanding_balance - ((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount))"></span><br></br>
 					 </t>
 					 <label for="bill_amt" class="answer"><span style="margin-right: 78px;"> Bill Amount</span>:</label>
-					 <span id="bill_amt" class="answer" t-esc="'%.2f'%(o.prev_outstanding_balance)"></span><br></br>					 
+					 <span id="bill_amt" class="answer" t-esc="'%.2f'%(o.prev_outstanding_balance)"></span><br></br>
 					 <label for="paid_amt" class="answer"><span style="margin-right: 68px;">Paid Amount</span>: </label>
-					 <span id="paid_amt" class="answer" t-esc="'%.2f'%(o.amount)"></span><br></br><br></br>					 
+					 <span id="paid_amt" class="answer" t-esc="'%.2f'%(o.amount)"></span><br></br><br></br>
 					 <label for="out_bal"><span style="margin-right: 10px;">Outstanding Balance </span>:</label>
 					 <span id="out_bal" t-esc="'%.2f'%(o.total_receivable())"></span>
 				 </div>
@@ -151,9 +151,9 @@
 	       </t>
 	   </t>
        </template>
-       
-       
-       <template id="report_invoice_multi_summarized_recipt">
+
+
+       <template id="report_payment_summary">
 	   <t t-call="web.html_container">
 	       <t t-foreach="docs" t-as="o">
 		   <t t-call="web.external_layout">
@@ -241,7 +241,7 @@
 					 <label for="net_amt" class="answer"><span style="margin-right: 78px;"> Net Amount</span>:</label>
 					 <span id="net_amt" class="answer" t-esc="'%.2f'%((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount)"></span><br></br>
 					 <label for="pre_bal"><span style="margin-right: 40px;">Previous Balance</span>:</label>
-					 
+
 					 <t id="description" t-if="(o.prev_outstanding_balance - ((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount)) &lt;= 0 ">
 					    <span id="pre_bal" t-esc="'%.2f'%(0.00)"></span><br></br>
 					 </t>
@@ -249,16 +249,16 @@
 					    <span id="pre_bal" t-esc="'%.2f'%(o.prev_outstanding_balance - ((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount))"></span><br></br>
 					 </t>
 					 <label for="bill_amt" class="answer"><span style="margin-right: 78px;"> Bill Amount</span>:</label>
-					 <span id="bill_amt" class="answer" t-esc="'%.2f'%(o.prev_outstanding_balance)"></span><br></br>					 
+					 <span id="bill_amt" class="answer" t-esc="'%.2f'%(o.prev_outstanding_balance)"></span><br></br>
 					 <label for="paid_amt" class="answer"><span style="margin-right: 68px;">Paid Amount</span>: </label>
-					 <span id="paid_amt" class="answer" t-esc="'%.2f'%(o.amount)"></span><br></br><br></br>					 
+					 <span id="paid_amt" class="answer" t-esc="'%.2f'%(o.amount)"></span><br></br><br></br>
 					 <label for="out_bal"><span style="margin-right: 10px;">Outstanding Balance </span>:</label>
 					 <span id="out_bal" t-esc="'%.2f'%(o.total_receivable())"></span><br></br><br></br>
 				 </div>
 			    </div>
-			    <br></br>	 
+			    <br></br>
 			    <div style="width: 100%; float:left; margin-bottom: 125px;">
-				    <p style="margin-bottom: 2px;"><span id="out_bal" t-esc="(o.cashier_name())"></span></p><br></br>				   
+				    <p style="margin-bottom: 2px;"><span id="out_bal" t-esc="(o.cashier_name())"></span></p><br></br>
 				    <p style="margin-bottom: 2px;">This is a computer generated receipt and does not require a signature.</p>
 				    <p style="margin-bottom: 2px;">Created : <span id="out_bal" t-field="o.create_date"></span></p>
 				    <p style="margin-bottom: 2px;">Confirmed : <span id="out_bal" t-field="o.date"></span></p>
@@ -267,7 +267,7 @@
 	       </t>
 	   </t>
        </template>
-       
-       
+
+
     </data>
 </odoo>

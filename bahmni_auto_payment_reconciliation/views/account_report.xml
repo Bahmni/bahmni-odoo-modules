@@ -2,25 +2,25 @@
 <odoo>
      <data>
 	<!-- QWeb Reports -->
-        <record id="account_multi_receipt_invoices_payment" model="ir.actions.report">
-            <field name="name">Multi Receipt</field>
+        <record id="account_payment_invoices_receipt" model="ir.actions.report">
+            <field name="name">Receipt</field>
             <field name="model">account.payment</field>
             <field name="report_type">qweb-pdf</field>
-            <field name="report_name">bahmni_multi_payment.report_multi_invoice_recipt</field>
-            <field name="report_file">bahmni_multi_payment.report_multi_invoice_recipt</field>
+            <field name="report_name">bahmni_auto_payment_reconciliation.report_payment_invoice</field>
+            <field name="report_file">bahmni_auto_payment_reconciliation.report_payment_invoice</field>
             <field name="print_report_name">(object.move_id._get_report_base_filename())</field>
             <field name="attachment">(object.state == 'posted') and ((object.name or 'INV').replace('/','_')+'.pdf')</field>
             <field name="binding_model_id" ref="model_account_payment"/>
             <field name="binding_type">report</field>
        </record>
-        
-       
-       <record id="account_summarized_multi_invoices_payment" model="ir.actions.report">
-            <field name="name">Multi Receipt Summary</field>
+
+
+       <record id="account_payment_summary_receipt" model="ir.actions.report">
+            <field name="name">Receipt Summary</field>
             <field name="model">account.payment</field>
             <field name="report_type">qweb-pdf</field>
-            <field name="report_name">bahmni_multi_payment.report_invoice_multi_summarized_recipt</field>
-            <field name="report_file">bahmni_multi_payment.report_invoice_multi_summarized_recipt</field>
+            <field name="report_name">bahmni_auto_payment_reconciliation.report_payment_summary</field>
+            <field name="report_file">bahmni_auto_payment_reconciliation.report_payment_summary</field>
             <field name="print_report_name">(object.move_id._get_report_base_filename())</field>
             <field name="attachment">(object.state == 'posted') and ((object.name or 'INV').replace('/','_')+'.pdf')</field>
             <field name="binding_model_id" ref="model_account_payment"/>
