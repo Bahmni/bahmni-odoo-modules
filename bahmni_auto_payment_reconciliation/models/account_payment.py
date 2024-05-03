@@ -130,8 +130,12 @@ class AccountPayment(models.Model):
 
     @api.onchange('amount')
     def paid_amount_onchange(self):
+        if self.amount < 0:
+            raise ValidationError("Payment amount should not be in negative")
         if self.is_auto_reconciliation_applicable:
             self.balance_outstanding = self.total_receivable() - self.amount
+            if self.balance_outstanding < 0 and self.amount > 0:
+                raise ValidationError("Payment amount should not be greater than current outstanding amount")
             paid_amt = self.amount + self.total_credit()
             for line in self.outstanding_invoice_lines:
                 line.remaining_amt = line.invoice_amt
@@ -151,13 +155,17 @@ class AccountPayment(models.Model):
                         line.selected = True
 
     def action_post(self):
-        res = super(AccountPayment, self).action_post()
         if self.is_auto_reconciliation_applicable:
+            if self.balance_outstanding < 0 and self.amount > 0:
+                raise ValidationError("Payment amount should not be greater than current outstanding amount")
+            res = super(AccountPayment, self).action_post()
             if len(self.credit_invoice_lines) > 0:
                 self.assign_credit_invoices_to_outstanding_invoices()
             unprocessed_outstanding_invoices = self.get_unprocessed_outstanding_invoices()
             if unprocessed_outstanding_invoices and self.amount > 0 and self.payment_type == 'inbound':
                 self.assign_payment_to_outstanding_invoices(unprocessed_outstanding_invoices)
+        else:
+            res = super(AccountPayment, self).action_post()
         return res
 
     def action_draft(self):
@@ -183,7 +191,7 @@ class AccountPayment(models.Model):
         credit_value = 0.0
         if self.partner_id:
             self._cr.execute("""select sum(ABS(amount_residual)) from account_move where 
-                          (amount_residual < 0 or (move_type='out_refund' and amount_residual > 0)) and partner_id = %s
+                          (amount_residual < 0 or (move_type='out_refund' and amount_residual > 0)) and state='posted' and partner_id = %s
                           """, (self.partner_id.id,))
             result = self._cr.fetchall()
             if result[0][0] is not None:
@@ -196,7 +204,7 @@ class AccountPayment(models.Model):
         outstanding = 0.0
         if self.partner_id:
             self._cr.execute("""select sum(amount_residual) from account_move where 
-                              amount_residual > 0 and move_type='out_invoice' and partner_id = %s
+                              amount_residual > 0 and move_type='out_invoice' and state='posted' and partner_id = %s
                               """, (self.partner_id.id,))
             outstanding_value = self._cr.fetchall()
             if outstanding_value[0][0] is not None:
