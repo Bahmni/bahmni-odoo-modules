@@ -12,7 +12,7 @@ COPY bahmni_purchase ${ADDON_PATH}/bahmni_purchase/
 COPY bahmni_sale ${ADDON_PATH}/bahmni_sale/
 COPY bahmni_stock ${ADDON_PATH}/bahmni_stock/
 COPY restful_api ${ADDON_PATH}/restful_api/
-COPY bahmni_auto_payment_reconciliation ${ADDON_PATH}/restful_api/bahmni_auto_payment_reconciliation
+COPY bahmni_auto_payment_reconciliation ${ADDON_PATH}/bahmni_auto_payment_reconciliation
 COPY openerp7_data_import ${ADDON_PATH}/openerp7_data_import/
 COPY bahmni_reports ${ADDON_PATH}/bahmni_reports
 COPY community_modules ${ADDON_PATH}/community_modules/
