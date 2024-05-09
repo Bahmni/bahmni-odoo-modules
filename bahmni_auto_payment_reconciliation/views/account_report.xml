@@ -12,6 +12,7 @@
             <field name="attachment">(object.state == 'posted') and ((object.name or 'INV').replace('/','_')+'.pdf')</field>
             <field name="binding_model_id" ref="model_account_payment"/>
             <field name="binding_type">report</field>
+            <field name="attachment_use">True</field>
        </record>
 
 
@@ -25,6 +26,7 @@
             <field name="attachment">(object.state == 'posted') and ((object.name or 'INV').replace('/','_')+'.pdf')</field>
             <field name="binding_model_id" ref="model_account_payment"/>
             <field name="binding_type">report</field>
+            <field name="attachment_use">True</field>
        </record>
 
     </data>
