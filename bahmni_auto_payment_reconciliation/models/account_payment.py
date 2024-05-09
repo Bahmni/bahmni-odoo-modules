@@ -12,7 +12,7 @@ class AccountPayment(models.Model):
     _inherit = "account.payment"
 
     is_auto_reconciliation_applicable = fields.Boolean(compute="_compute_is_auto_reconciliation_applicable")
-    prev_outstanding_balance = fields.Float(string="Previous Outstanding")
+    current_outstanding = fields.Float(string="Current Outstanding")
     balance_outstanding = fields.Float(string="Balance Outstanding")
 
     outstanding_invoice_lines = fields.One2many(
@@ -45,7 +45,7 @@ class AccountPayment(models.Model):
             outstanding_vals = []
             self.outstanding_invoice_lines.unlink()
             if self.partner_id:
-                self.prev_outstanding_balance = self.total_receivable()
+                self.current_outstanding = self.total_receivable()
                 self.balance_outstanding = self.total_receivable()
                 outstanding_invoices = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
                                                                         ("amount_residual", ">", 0.0),
@@ -86,7 +86,7 @@ class AccountPayment(models.Model):
             credit_vals = []
             self.credit_invoice_lines.unlink()
             if self.partner_id:
-                self.prev_outstanding_balance = self.total_receivable()
+                self.current_outstanding = self.total_receivable()
                 self.balance_outstanding = self.total_receivable()
                 credit_invoices = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
                                                                    ("state", "=", "posted"),
