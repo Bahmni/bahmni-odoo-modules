@@ -5,6 +5,7 @@
         <template id="report_payment_invoice">
             <t t-call="web.html_container">
                 <t t-foreach="docs" t-as="o">
+                    <t t-set="print_details" t-value="o.get_invoice_amount_details_for_print()"/>
                     <t t-call="web.external_layout">
                         <div class="page">
                             <head>
@@ -40,6 +41,16 @@
                                     padding-bottom: 5px;
                                     padding-left: 10px;
                                     padding-right: 10px;
+                                    }
+                                    .amount-details table{
+                                    border: 1px solid white;
+                                    }
+                                    .amount-details tr{
+                                    border: none;
+                                    }
+                                    .amount-details td{
+                                    padding: 2px;
+                                    border: none;
                                     }
                                 </style>
                             </head>
@@ -98,7 +109,7 @@
                                     <th style="width:25%; height: 30px;">SubTotal</th>
                                 </tr>
                                 <t t-set="serial" t-value="1"/>
-                                <t t-foreach="o.multi_invoice_search().order_id.order_line.sorted(key=lambda item : item.product_id.name)"
+                                <t t-foreach="print_details['invoice'].order_id.order_line.sorted(key=lambda item : item.product_id.name)"
                                    t-as="item">
                                     <tr>
                                         <td style="width:10%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:20px;padding-right: 20px;">
@@ -143,52 +154,93 @@
                                     <span id="out_bal" t-field="o.date"/>
                                 </p>
                             </div>
-                            <div style="float: right;">
-                                <label for="new_char">
-                                    <span style="margin-right: 68px;">New Charges</span>
-                                    <span>:</span>
-                                </label>
-                                <span id="new_char" t-esc="'%.2f'%(o.multi_invoice_search().amount_total)"/>
-                                <br/>
-                                <label for="dic">
-                                    <span style="margin-right: 99px;">Discount</span>
-                                    <span>:</span>
-                                </label>
-                                <span id="dic" t-esc="'%.2f'%(o.multi_invoice_search().discount)"/>
-                                <br/>
-                                <label for="net_amt" class="answer"><span style="margin-right: 78px;">Net Amount</span>:
-                                </label>
-                                <span id="net_amt" class="answer"
-                                      t-esc="'%.2f'%((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount)"/>
-                                <br/>
-                                <label for="pre_bal"><span style="margin-right: 40px;">Previous Balance</span>:
-                                </label>
+                            <div style="float: right;" class="amount-details">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <label for="pre_bal">
+                                                <span>Previous Balance</span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <span>:</span>
+                                        </td>
+                                        <td>
+                                            <span id="pre_bal"
+                                                  t-esc="'%.2f'%(print_details['previous_balance'])"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="new_charges">
+                                                <span>New Charges</span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <span>:</span>
+                                        </td>
+                                        <td>
+                                            <span id="new_charges"
+                                                  t-esc="'%.2f'%(print_details['new_charges'])"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="discount">
+                                                <span>Discount</span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <span>:</span>
+                                        </td>
+                                        <td>
+                                            <span id="discount" t-esc="'%.2f'%(print_details['discount'])"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="net_amt" class="answer">
+                                                <span>Net Amount</span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <span>:</span>
+                                        </td>
+                                        <td>
+                                            <span id="net_amt" class="answer"
+                                                  t-esc="'%.2f'%(print_details['net_amount'])"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="paid_amt" class="answer">
+                                                <span>Paid Amount</span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <span>:</span>
+                                        </td>
+                                        <td>
+                                            <span id="paid_amt" class="answer"
+                                                  t-esc="'%.2f'%(print_details['paid_amount'])"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="out_bal">
+                                                <span>Outstanding Balance</span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <span>:</span>
+                                        </td>
+                                        <td>
+                                            <span id="out_bal" t-esc="'%.2f'%(print_details['balance_outstanding'])"/>
+                                        </td>
+                                    </tr>
+                                </table>
 
-                                <t id="description"
-                                   t-if="(o.prev_outstanding_balance - ((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount)) &lt;= 0 ">
-                                    <span id="pre_bal" t-esc="'%.2f'%(0.00)"/>
-                                    <br/>
-                                </t>
-                                <t id="description"
-                                   t-if="(o.prev_outstanding_balance - ((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount)) &gt; 0 ">
-                                    <span id="pre_bal"
-                                          t-esc="'%.2f'%(o.prev_outstanding_balance - ((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount))"/>
-                                    <br/>
-                                </t>
-                                <label for="bill_amt" class="answer"><span style="margin-right: 78px;">Bill
-                                    Amount</span>:
-                                </label>
-                                <span id="bill_amt" class="answer" t-esc="'%.2f'%(o.prev_outstanding_balance)"/>
                                 <br/>
-                                <label for="paid_amt" class="answer"><span style="margin-right: 68px;">Paid
-                                    Amount</span>:
-                                </label>
-                                <span id="paid_amt" class="answer" t-esc="'%.2f'%(o.amount)"/>
-                                <br/>
-                                <br/>
-                                <label for="out_bal"><span style="margin-right: 10px;">Outstanding Balance</span>:
-                                </label>
-                                <span id="out_bal" t-esc="'%.2f'%(o.total_receivable())"/>
                             </div>
                         </div>
                     </t>
@@ -200,6 +252,7 @@
         <template id="report_payment_summary">
             <t t-call="web.html_container">
                 <t t-foreach="docs" t-as="o">
+                    <t t-set="print_details" t-value="o.get_invoice_amount_details_for_print()"/>
                     <t t-call="web.external_layout">
                         <div class="page">
                             <head>
@@ -229,6 +282,13 @@
                                     }
                                     .space-tab {
                                     margin-right: 20px; /* Adjust the value as needed */
+                                    }
+                                    .amount-details table,td,tr{
+                                    border-collapse: collapse;
+                                    border: 1px solid white;
+                                    }
+                                    .amount-details td{
+                                    padding: 2px;
                                     }
                                 </style>
                             </head>
@@ -275,75 +335,114 @@
                         <div style="width: 58%;float: right;">
                             <h5>
                                 <b>
-                                    <span t-field="o.multi_invoice_search().order_id.care_setting"/>
+                                    <span t-field="print_details['invoice'].order_id.care_setting"/>
                                     Care Summary
                                 </b>
                             </h5>
                         </div>
                         <div style="width: 100%; float: right;" class='blue-border'>
                             <label for="description" class='answer'>Description :</label>
-                            <t id="description" t-if="o.multi_invoice_search().order_id.care_setting == 'opd' ">
+                            <t id="description" t-if="print_details['invoice'].order_id.care_setting == 'opd' ">
                                 (includes Consultation Charges, Lab Charges, Drugs, Care Consumables, ECG, X-Ray, ECHO,
                                 USG)
                             </t>
-                            <t id="description" t-if="o.multi_invoice_search().order_id.care_setting == 'ipd'">
+                            <t id="description" t-if="print_details['invoice'].order_id.care_setting == 'ipd'">
                                 (includes Admission Charges, Bed Charges Lab Charges, Drugs,Care Consumables, ECG,
                                 X-Ray, ECHO, USG)
                             </t>
-                            <t id="description" t-if="o.multi_invoice_search().order_id.id == False">
+                            <t id="description" t-if="print_details['invoice'].order_id.id == False">
                                 (includes Consultation Charges, Lab Charges, Drugs, Care Consumables, ECG, X-Ray, ECHO,
                                 USG)
                             </t>
 
                         </div>
                         <div style="width: 100%; float: right;margin-bottom: 50px;" class='bordered-box'>
-                            <div style="float: right;">
-                                <label for="new_char">
-                                    <span style="margin-right: 68px;">New Charges</span>
-                                    <span>:</span>
-                                </label>
-                                <span id="new_char" t-esc="'%.2f'%(o.multi_invoice_search().amount_total)"/>
-                                <br/>
-                                <label for="dic">
-                                    <span style="margin-right: 99px;">Discount</span>
-                                    <span>:</span>
-                                </label>
-                                <span id="dic" t-esc="'%.2f'%(o.multi_invoice_search().discount)"/>
-                                <br/>
-                                <label for="net_amt" class="answer"><span style="margin-right: 78px;">Net Amount</span>:
-                                </label>
-                                <span id="net_amt" class="answer"
-                                      t-esc="'%.2f'%((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount)"/>
-                                <br/>
-                                <label for="pre_bal"><span style="margin-right: 40px;">Previous Balance</span>:
-                                </label>
+                            <div style="float: right;" class="amount-details">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <label for="pre_bal">
+                                                <span>Previous Balance</span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <span>:</span>
+                                        </td>
+                                        <td>
+                                            <span id="pre_bal"
+                                                  t-esc="'%.2f'%(print_details['previous_balance'])"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="new_charges">
+                                                <span>New Charges</span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <span>:</span>
+                                        </td>
+                                        <td>
+                                            <span id="new_charges"
+                                                  t-esc="'%.2f'%(print_details['new_charges'])"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="discount">
+                                                <span>Discount</span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <span>:</span>
+                                        </td>
+                                        <td>
+                                            <span id="discount" t-esc="'%.2f'%(print_details['discount'])"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="net_amt" class="answer">
+                                                <span>Net Amount</span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <span>:</span>
+                                        </td>
+                                        <td>
+                                            <span id="net_amt" class="answer"
+                                                  t-esc="'%.2f'%(print_details['net_amount'])"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="paid_amt" class="answer">
+                                                <span>Paid Amount</span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <span>:</span>
+                                        </td>
+                                        <td>
+                                            <span id="paid_amt" class="answer"
+                                                  t-esc="'%.2f'%(print_details['paid_amount'])"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="out_bal">
+                                                <span>Outstanding Balance</span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <span>:</span>
+                                        </td>
+                                        <td>
+                                            <span id="out_bal" t-esc="'%.2f'%(print_details['balance_outstanding'])"/>
+                                        </td>
+                                    </tr>
+                                </table>
 
-                                <t id="description"
-                                   t-if="(o.prev_outstanding_balance - ((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount)) &lt;= 0 ">
-                                    <span id="pre_bal" t-esc="'%.2f'%(0.00)"/>
-                                    <br/>
-                                </t>
-                                <t id="description"
-                                   t-if="(o.prev_outstanding_balance - ((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount)) &gt; 0 ">
-                                    <span id="pre_bal"
-                                          t-esc="'%.2f'%(o.prev_outstanding_balance - ((o.multi_invoice_search().amount_total - o.multi_invoice_search().discount)+o.multi_invoice_search().round_off_amount))"/>
-                                    <br/>
-                                </t>
-                                <label for="bill_amt" class="answer"><span style="margin-right: 78px;">Bill
-                                    Amount</span>:
-                                </label>
-                                <span id="bill_amt" class="answer" t-esc="'%.2f'%(o.prev_outstanding_balance)"/>
-                                <br/>
-                                <label for="paid_amt" class="answer"><span style="margin-right: 68px;">Paid
-                                    Amount</span>:
-                                </label>
-                                <span id="paid_amt" class="answer" t-esc="'%.2f'%(o.amount)"/>
-                                <br/>
-                                <br/>
-                                <label for="out_bal"><span style="margin-right: 10px;">Outstanding Balance</span>:
-                                </label>
-                                <span id="out_bal" t-esc="'%.2f'%(o.total_receivable())"/>
-                                <br/>
                                 <br/>
                             </div>
                         </div>
