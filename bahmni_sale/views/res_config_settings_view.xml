@@ -7,9 +7,9 @@
      <field name="inherit_id" ref="base.res_config_settings_view_form"/>
      <field name="arch" type="xml">
          <xpath expr="//div[hasclass('settings')]" position="inside">
-             <div class="app_settings_block" data-string="Bahmni" string="Bahmni" data-key="bahmni_sale">
-                 <h2 style="text-align: center;">Bahmni Custom configurations</h2>
-                 <div class="row mt16 o_settings_container" name="catalog_setting_container">
+             <div class="app_settings_block" data-string="Bahmni" string="Bahmni" data-key="bahmni_sale" name="bahmni-custom-configs">
+                 <div class="row mt16 o_settings_container" name="bahmni_sale_configurations">
+                     <h2 style="text-align: center;">Sale Configurations</h2>
                         <div class="col-12 col-lg-6 o_setting_box" id="variant_options">
                             <div class="o_setting_left_pane">
                                 <field name="is_delivery_automated"/>
@@ -46,7 +46,7 @@
                             </div>
 
                     </div>
-                    
+
                  </div>
                </div>
            </xpath>
