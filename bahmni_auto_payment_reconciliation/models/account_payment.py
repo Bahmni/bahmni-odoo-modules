@@ -266,7 +266,7 @@ class AccountPayment(models.Model):
 
     def get_invoice_amount_details_for_print(self):
         invoice = self.get_latest_invoice_for_date(self.move_id.date)
-        net_amount = self.prev_outstanding_balance
+        net_amount = self.current_outstanding
         paid_amount = self.amount
         balance_outstanding = self.balance_outstanding
         previous_balance = self.calculate_previous_balance(invoice)
@@ -287,7 +287,7 @@ class AccountPayment(models.Model):
 
     def calculate_previous_balance(self, invoice):
         if not invoice:
-            return self.prev_outstanding_balance
+            return self.current_outstanding
         previous_balance = 0
         for line in self.outstanding_invoice_lines.filtered(lambda l: l.invoice_id.id != invoice.id):
             previous_balance += line.invoice_amt
