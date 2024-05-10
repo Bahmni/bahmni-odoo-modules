@@ -173,15 +173,6 @@ class AccountPayment(models.Model):
         _logger.info("Default Payment Reset Flow completed. Resetting credit invoice allocations.")
         self.unlink_credit_invoice_associations()
 
-    def generate_report_action(self):
-        return self.env.ref("bahmni_multi_payment.account_summarized_multi_invoices_payment").report_action(self)
-
-    def multi_invoice_search(self):
-        """ Using ref find the invoice obj """
-        return self.env['account.move'].search(
-            [('move_type', '=', 'out_invoice'), ('amount_residual', '>', 0), ('partner_id', '=', self.partner_id.id)],
-            order="id desc", limit=1)
-
     def cashier_name(self):
         words = self.create_uid.name.split()
         initials = ''.join(word[0].upper() for word in words)
@@ -261,6 +252,48 @@ class AccountPayment(models.Model):
                         allocated_credit_invoice.invoice_id.name, associated_outstanding_invoice.invoice_id.name,
                         amount))
                     associated_outstanding_invoice.invoice_id.js_remove_outstanding_partial(partial_reconcile.id)
+
+    # Support Functions for Receipt Print
+    def generate_report_action(self):
+        return self.env.ref("bahmni_auto_payment_reconciliation.account_payment_summary_receipt").report_action(self)
+
+    def get_latest_invoice_for_date(self, invoice_date):
+        return self.env['account.move'].search([('move_type', '=', 'out_invoice'),
+                                                ('partner_id', '=', self.partner_id.id),
+                                                ('invoice_date', '=', invoice_date)],
+                                               order="id desc",
+                                               limit=1)
+
+    def get_invoice_amount_details_for_print(self):
+        invoice = self.get_latest_invoice_for_date(self.move_id.date)
+        net_amount = self.current_outstanding
+        paid_amount = self.amount
+        balance_outstanding = self.balance_outstanding
+        previous_balance = self.calculate_previous_balance(invoice)
+        new_charges = 0
+        discount = 0
+        if invoice:
+            new_charges = invoice.amount_total + invoice.round_off_amount
+            discount = invoice.discount
+        return {
+            "invoice": invoice,
+            "previous_balance": previous_balance,
+            "new_charges": new_charges,
+            "discount": discount,
+            "net_amount": net_amount,
+            "paid_amount": paid_amount,
+            "balance_outstanding": balance_outstanding
+        }
+
+    def calculate_previous_balance(self, invoice):
+        if not invoice:
+            return self.current_outstanding
+        previous_balance = 0
+        for line in self.outstanding_invoice_lines.filtered(lambda l: l.invoice_id.id != invoice.id):
+            previous_balance += line.invoice_amt
+        for line in self.credit_invoice_lines.filtered(lambda l: l.invoice_id.id != invoice.id):
+            previous_balance -= line.invoice_amt
+        return previous_balance
 
     ## Entry Deletion ##
     def unlink(self):
