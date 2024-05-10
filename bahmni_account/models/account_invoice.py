@@ -82,14 +82,3 @@ class AccountInvoice(models.Model):
         for invoice in self:
             invoice.invoice_total = (invoice.amount_total - invoice.discount) + invoice.round_off_amount
 
-
-class AccountPayment(models.Model):
-    _inherit = 'account.payment'
-
-    def invoice_search(self):
-        """ Using ref find the invoice obj """
-        return self.env['account.move'].search(
-            [('id', '=', self.reconciled_invoice_ids.id), ('move_type', '=', 'out_invoice')], limit=1)
-
-    def generate_report_action(self):
-        return self.env.ref("bahmni_account.account_summarized_invoices_payment").report_action(self)
