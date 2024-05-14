@@ -13,6 +13,7 @@ class StockPicking(models.Model):
     def button_validate(self):
         self.validate_batch_quantity_for_internal_transfer()
         res = super(StockPicking, self).button_validate()
+        self.update_price_details_for_lots()
         return res
 
     def validate_batch_quantity_for_internal_transfer(self):
@@ -25,6 +26,15 @@ class StockPicking(models.Model):
                     if stock_quant_lot.quantity < line.qty_done:
                         raise UserError("Insufficient batch(%s) quantity for %s and available quantity is %s" \
                                         %(line.lot_id.name, line.product_id.name, stock_quant_lot.quantity))
+
+    def update_price_details_for_lots(self):
+        if self.picking_type_id and self.picking_type_id.code == 'incoming' and self.picking_type_id.name == 'Receipts':
+            for line in self.move_line_ids:
+                if line.product_id.tracking != 'none':
+                    line.lot_id.cost_price = line.cost_price
+                    line.lot_id.sale_price = line.sale_price
+                    line.lot_id.mrp = line.mrp
+                    line.lot_id.expiration_date = line.expiration_date
 
     # this method is overridden to update cost_price, sale_price and mrp while lot is getting created
     def _create_lots_for_picking(self):
