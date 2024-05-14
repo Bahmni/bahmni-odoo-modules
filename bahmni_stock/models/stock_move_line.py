@@ -4,6 +4,7 @@ from collections import defaultdict
 from odoo import models, fields, api
 from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
 
+
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
 
@@ -60,34 +61,13 @@ class StockMoveLine(models.Model):
                 pass
         return res
 
-    def _create_and_assign_production_lot(self):
-        """ Creates and assign new production lots for move lines."""
-        lot_vals = []
-        # It is possible to have multiple time the same lot to create & assign,
-        # so we handle the case with 2 dictionaries.
-        key_to_index = {}  # key to index of the lot
-        key_to_mls = defaultdict(lambda: self.env['stock.move.line'])  # key to all mls
-        for ml in self:
-            key = (ml.company_id.id, ml.product_id.id, ml.lot_name, ml.cost_price, ml.sale_price, ml.mrp, ml.expiration_date)
-            key_to_mls[key] |= ml
-            if ml.tracking != 'lot' or key not in key_to_index:
-                key_to_index[key] = len(lot_vals)
-                lot_vals.append(ml._get_value_production_lot())
-        lots = self.env['stock.lot'].create(lot_vals)
-        for key, mls in key_to_mls.items():
-            lot = lots[key_to_index[key]].with_prefetch(lots._ids)   # With prefetch to reconstruct the ones broke by accessing by index
-            mls.write({'lot_id': lot.id})
-
+    # This function is overridden to set price details for the lot to help markup feature.
+    # This will be called on receive products
     def _get_value_production_lot(self):
-        self.ensure_one()
-
-        return {
-            'company_id': self.company_id.id,
-            'name': self.lot_name,
-            'product_id': self.product_id.id,
+        res = super(StockMoveLine,self)._get_value_production_lot()
+        res.update({
             'cost_price': self.cost_price,
             'sale_price': self.sale_price,
-            'mrp': self.mrp,
-            'expiration_date': self.expiration_date
-        }
-
+            'mrp': self.mrp
+        })
+        return res
