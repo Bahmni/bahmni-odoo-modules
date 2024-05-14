@@ -43,34 +43,23 @@ class StockMoveLine(models.Model):
                 pass
                 
     @api.onchange('cost_price')
-    def _check_cost_price_values(self):        
-        if self.cost_price > 0.00:                
-            markup_table_line = self.env['price.markup.table'].search([('lower_price', '<', self.cost_price),
-                                                                       '|', ('higher_price', '>=', self.cost_price),
-                                                                       ('higher_price', '=', 0)],limit=1)
-            if markup_table_line:
-                self.sale_price = self.cost_price + (self.cost_price * markup_table_line.markup_percentage / 100)
-            else:
-                self.sale_price = self.cost_price
-        else:
-            pass
-    
+    def _check_cost_price_values(self):
+        if self.cost_price > 0.00:
+            self.sale_price = self.env['price.markup.table'].calculate_price_with_markup(self.cost_price)
+
     @api.model
     def default_get(self, fields):
         res = super(StockMoveLine, self).default_get(fields)
-        cost_value = 0.00
         move_ids = self.env['stock.move'].search([('picking_id', '=', res.get('picking_id')),('product_id', '=', res.get('product_id'))],limit=1)
-        if move_ids:           
-            cost_value = move_ids.purchase_line_id.price_unit + (move_ids.purchase_line_id.price_tax / move_ids.purchase_line_id.product_qty)
-            cost_value_per_unit = float(cost_value) * float(move_ids.purchase_line_id.product_uom.factor)
-            if cost_value_per_unit > 0.00:                
-                markup_table_line = self.env['price.markup.table'].search([('lower_price', '<', cost_value_per_unit),
-                                                                           '|', ('higher_price', '>=', cost_value_per_unit),
-                                                                           ('higher_price', '=', 0)],limit=1)
-                if markup_table_line:
-                    res.update({'cost_price': cost_value_per_unit,'sale_price': cost_value_per_unit + (cost_value_per_unit * markup_table_line.markup_percentage / 100)})
-                else:
-                    res.update({'cost_price': cost_value_per_unit,'sale_price': cost_value_per_unit })
+        associated_purchase_line = move_ids.purchase_line_id
+        if associated_purchase_line:
+            res.update({'mrp': associated_purchase_line.product_uom._compute_price(associated_purchase_line.mrp, self.product_uom_id)})
+            total_cost_value = associated_purchase_line.price_unit + (associated_purchase_line.price_tax / associated_purchase_line.product_qty)
+            cost_value_per_unit = associated_purchase_line.product_uom._compute_price(total_cost_value, self.product_uom_id)
+            if cost_value_per_unit > 0.00:
+                res.update({'cost_price': cost_value_per_unit,
+                            'sale_price': self.env['price.markup.table'].calculate_price_with_markup(cost_value_per_unit)
+                            })
             else:
                 pass
         return res
