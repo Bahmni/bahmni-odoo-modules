@@ -1,11 +1,7 @@
 
 import datetime
-from dateutil import tz
-from collections import Counter, defaultdict
-
+from collections import defaultdict
 from odoo import models, fields, api
-from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
-
 from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
 
 class StockMoveLine(models.Model):
