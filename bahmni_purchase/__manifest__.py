@@ -15,6 +15,7 @@ Bahmni Purchase
     'data': ['security/ir.model.access.csv',
 			 'views/purchase_views.xml',
              'views/product_view.xml',
+             'views/res_config_inherit.xml',
              'views/price_markup_table_view.xml'],
     'demo': [],
     'qweb': [],
