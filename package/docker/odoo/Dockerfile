@@ -22,4 +22,10 @@ COPY package/resources/data/order_type.xml ${ADDON_PATH}/bahmni_initializer/data
 COPY package/resources/data/sale_shop.xml ${ADDON_PATH}/bahmni_initializer/data/
 RUN pip3 install python-decouple
 
-CMD ["odoo", "-u", "all", "-i", "sale_management,purchase,stock,point_of_sale,l10n_generic_coa,bahmni_account,bahmni_product,bahmni_api_feed,bahmni_stock,bahmni_purchase,bahmni_address_mapping,bahmni_sale,restful_api,bahmni_reports,bahmni_auto_payment_reconciliation", "--without-demo", "-d odoo"]
+# Setting Soft Links from bahmni_config 
+RUN ln -s /etc/bahmni_config/odoo/16 ${ADDON_PATH}/bahmni_initializer/data/
+
+# Setting Soft Links from bahmni_config 
+RUN ln -s /etc/bahmni_config/odoo/16 ${ADDON_PATH}/bahmni_initializer/data/
+
+CMD ["odoo", "-u", "all", "-i", "sale_management,purchase,stock,point_of_sale,l10n_generic_coa,bahmni_account,bahmni_product,bahmni_api_feed,bahmni_stock,bahmni_purchase,bahmni_address_mapping,bahmni_sale,restful_api,bahmni_reports,bahmni_auto_payment_reconciliation,bahmni_auto_payment_reconciliation", "--without-demo", "-d odoo"]
