@@ -33,7 +33,7 @@ class PurchaseOrderLine(models.Model):
         if seller or not self.date_planned:
             self.date_planned = self._get_date_planned(seller).strftime(DTF)
 
-        if not seller:
+        if not seller or (seller and seller.mrp == 0):
             mrp = self.product_id.product_tmpl_id.mrp
             if self.product_id.product_tmpl_id.uom_po_id != self.product_uom:
                 default_uom = self.product_id.product_tmpl_id.uom_po_id
