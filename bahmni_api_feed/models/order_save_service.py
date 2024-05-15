@@ -354,32 +354,19 @@ class OrderSaveService(models.Model):
             ('quantity', '>' , 0)
         ])
         already_used_batch_ids = [line.lot_id.id for line in sale_order.order_line if line.lot_id]
-
         available_batches = {}
         total_quantity = 0
-
-        _logger.info(f"stock_quant_lot: {stock_quant_lot}")
-        _logger.info(f"already_used_batch_ids: {already_used_batch_ids}")
-
         for prodlot in stock_quant_lot:
-            _logger.info(f"Processing prodlot: {prodlot}")
             if prodlot.lot_id.id not in already_used_batch_ids:
-                _logger.info(f"Processing lot_id: {prodlot.lot_id.id}")
                 if prodlot.lot_id.expiration_date and prodlot.quantity > 0:
                     date_length = len(str(prodlot.lot_id.expiration_date))
                     formatted_ts = datetime.strptime(str(prodlot.lot_id.expiration_date), "%Y-%m-%d %H:%M:%S.%f").strftime("%Y-%m-%d %H:%M:%S") if date_length > 20 else datetime.strptime(str(prodlot.lot_id.expiration_date), "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
-                    _logger.info(f"Formatted expiration date: {formatted_ts}")
                     if formatted_ts and datetime.strptime(str(formatted_ts), DTF) > datetime.today():
                         available_batches[prodlot.lot_id.id] = {'expiration_date': prodlot.lot_id.expiration_date, 'stock_forecast': prodlot.quantity}
                         total_quantity += prodlot.quantity
-                        _logger.info(f"Batch added: {prodlot.lot_id.id}, expiration_date: {prodlot.lot_id.expiration_date}, quantity: {prodlot.quantity}")
                 elif prodlot.quantity > 0:
                     available_batches[prodlot.lot_id.id] = {'expiration_date': False, 'stock_forecast': prodlot.quantity}
                     total_quantity += prodlot.quantity
-                    _logger.info(f"Batch added: {prodlot.lot_id.id}, expiration_date: False, quantity: {prodlot.quantity}")
-
-        _logger.info(f"Total quantity available from all batches: {total_quantity}")
-        _logger.info(f"Available batches: {available_batches}")
         return available_batches
 
 
