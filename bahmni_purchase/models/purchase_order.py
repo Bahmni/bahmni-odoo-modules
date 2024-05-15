@@ -27,10 +27,16 @@ class PurchaseOrder(models.Model):
             tax = purchase_order_line.product_uom._compute_price(tax, default_uom)
         total_cost = price_unit + tax
         sale_price = self.env['price.markup.table'].calculate_price_with_markup(total_cost)
+        # Set sale_price as none if no markup value is added
+        if sale_price == total_cost:
+            sale_price = None
         return price_unit, sale_price, mrp
 
     def _update_price_for_product(self, product_id, price_unit, sale_price, mrp):
-        product_id.write({'standard_price': price_unit, 'list_price': sale_price, 'mrp': mrp})
+        if sale_price:
+            product_id.write({'standard_price': price_unit, 'list_price': sale_price, 'mrp': mrp})
+        else:
+            product_id.write({'standard_price': price_unit, 'mrp': mrp})
 
     def _update_price_for_supplier(self, product_tmpl_id, price_unit, mrp):
         seller_info = self.env['product.supplierinfo'].search([('partner_id', '=', self.partner_id.id),
