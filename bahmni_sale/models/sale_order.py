@@ -1,9 +1,18 @@
 from datetime import datetime, date
 from lxml import etree
+from datetime import timedelta
+from itertools import groupby
+from markupsafe import Markup
+from odoo import api, fields, models, SUPERUSER_ID, _
+from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.fields import Command
+from odoo.osv import expression
+from odoo.tools import float_is_zero, format_amount, format_date, html_keep_url, is_html_empty
+from odoo.tools.sql import create_index
 
-from odoo import fields, models, api, _
+from odoo.addons.payment import utils as payment_utils
+
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DSDF
-from odoo.tools import float_is_zero
 from odoo.exceptions import UserError
 from odoo.tools import pickle
 import logging
@@ -31,18 +40,18 @@ class SaleOrder(models.Model):
                 else:
                     amount_tax += line.price_tax
             amount_total = amount_untaxed + amount_tax
-          
+
             if order.discount_type == 'percentage':
                 tot_discount = amount_total * order.discount_percentage / 100
             else:
                 tot_discount = order.discount
-            
+
             if order.chargeable_amount > 0.0:
                 discount = amount_total - order.chargeable_amount
             else:
                 discount = tot_discount
             amount_total = amount_total - discount
-            round_off_amount = self.env['rounding.off'].round_off_value_to_nearest(amount_total)            
+            round_off_amount = self.env['rounding.off'].round_off_value_to_nearest(amount_total)
             if order.pricelist_id:
                 amt_untax = order.pricelist_id.currency_id.round(amount_untaxed)
                 amt_tax = order.pricelist_id.currency_id.round(amount_tax)
@@ -52,24 +61,24 @@ class SaleOrder(models.Model):
 
             total_receivable = order._total_receivable()
 
-            
+
             order.prev_outstanding_balance = total_receivable
             order.total_outstanding_balance = total_receivable + amount_total + round_off_amount
-                
-                       
+
+
             order.update({
                 'amount_untaxed': amt_untax,
                 'amount_tax': amt_tax,
                 'amount_total': amount_total + round_off_amount,
                 'round_off_amount': round_off_amount,
-                'discount': tot_discount,                
-                
+                'discount': tot_discount,
+
             })
 
-    
+
     def button_dummy(self):
         return self._compute_amounts()
-    
+
     @api.depends('partner_id')
     def _calculate_balance(self):
         for order in self:
@@ -79,10 +88,10 @@ class SaleOrder(models.Model):
             if (total_receivable - order.amount_total) < 0:
                 prev_outstanding_amt = 0
             else:
-                prev_outstanding_amt = total_receivable - order.amount_total                
+                prev_outstanding_amt = total_receivable - order.amount_total
             order.prev_outstanding_balance = prev_outstanding_amt
             order.total_outstanding_balance = total_receivable
-    
+
     def _total_receivable(self):
         receivable = 0.0
         if self.partner_id:
@@ -90,15 +99,15 @@ class SaleOrder(models.Model):
                           amount_residual > 0 and partner_id = %s
                           """, (self.partner_id.id,))
             outstaning_value = self._cr.fetchall()
-            if outstaning_value[0][0] != None: 
+            if outstaning_value[0][0] != None:
                 receivable = outstaning_value[0][0]
             else:
-                receivable = 0.00                
+                receivable = 0.00
         return receivable
-	
+
     def total_discount_heads(self):
-        
-        
+
+
         self._cr.execute("""select acc.code,acc.name,sum(sale.discount) from sale_order sale 
                             left join account_account acc on (acc.id = sale.disc_acc_id)
                             where sale.disc_acc_id is not null
@@ -171,7 +180,7 @@ class SaleOrder(models.Model):
                     self.discount_percentage = 0
                 if self.discount_percentage:
                     self.discount = amount_total * self.discount_percentage / 100
-                    
+
         else:
             pass
 
@@ -195,6 +204,141 @@ class SaleOrder(models.Model):
             result['arch'] = etree.tostring(doc)
         return result
 
+    def _create_invoices(self, grouped=False, final=False, date=None):
+        """ Create invoice(s) for the given Sales Order(s).
+
+        :param bool grouped: if True, invoices are grouped by SO id.
+            If False, invoices are grouped by keys returned by :meth:`_get_invoice_grouping_keys`
+        :param bool final: if True, refunds will be generated if necessary
+        :param date: unused parameter
+        :returns: created invoices
+        :rtype: `account.move` recordset
+        :raises: UserError if one of the orders has no invoiceable lines.
+        """
+        if not self.env['account.move'].check_access_rights('create', False):
+            try:
+                self.check_access_rights('write')
+                self.check_access_rule('write')
+            except AccessError:
+                return self.env['account.move']
+
+        # 1) Create invoices.
+        invoice_vals_list = []
+        invoice_item_sequence = 0 # Incremental sequencing to keep the lines order on the invoice.
+        for order in self:
+            order = order.with_company(order.company_id).with_context(lang=order.partner_invoice_id.lang)
+
+            invoice_vals = order._prepare_invoice()
+            invoiceable_lines = order._get_invoiceable_lines(final)
+
+            if not any(not line.display_type for line in invoiceable_lines):
+                continue
+
+            invoice_line_vals = []
+            down_payment_section_added = False
+            for line in invoiceable_lines:
+                if not down_payment_section_added and line.is_downpayment:
+                    # Create a dedicated section for the down payments
+                    # (put at the end of the invoiceable_lines)
+                    invoice_line_vals.append(
+                        Command.create(
+                            order._prepare_down_payment_section_line(sequence=invoice_item_sequence)
+                        ),
+                    )
+                    down_payment_section_added = True
+                    invoice_item_sequence += 1
+                invoice_line_vals.append(
+                    Command.create(
+                        line._prepare_invoice_line(sequence=invoice_item_sequence)
+                    ),
+                )
+                invoice_item_sequence += 1
+
+            invoice_vals['invoice_line_ids'] += invoice_line_vals
+            invoice_vals_list.append(invoice_vals)
+
+        if not invoice_vals_list and self._context.get('raise_if_nothing_to_invoice', True):
+            raise UserError(self._nothing_to_invoice_error_message())
+
+        # 2) Manage 'grouped' parameter: group by (partner_id, currency_id).
+        if not grouped:
+            new_invoice_vals_list = []
+            invoice_grouping_keys = self._get_invoice_grouping_keys()
+            invoice_vals_list = sorted(
+                invoice_vals_list,
+                key=lambda x: [
+                    x.get(grouping_key) for grouping_key in invoice_grouping_keys
+                ]
+            )
+            for _grouping_keys, invoices in groupby(invoice_vals_list, key=lambda x: [x.get(grouping_key) for grouping_key in invoice_grouping_keys]):
+                origins = set()
+                payment_refs = set()
+                refs = set()
+                ref_invoice_vals = None
+                for invoice_vals in invoices:
+                    if not ref_invoice_vals:
+                        ref_invoice_vals = invoice_vals
+                    else:
+                        ref_invoice_vals['invoice_line_ids'] += invoice_vals['invoice_line_ids']
+                    origins.add(invoice_vals['invoice_origin'])
+                    payment_refs.add(invoice_vals['payment_reference'])
+                    refs.add(invoice_vals['ref'])
+                ref_invoice_vals.update({
+                    'ref': ', '.join(refs)[:2000],
+                    'invoice_origin': ', '.join(origins),
+                    'payment_reference': len(payment_refs) == 1 and payment_refs.pop() or False,
+                })
+                new_invoice_vals_list.append(ref_invoice_vals)
+            invoice_vals_list = new_invoice_vals_list
+
+        # 3) Create invoices.
+
+        # As part of the invoice creation, we make sure the sequence of multiple SO do not interfere
+        # in a single invoice. Example:
+        # SO 1:
+        # - Section A (sequence: 10)
+        # - Product A (sequence: 11)
+        # SO 2:
+        # - Section B (sequence: 10)
+        # - Product B (sequence: 11)
+        #
+        # If SO 1 & 2 are grouped in the same invoice, the result will be:
+        # - Section A (sequence: 10)
+        # - Section B (sequence: 10)
+        # - Product A (sequence: 11)
+        # - Product B (sequence: 11)
+        #
+        # Resequencing should be safe, however we resequence only if there are less invoices than
+        # orders, meaning a grouping might have been done. This could also mean that only a part
+        # of the selected SO are invoiceable, but resequencing in this case shouldn't be an issue.
+        if len(invoice_vals_list) < len(self):
+            SaleOrderLine = self.env['sale.order.line']
+            for invoice in invoice_vals_list:
+                sequence = 1
+                for line in invoice['invoice_line_ids']:
+                    line[2]['sequence'] = SaleOrderLine._get_invoice_line_sequence(new=sequence, old=line[2]['sequence'])
+                    sequence += 1
+
+        # Manage the creation of invoices in sudo because a salesperson must be able to generate an invoice from a
+        # sale order without "billing" access rights. However, he should not be able to create an invoice from scratch.
+        moves = self.env['account.move'].sudo().with_context(default_move_type='out_invoice').create(invoice_vals_list)
+
+        # 4) Some moves might actually be refunds: convert them if the total amount is negative
+        # We do this after the moves have been created since we need taxes, etc. to know if the total
+        # is actually negative or not
+        if final:
+            moves.sudo().filtered(lambda m: m.amount_total < 0).action_switch_invoice_into_refund_credit_note()
+        for move in moves:
+            move.message_post_with_view(
+                'mail.message_origin_link',
+                values={'self': move, 'origin': move.line_ids.sale_line_ids.order_id},
+                subtype_id=self.env['ir.model.data']._xmlid_to_res_id('mail.mt_note'))
+        if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_invoice_automated')):
+            for invoice in self.invoice_ids:
+                invoice.action_post()
+        return moves
+
+
     def _prepare_invoice(self):
         """
         Prepare the dict of values to create the new invoice for a sales order. This method may be
@@ -207,8 +351,8 @@ class SaleOrder(models.Model):
             tot_discount = amount_total * self.discount_percentage / 100
         else:
             tot_discount = self.discount
-		
-        invoice_vals = {            
+
+        invoice_vals = {
             'ref': self.client_order_ref or '',
             'move_type': 'out_invoice',
             'partner_id': self.partner_invoice_id.id,
@@ -238,9 +382,11 @@ class SaleOrder(models.Model):
     #So Once we Confirm the sale order it will create the invoice and ask for the register payment.
     def action_confirm(self):
         for line in self.order_line:
+           if line.product_uom_qty <=0:
+               raise UserError("Quantity for %s is %s. Please update the quantity or remove the product line."%(line.product_id.name,line.product_uom_qty))
            if line.product_id.tracking == 'lot' and not line.lot_id:
                raise UserError("Kindly choose batch no for %s to proceed further."%(line.product_id.name))
-                
+
            if 1 < self.order_line.search_count([('lot_id', '=', line.lot_id.id),('order_id', '=', self.id)]) and line.lot_id:
               raise UserError("%s Duplicate batch no is not allowed. Kindly change the batch no to proceed further."%(line.lot_id.name))
            if line.product_uom_qty > line.lot_id.product_qty and line.lot_id:
@@ -250,7 +396,7 @@ class SaleOrder(models.Model):
         self.validate_delivery()
         for order in self:
             warehouse = order.warehouse_id
-            if order.picking_ids and bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_delivery_automated')): 
+            if order.picking_ids and bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_delivery_automated')):
                 for picking in self.picking_ids:
                     picking.immediate_transfer = True
                     for move in picking.move_ids:
@@ -263,7 +409,22 @@ class SaleOrder(models.Model):
                     picking._action_done()
                     for mv_line in picking.move_ids.mapped('move_line_ids'):
                         if not mv_line.qty_done and mv_line.reserved_qty or mv_line.reserved_uom_qty:
-                            mv_line.qty_done = mv_line.reserved_qty or mv_line.reserved_uom_qty      
+                            mv_line.qty_done = mv_line.reserved_qty or mv_line.reserved_uom_qty
+        if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_invoice_automated')):
+            self._create_invoices()
+            if self.env.user.has_group('bahmni_sale.group_redirect_to_payments_on_sale_confirm'):
+                action = {
+                    'name': _('Payments'),
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'account.payment',
+                    'context': {'create': False,
+                                'default_partner_id': self.partner_id.id,
+                                'default_payment_type': 'inbound',
+                                'default_partner_type': 'customer',
+                                'search_default_inbound_filter': 1},
+                    'view_mode': 'form',
+                }
+                return action
         return res
 
 
@@ -347,7 +508,7 @@ class SaleOrder(models.Model):
             message = ("<b>Auto validation Failed</b> <br/> <b>Reason:</b> There are no Batches/Serial no's available for <a href=# data-oe-model=product.product data-oe-id=%d>%s</a> product") % (product.id,product.name)
             self.message_post(body=message)
             return False
-       
+
     @api.onchange('shop_id')
     def onchange_shop_id(self):
         self.warehouse_id = self.shop_id.warehouse_id.id
@@ -355,7 +516,7 @@ class SaleOrder(models.Model):
         self.payment_term_id = self.shop_id.payment_default_id.id
         if self.shop_id.pricelist_id:
             self.pricelist_id = self.shop_id.pricelist_id.id
-            
+
     def validate_payment(self):
         for obj in self:
             ctx = {'active_ids': [obj.id]}

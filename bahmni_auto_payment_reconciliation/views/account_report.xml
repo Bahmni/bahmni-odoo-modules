@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+     <data>
+	<!-- QWeb Reports -->
+        <record id="account_payment_invoices_receipt" model="ir.actions.report">
+            <field name="name">Receipt</field>
+            <field name="model">account.payment</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">bahmni_auto_payment_reconciliation.report_payment_invoice</field>
+            <field name="report_file">bahmni_auto_payment_reconciliation.report_payment_invoice</field>
+            <field name="print_report_name">(object.move_id._get_report_base_filename())</field>
+            <field name="attachment">(object.state == 'posted') and ((object.name or 'INV').replace('/','_')+'_receipt.pdf')</field>
+            <field name="binding_model_id" ref="model_account_payment"/>
+            <field name="binding_type">report</field>
+            <field name="attachment_use">True</field>
+       </record>
+
+
+       <record id="account_payment_summary_receipt" model="ir.actions.report">
+            <field name="name">Receipt Summary</field>
+            <field name="model">account.payment</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">bahmni_auto_payment_reconciliation.report_payment_summary</field>
+            <field name="report_file">bahmni_auto_payment_reconciliation.report_payment_summary</field>
+            <field name="print_report_name">(object.move_id._get_report_base_filename())</field>
+            <field name="attachment">(object.state == 'posted') and ((object.name or 'INV').replace('/','_')+'_summary.pdf')</field>
+            <field name="binding_model_id" ref="model_account_payment"/>
+            <field name="binding_type">report</field>
+            <field name="attachment_use">True</field>
+       </record>
+
+    </data>
+</odoo>

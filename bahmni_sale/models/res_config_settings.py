@@ -5,6 +5,7 @@ class ResConfigSettings(models.TransientModel):
    
     is_delivery_automated = fields.Boolean(string="Enable auto delivery on sale order confirm action", config_parameter="bahmni_sale.is_delivery_automated")
     sale_price_markup = fields.Boolean(string="Sale Price Markup Rule", config_parameter="bahmni_sale.sale_price_markup" )
+    is_invoice_automated = fields.Boolean(string="Enable auto invoice on sale order confirm action", config_parameter="bahmni_sale.is_invoice_automated")
     
     group_final_so_charge = fields.Boolean(string="Allow to enter final Sale Order charge",
                                            implied_group='bahmni_sale.group_allow_change_so_charge')
@@ -23,6 +24,7 @@ class ResConfigSettings(models.TransientModel):
        res = super(ResConfigSettings, self).set_values()
        self.env['ir.config_parameter'].sudo().set_param('bahmni_sale.sale_price_markup', self.sale_price_markup)
        self.env['ir.config_parameter'].sudo().set_param('bahmni_sale.is_delivery_automated', self.is_delivery_automated)
+       self.env['ir.config_parameter'].sudo().set_param('bahmni_sale.is_invoice_automated', self.is_invoice_automated)
        return res
     @api.model
     def get_values(self):
@@ -31,5 +33,6 @@ class ResConfigSettings(models.TransientModel):
        res.update(
            sale_price_markup=ICPSudo.get_param('bahmni_sale.sale_price_markup'),
            is_delivery_automated=ICPSudo.get_param('bahmni_sale.is_delivery_automated'),
+           is_invoice_automated=ICPSudo.get_param('bahmni_sale.is_invoice_automated'),
        )
        return res

@@ -21,11 +21,11 @@ class PurchaseOrderRegister(models.Model):
 
     # Private attributes
     _name = 'purchase.register'
-    _description = 'Purchase Order Register'    
+    _description = 'Purchase Order Register'
 
     # Fields declaration
     name = fields.Char(string="Report Name" , default='Purchase Order Register')
-    tax_type = fields.Selection([('with_tax', 'With Tax'),('without_tax', 'Without Tax')], 
+    tax_type = fields.Selection([('with_tax', 'With Tax'),('without_tax', 'Without Tax')],
                   string='Tax', required=True, widget='selection')
     from_date = fields.Date(string="From Date", required=True, default=fields.Date.today, index=True,
                  widget='date', help="Starting date for genarate report.")
@@ -47,7 +47,7 @@ class PurchaseOrderRegister(models.Model):
     #Entry info
     generate_date = fields.Datetime('Generate Date', store=True, readonly=True, default=time.strftime('%Y-%m-%d %H:%M:%S'))
     generate_user_id = fields.Many2one('res.users', 'Generate By',store=True, readonly=True, default=lambda self: self.env.user.id)
-    
+
     def write(self,vals):
         vals.update({'generate_date': time.strftime('%Y-%m-%d %H:%M:%S'),'generate_user_id':self.env.user.id})
         return super(PurchaseOrderRegister, self).write(vals)
@@ -56,7 +56,7 @@ class PurchaseOrderRegister(models.Model):
     def onchange_date_validations(self):
         if self.from_date > fields.Date.today() or self.to_date > fields.Date.today():
            raise UserError(_("Future date is not allowed. Kindly choose correct from & to date."))
-		
+
 
     def print_report(self):
         for rec in self:
@@ -79,8 +79,8 @@ class PurchaseOrderRegister(models.Model):
                 'drug_count': 'Limited' if rec.drug_ids else 'All',
                 'tax_type': rec.tax_type,
                 'po_details': [{
-                              'po_no': po_details.name, 
-                              'date': po_details.date_approve.strftime("%d/%m/%Y"),
+                              'po_no': po_details.name,
+                              'date': po_details.date_order.strftime("%d/%m/%Y"),
                               'supplier_ref': po_details.partner_ref if po_details.partner_ref else '-',
                               'vendor_name': po_details.partner_id.name,
                               'product_details': [{
@@ -94,12 +94,12 @@ class PurchaseOrderRegister(models.Model):
                                                                                      else po_line.price_subtotal
                                                  } for po_line in self.env['purchase.order.line'].search([('order_id', '=', po_details.id)])\
                                                  if po_line.product_id in rec.drug_ids or not rec.drug_ids]
-                              } for po_details in self.env['purchase.order'].search([('date_approve', '>=', rec.from_date),
-                                                                                     ('date_approve', '<=', rec.to_date),\
+                              } for po_details in self.env['purchase.order'].search([('date_order', '>=', rec.from_date),
+                                                                                     ('date_order', '<=', rec.to_date),\
                                                                                      ('state', 'not in', ['draft', 'cancel'])],\
-                                                                                     order='date_approve asc')
+                                                                                     order='date_order asc')
                                                                  if po_details.partner_id in rec.vendor_ids or not rec.vendor_ids],
-            }	
+            }
             if not [po['product_details'] for po in data['po_details']]:
                 raise UserError("No data available in given date range.")
             if not [po_line['product_name'] for po in data['po_details'] for po_line in po['product_details']]:
@@ -145,7 +145,7 @@ class PurchaseOrderRegister(models.Model):
         grand_total_format_ans = workbook.add_format({'font_size': 10, 'bold':True,\
                         'font_name': 'Calibri','border': 1, 'bg_color': '#DCDCDC'})
         grand_total_format_ans.set_align('right')
-        
+
         with_tax = 0
         if data['tax_type'] == 'with_tax':
             with_tax = 1
@@ -241,7 +241,7 @@ class PurchaseOrderRegister(models.Model):
                 po_line_len += 1
                 head_row = po_line_len
                 s_no += 1
-            
+
 
         if data['tax_type'] == 'with_tax':
             sheet.merge_range(2 + head_row, 8, 2 + head_row, 9,

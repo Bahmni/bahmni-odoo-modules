@@ -12,8 +12,9 @@ class StockMove(models.Model):
     stock_picking_time = fields.Datetime(string="Stock Picking_time", store=True)
     @api.model
     def create(self,vals):
-        if vals.get('origin'):
-            sale_order = self.env['sale.order'].search([('name','=',str(vals.get('origin')))])
-            if any(sale_order) and sale_order.location_id:
-                vals.update({'location_id':sale_order.location_id.id})
+        if not vals.get('origin_returned_move_id'):
+            if vals.get('origin'):
+                sale_order = self.env['sale.order'].search([('name','=',str(vals.get('origin')))])
+                if any(sale_order) and sale_order.location_id:
+                    vals.update({'location_id':sale_order.location_id.id})
         return super(StockMove,self).create(vals)

@@ -107,7 +107,7 @@ class PurchaseOrderInwardList(models.Model):
         sheet.set_column('E:E', 18)
         sheet.write(6, 5, "UOM", format2)
         sheet.set_column('F:F', 12)
-        sheet.write(6, 6, "Inward Batch Count", format2)
+        sheet.write(6, 6, "Inward Batch S.No.", format2)
         sheet.set_column('G:G', 19)
         sheet.write(6, 7, "Inward Date", format2)
         sheet.set_column('H:H', 15)
@@ -140,7 +140,7 @@ class PurchaseOrderInwardList(models.Model):
             stock_obj = self.env['stock.move'].search([('purchase_line_id', '=', data.id)])          
             if stock_obj:
                 for stock in stock_obj:        
-                    stock_move_obj = self.env['stock.move.line'].search([('move_id', '=', stock_obj.id),('lot_name','!=',False)])
+                    stock_move_obj = self.env['stock.move.line'].search([('move_id', '=', stock.id),('lot_name','!=',False)])
                     if stock_move_obj:
                         stok_move_len += len(stock_move_obj) -1
                         if head_row == stok_move_len:

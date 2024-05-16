@@ -10,19 +10,45 @@ class StockProductionLot(models.Model):
 
     def name_get(self):
         '''name_get method is overridden to view expiry date in many2one field of lot'''
-        if self._context is None:
-            context = {}
-        else:
-            context = self._context.copy()
-        res = []
+        res = []     
         for record in self:
-            name = record.name
-            if(record.expiration_date):
-                expiry_date = datetime.strptime(str(record.expiration_date), '%Y-%m-%d %H:%M:%S')
-                expiry = expiry_date.strftime("%b %d,%Y")
-                name = "%s [%s]" % (name, expiry)
-            if(context.get('show_future_forcast', False)):
-                name = "%s %s" % (name, record.future_stock_forecast)
+            name = ''
+            if self.env.context.get('parent_shop_id'):
+                shop_id = self.env['sale.shop'].search([('id', '=', self.env.context.get('parent_shop_id'))])
+                stock_quant_lot = self.env['stock.quant'].search([
+                    ('product_id','=', record.product_id.id),('lot_id','=', record.id),
+                    ('location_id', '=', shop_id.location_id.id),('quantity', '>' , 0)])
+                if stock_quant_lot:
+                    if(record.expiration_date):          
+                        if len(str(record.expiration_date)) > 20:                
+                            expiry_date = datetime.strptime(str(record.expiration_date), "%Y-%m-%d %H:%M:%S.%f")
+                        else:                
+                            expiry_date = datetime.strptime(str(record.expiration_date), "%Y-%m-%d %H:%M:%S")
+                    expiry = expiry_date.strftime("%b %d,%Y")                    
+                    name = record.name
+                    name = "%s [%s], %s" % (name, expiry,stock_quant_lot.quantity) 
+            elif self.env.context.get('default_internal_location_id'):                
+                stock_quant_lot = self.env['stock.quant'].search([
+                    ('product_id','=', record.product_id.id),('lot_id','=', record.id),
+                    ('location_id', '=', self.env.context.get('default_internal_location_id')),('quantity', '>' , 0)])
+                if stock_quant_lot:
+                    if(record.expiration_date):          
+                        if len(str(record.expiration_date)) > 20:                
+                            expiry_date = datetime.strptime(str(record.expiration_date), "%Y-%m-%d %H:%M:%S.%f")
+                        else:                
+                            expiry_date = datetime.strptime(str(record.expiration_date), "%Y-%m-%d %H:%M:%S")
+                    expiry = expiry_date.strftime("%b %d,%Y")                    
+                    name = record.name
+                    name = "%s [%s], %s" % (name, expiry,stock_quant_lot.quantity)  
+            else:                            
+                name = record.name
+                if(record.expiration_date):                   
+                    if len(str(record.expiration_date)) > 20:                
+                        expiry_date = datetime.strptime(str(record.expiration_date), "%Y-%m-%d %H:%M:%S.%f")
+                    else:                
+                        expiry_date = datetime.strptime(str(record.expiration_date), "%Y-%m-%d %H:%M:%S")
+                    expiry = expiry_date.strftime("%b %d,%Y")
+                    name = "%s [%s]" % (name, expiry)
             res.append((record.id, name))
         return res
     
