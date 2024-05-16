@@ -40,18 +40,18 @@ class SaleOrder(models.Model):
                 else:
                     amount_tax += line.price_tax
             amount_total = amount_untaxed + amount_tax
-          
+
             if order.discount_type == 'percentage':
                 tot_discount = amount_total * order.discount_percentage / 100
             else:
                 tot_discount = order.discount
-            
+
             if order.chargeable_amount > 0.0:
                 discount = amount_total - order.chargeable_amount
             else:
                 discount = tot_discount
             amount_total = amount_total - discount
-            round_off_amount = self.env['rounding.off'].round_off_value_to_nearest(amount_total)            
+            round_off_amount = self.env['rounding.off'].round_off_value_to_nearest(amount_total)
             if order.pricelist_id:
                 amt_untax = order.pricelist_id.currency_id.round(amount_untaxed)
                 amt_tax = order.pricelist_id.currency_id.round(amount_tax)
@@ -61,24 +61,24 @@ class SaleOrder(models.Model):
 
             total_receivable = order._total_receivable()
 
-            
+
             order.prev_outstanding_balance = total_receivable
             order.total_outstanding_balance = total_receivable + amount_total + round_off_amount
-                
-                       
+
+
             order.update({
                 'amount_untaxed': amt_untax,
                 'amount_tax': amt_tax,
                 'amount_total': amount_total + round_off_amount,
                 'round_off_amount': round_off_amount,
-                'discount': tot_discount,                
-                
+                'discount': tot_discount,
+
             })
 
-    
+
     def button_dummy(self):
         return self._compute_amounts()
-    
+
     @api.depends('partner_id')
     def _calculate_balance(self):
         for order in self:
@@ -88,10 +88,10 @@ class SaleOrder(models.Model):
             if (total_receivable - order.amount_total) < 0:
                 prev_outstanding_amt = 0
             else:
-                prev_outstanding_amt = total_receivable - order.amount_total                
+                prev_outstanding_amt = total_receivable - order.amount_total
             order.prev_outstanding_balance = prev_outstanding_amt
             order.total_outstanding_balance = total_receivable
-    
+
     def _total_receivable(self):
         receivable = 0.0
         if self.partner_id:
@@ -99,15 +99,15 @@ class SaleOrder(models.Model):
                           amount_residual > 0 and partner_id = %s
                           """, (self.partner_id.id,))
             outstaning_value = self._cr.fetchall()
-            if outstaning_value[0][0] != None: 
+            if outstaning_value[0][0] != None:
                 receivable = outstaning_value[0][0]
             else:
-                receivable = 0.00                
+                receivable = 0.00
         return receivable
-	
+
     def total_discount_heads(self):
-        
-        
+
+
         self._cr.execute("""select acc.code,acc.name,sum(sale.discount) from sale_order sale 
                             left join account_account acc on (acc.id = sale.disc_acc_id)
                             where sale.disc_acc_id is not null
@@ -180,7 +180,7 @@ class SaleOrder(models.Model):
                     self.discount_percentage = 0
                 if self.discount_percentage:
                     self.discount = amount_total * self.discount_percentage / 100
-                    
+
         else:
             pass
 
@@ -334,11 +334,11 @@ class SaleOrder(models.Model):
                 values={'self': move, 'origin': move.line_ids.sale_line_ids.order_id},
                 subtype_id=self.env['ir.model.data']._xmlid_to_res_id('mail.mt_note'))
         if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_invoice_automated')):
-            for invoice in self.invoice_ids:            
+            for invoice in self.invoice_ids:
                 invoice.action_post()
         return moves
 
-    
+
     def _prepare_invoice(self):
         """
         Prepare the dict of values to create the new invoice for a sales order. This method may be
@@ -351,8 +351,8 @@ class SaleOrder(models.Model):
             tot_discount = amount_total * self.discount_percentage / 100
         else:
             tot_discount = self.discount
-		
-        invoice_vals = {            
+
+        invoice_vals = {
             'ref': self.client_order_ref or '',
             'move_type': 'out_invoice',
             'partner_id': self.partner_invoice_id.id,
@@ -386,7 +386,7 @@ class SaleOrder(models.Model):
                raise UserError("Quantity for %s is %s. Please update the quantity or remove the product line."%(line.product_id.name,line.product_uom_qty))
            if line.product_id.tracking == 'lot' and not line.lot_id:
                raise UserError("Kindly choose batch no for %s to proceed further."%(line.product_id.name))
-                
+
            if 1 < self.order_line.search_count([('lot_id', '=', line.lot_id.id),('order_id', '=', self.id)]) and line.lot_id:
               raise UserError("%s Duplicate batch no is not allowed. Kindly change the batch no to proceed further."%(line.lot_id.name))
            if line.product_uom_qty > line.lot_id.product_qty and line.lot_id:
@@ -396,7 +396,7 @@ class SaleOrder(models.Model):
         self.validate_delivery()
         for order in self:
             warehouse = order.warehouse_id
-            if order.picking_ids and bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_delivery_automated')): 
+            if order.picking_ids and bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_delivery_automated')):
                 for picking in self.picking_ids:
                     picking.immediate_transfer = True
                     for move in picking.move_ids:
@@ -409,9 +409,22 @@ class SaleOrder(models.Model):
                     picking._action_done()
                     for mv_line in picking.move_ids.mapped('move_line_ids'):
                         if not mv_line.qty_done and mv_line.reserved_qty or mv_line.reserved_uom_qty:
-                            mv_line.qty_done = mv_line.reserved_qty or mv_line.reserved_uom_qty      
+                            mv_line.qty_done = mv_line.reserved_qty or mv_line.reserved_uom_qty
         if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_invoice_automated')):
             self._create_invoices()
+            if self.env.user.has_group('bahmni_sale.group_redirect_to_payments_on_sale_confirm'):
+                action = {
+                    'name': _('Payments'),
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'account.payment',
+                    'context': {'create': False,
+                                'default_partner_id': self.partner_id.id,
+                                'default_payment_type': 'inbound',
+                                'default_partner_type': 'customer',
+                                'search_default_inbound_filter': 1},
+                    'view_mode': 'form',
+                }
+                return action
         return res
 
 
@@ -495,7 +508,7 @@ class SaleOrder(models.Model):
             message = ("<b>Auto validation Failed</b> <br/> <b>Reason:</b> There are no Batches/Serial no's available for <a href=# data-oe-model=product.product data-oe-id=%d>%s</a> product") % (product.id,product.name)
             self.message_post(body=message)
             return False
-       
+
     @api.onchange('shop_id')
     def onchange_shop_id(self):
         self.warehouse_id = self.shop_id.warehouse_id.id
@@ -503,7 +516,7 @@ class SaleOrder(models.Model):
         self.payment_term_id = self.shop_id.payment_default_id.id
         if self.shop_id.pricelist_id:
             self.pricelist_id = self.shop_id.pricelist_id.id
-            
+
     def validate_payment(self):
         for obj in self:
             ctx = {'active_ids': [obj.id]}
