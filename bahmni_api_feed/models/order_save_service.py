@@ -380,13 +380,12 @@ class OrderSaveService(models.Model):
             # Get available batches
             prod_lot = self.get_available_batch_details(prod_id, sale_order)
             sorted_batches = sorted(prod_lot.items(), key=lambda x: x[1]['expiration_date'])
-            for lot_id, lot in sorted_batches:
-                actual_quantity = order['quantity']
-                default_quantity_total = self.env['res.config.settings'].group_default_quantity
-                _logger.info(f"default_quantity_total: {default_quantity_total}")
-                _logger.info("DEFAULT QUANTITY TOTAL")
-                _logger.info(default_quantity_total)
-                default_quantity_value = 0
+            actual_quantity = order['quantity']
+            default_quantity_total = self.env['res.config.settings'].group_default_quantity
+            _logger.info(f"default_quantity_total: {default_quantity_total}")
+            _logger.info("DEFAULT QUANTITY TOTAL")
+            _logger.info(default_quantity_total)
+            default_quantity_value = 0
 
             # Check available quantity from all batches
             total_quantity_available = sum([lot['stock_forecast'] for _, lot in sorted_batches])
@@ -397,10 +396,27 @@ class OrderSaveService(models.Model):
             order_line_dispensed = True if order.get('dispensed') == 'true' or (order.get('dispensed') and order.get('dispensed') != 'false') else False
             allocate_quantity_from_multiple_batches = self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.allocate_quantity_from_multiple_batches')
 
-            if allocate_quantity_from_multiple_batches == 'True':
-                self._create_multiple_order_lines(sale_order, prod_id, prod_obj, sorted_batches, product_uom_qty, order_line_uom, description, order_line_dispensed, order)
+            # Handling case when no batch/lot is available for the product
+            if not sorted_batches:
+                _logger.warning("No batch/lot available for product ID: %s", prod_id)
+                sale_line_vals = {
+                    'product_id': prod_id[0],
+                    'price_unit': prod_obj.list_price,
+                    'product_uom_qty': product_uom_qty,
+                    'product_uom': order_line_uom,
+                    'order_id': sale_order,
+                    'external_id': order['encounterId'],
+                    'external_order_id': order['orderId'],
+                    'name': description,
+                    'state': 'draft',
+                    'dispensed': order_line_dispensed,
+                }
+                sale_order_line_obj.create(sale_line_vals)
             else:
-                self._create_single_order_line(sale_order, prod_id, prod_obj, sorted_batches, actual_quantity, order_line_uom, description, order_line_dispensed, order)
+                if allocate_quantity_from_multiple_batches == 'True':
+                    self._create_multiple_order_lines(sale_order, prod_id, prod_obj, sorted_batches, product_uom_qty, order_line_uom, description, order_line_dispensed, order)
+                else:
+                    self._create_single_order_line(sale_order, prod_id, prod_obj, sorted_batches, actual_quantity, order_line_uom, description, order_line_dispensed, order)
 
 
     def _create_multiple_order_lines(self, sale_order, prod_id, prod_obj, sorted_batches, product_uom_qty, order_line_uom, description, order_line_dispensed, order):
