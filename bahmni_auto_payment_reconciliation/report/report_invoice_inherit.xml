@@ -9,7 +9,7 @@
                         <div class="page">
                             <head>
                                 <t id="title">
-                                    <title t-esc="(o.state == 'posted') and (o.name or 'Draft Payment').replace('/','_')"/>
+                                    <title t-esc="((o.state == 'posted') and (o.name or 'Draft Payment').replace('/','_')) + '_Receipt'"/>
                                 </t>
                                 <style>
                                     /* CSS for styling */
@@ -255,7 +255,7 @@
                         <div class="page">
                             <head>
                                 <t id="title">
-                                    <title t-esc="(o.state == 'posted') and (o.name or 'Draft Payment').replace('/','_')"/>
+                                    <title t-esc="((o.state == 'posted') and (o.name or 'Draft Payment').replace('/','_')) + '_Summary'"/>
                                 </t>
                                 <style>
                                     /* CSS for styling */
