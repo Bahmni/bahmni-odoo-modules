@@ -342,7 +342,7 @@ class odoo10_data_import(models.Model):
                     pt.drug,'' as use_time,'' as life_time,'' as removal_time,'' as alert_time,
                     pt.list_price,pt.description,pt.weight,'' as weight_net,
                     pu.name,pt.description_purchase,'' as cost_method,pc.name,pt.volume,pt.sale_ok,pt.description_sale,
-                    pu1.name,pt.sale_delay,pt.purchase_ok,pp.id,pp.default_code
+                    pu1.name,pt.sale_delay,pt.purchase_ok,pp.id,pp.default_code,pt.tracking
                     from product_product pp left join product_template pt on pt.id = pp.product_tmpl_id 
                     left join product_category pc on pt.categ_id = pc.id 
                     left join product_uom pu on pt.uom_id = pu.id 
@@ -380,6 +380,8 @@ class odoo10_data_import(models.Model):
                                                 "sale_delay": product_from[22] if product_from[22] else False,
                                                 "purchase_ok": product_from[23] if product_from[23] else False,
                                                 "default_code": product_from[25] if product_from[25] else False,
+                                                "tracking": product_from[26] if product_from[26] else 'none',
+                                                "use_expiration_date": True if product_from[26] == 'lot' else None
                                                 }),
 
              finally:
