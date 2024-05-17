@@ -6,7 +6,7 @@
 		<field name="inherit_id" ref="product.product_supplierinfo_form_view"/>
 		<field name="arch" type="xml">
 			<xpath expr="//group/group[1]/div" position="after">
-				<field name="manufacturer" 
+				<field name="manufacturer"
 				context="{'default_manufacturer': True, 'default_customer': False}"/>
 			</xpath>
 			<xpath expr="//group/group[2]/div[2]" position="after">
@@ -14,6 +14,16 @@
 				<div>
 					<field name="mrp" class="oe_inline"/>
 				</div>
+			</xpath>
+		</field>
+	</record>
+	<record id="product_supplierinfo_tree_with_mrp" model="ir.ui.view">
+		<field name="name">product.supplierinfo.with.mrp</field>
+		<field name="model">product.supplierinfo</field>
+		<field name="inherit_id" ref="product.product_supplierinfo_tree_view"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='price']" position="after">
+				<field name="mrp"/>
 			</xpath>
 		</field>
 	</record>
