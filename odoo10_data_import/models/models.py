@@ -339,7 +339,7 @@ class odoo10_data_import(models.Model):
              try:
                 query = """ select pt.name,pt.type,pp.uuid,
                     pp.active,'' as manufacturer,
-                    pp.drug,'' as use_time,'' as life_time,'' as removal_time,'' as alert_time,
+                    pt.drug,'' as use_time,'' as life_time,'' as removal_time,'' as alert_time,
                     pt.list_price,pt.description,pt.weight,'' as weight_net,
                     pu.name,pt.description_purchase,'' as cost_method,pc.name,pt.volume,pt.sale_ok,pt.description_sale,
                     pu1.name,pt.sale_delay,pt.purchase_ok,pp.id,pp.default_code
