@@ -19,10 +19,11 @@ class PurchaseOrderLine(models.Model):
             self.prod_categ_id = self.product_id.categ_id.id
         return result
 
-    @api.onchange('product_qty', 'product_uom')
+    @api.onchange('product_id', 'product_qty', 'product_uom')
     def _onchange_quantity(self):
         '''Method to get mrp for product from vendor configuration in product master'''
         if not self.product_id or not self.product_uom:
+            self.mrp = 0
             return
 
         seller = self.product_id._select_seller(
