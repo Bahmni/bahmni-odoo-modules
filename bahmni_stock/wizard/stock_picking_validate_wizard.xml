@@ -19,9 +19,7 @@
                 </div>
                 <br/>
                 <field name="move_lines">
-                    <tree string="Stock Move Lines" decoration-warning="is_move_line_lot_expiring_soon">
-                        <field name="is_move_line_lot_expiring_soon" invisible="1"/>
-
+                    <tree string="Stock Move Lines">
                         <field name="product_id"/>
                         <field name="qty_done" string="Quantity"/>
                         <field name="balance" string="Balance Quantity"
