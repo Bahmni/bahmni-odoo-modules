@@ -1,7 +1,7 @@
 
 import datetime
 from collections import defaultdict
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
 
 
@@ -15,6 +15,8 @@ class StockMoveLine(models.Model):
     existing_lot_id = fields.Many2one(
         'stock.lot', 'Lot/Serial Number',
         domain="[('product_id', '=', product_id), ('company_id', '=', company_id)]", check_company=True)
+    is_move_line_lot_expiring_soon = fields.Boolean(string="Is Lot Expiring Soon", readonly=True,
+                                                    compute='is_lot_expiring_soon', default=False)
 
     @api.onchange('product_id','qty_done')
     def _onchange_balance_qty(self):
@@ -71,3 +73,15 @@ class StockMoveLine(models.Model):
             'mrp': self.mrp
         })
         return res
+
+    # Customisations to show warning when expiry of lot is within 30 days
+    @api.depends('expiration_date')
+    def is_lot_expiring_soon(self):
+        for line in self:
+            if line.expiration_date and self._compute_days_for_expiry(line.expiration_date) < 30:
+                line.is_move_line_lot_expiring_soon = True
+            else:
+                line.is_move_line_lot_expiring_soon = False
+
+    def _compute_days_for_expiry(self, expiration_date):
+        return (expiration_date.date() - fields.Date.context_today(self)).days
