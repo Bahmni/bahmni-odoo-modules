@@ -17,7 +17,7 @@ Bahmni Purchase
              'views/stock_picking_view.xml',
              'views/account_invoice_line.xml',
              'views/stock_pick_lot_view.xml',
-             'views/stock_picking_validate_wizard.xml',
+             'wizard/stock_picking_validate_wizard.xml',
              ],
     'demo': [],
     'qweb': [],
