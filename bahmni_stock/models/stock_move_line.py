@@ -85,3 +85,17 @@ class StockMoveLine(models.Model):
 
     def _compute_days_for_expiry(self, expiration_date):
         return (expiration_date.date() - fields.Date.context_today(self)).days
+
+    def move_line_warning(self):
+        notification = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Lot Expiry Warning'),
+                'type': 'warning',
+                'message': "Lot %s for %s expires in %s days" % (self.lot_id.name if self.lot_id else self.lot_name,
+                                                                 self.product_id.name,
+                                                                 self._compute_days_for_expiry(self.expiration_date))
+            }
+        }
+        return notification
