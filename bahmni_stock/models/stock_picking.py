@@ -13,6 +13,10 @@ _logger = logging.getLogger(__name__)
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
+    STOCK_PICKING_CODE_INTERNAL = 'internal'
+    STOCK_PICKING_CODE_INCOMING = 'incoming'
+    STOCK_PICKING_NAME_PURCHASE = 'Receipts'
+
 
     def button_validate(self):
         self.validate_batch_quantity_for_internal_transfer()
@@ -24,7 +28,7 @@ class StockPicking(models.Model):
             return res
 
     def validate_batch_quantity_for_internal_transfer(self):
-        if self.picking_type_id and self.picking_type_id.code == 'internal':
+        if self.picking_type_id and self.picking_type_id.code == self.STOCK_PICKING_CODE_INTERNAL:
             for line in self.move_line_ids:
                 if line.product_id.tracking != 'none':
                     stock_quant_lot = self.env['stock.quant'].search([
@@ -52,7 +56,8 @@ class StockPicking(models.Model):
             'context': context,
         }
     def update_price_details_for_lots(self):
-        if self.picking_type_id and self.picking_type_id.code == 'incoming' and self.picking_type_id.name == 'Receipts':
+        if self.picking_type_id and self.picking_type_id.code == self.STOCK_PICKING_CODE_INCOMING\
+                and self.picking_type_id.name == self.STOCK_PICKING_NAME_PURCHASE:
             for line in self.move_line_ids:
                 if line.product_id.tracking != 'none':
                     line.lot_id.cost_price = line.cost_price
@@ -63,9 +68,7 @@ class StockPicking(models.Model):
     def _is_validation_needed(self):
         if self.env.context.get('validation_confirmed'):
             return False
-        if self.picking_type_id.code == 'incoming':
-            return True
-        if self.picking_type_id.code == 'internal':
+        if self.picking_type_id.code in [self.STOCK_PICKING_CODE_INTERNAL, self.STOCK_PICKING_CODE_INCOMING]:
             return True
         return False
 
