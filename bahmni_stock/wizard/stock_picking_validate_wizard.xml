@@ -19,7 +19,7 @@
                 </div>
                 <br/>
                 <field name="move_lines">
-                    <tree string="Stock Move Lines">
+                    <tree string="Stock Move Lines" decoration-warning="is_move_line_lot_expiring_soon">
                         <field name="product_id"/>
                         <field name="qty_done" string="Quantity"/>
                         <field name="balance" string="Balance Quantity"
@@ -36,6 +36,9 @@
                         <field name="sale_price"
                                attrs="{'column_invisible': [['parent.picking_code', '!=', 'incoming']]}"/>
                         <field name="mrp" attrs="{'column_invisible': [['parent.picking_code', '!=', 'incoming']]}"/>
+                        <field name="is_move_line_lot_expiring_soon" invisible="1"/>
+                        <button class="fa fa-exclamation-circle text-warning" type="object" name="move_line_warning"
+                                attrs="{'invisible': [('is_move_line_lot_expiring_soon', '=', False)]}"/>
                     </tree>
                 </field>
                 <footer>
