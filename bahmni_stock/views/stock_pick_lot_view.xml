@@ -27,9 +27,6 @@
 			</xpath>
 			<xpath expr="//tree" position="inside">
 				<field name="is_move_line_lot_expiring_soon" invisible="1"/>
-				<button class="fa fa-exclamation-circle text-warning"
-						name="move_line_warning" type="object" help="Lot expires soon"
-						attrs="{'invisible': [('is_move_line_lot_expiring_soon', '=', False)]}"/>
 			</xpath>
 			<xpath expr="//tree" position="attributes">
 				<attribute name="decoration-danger">False</attribute>
@@ -54,9 +51,6 @@
 			</xpath>
 			<xpath expr="//tree" position="inside">
 				<field name="is_move_line_lot_expiring_soon" invisible="1"/>
-					<button class="fa fa-exclamation-circle btn-warning"
-							name="move_line_warning" type="object" help="Lot expires soon"
-							attrs="{'invisible': [('is_move_line_lot_expiring_soon', '=', False)]}"/>
 			</xpath>
 			<xpath expr="//tree" position="attributes">
 				<attribute name="decoration-danger">False</attribute>
