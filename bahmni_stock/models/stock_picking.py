@@ -1,23 +1,34 @@
 # -*- coding: utf-8 -*-
 from collections import namedtuple
 
-from odoo import fields, models, api
+from odoo import fields, models, api, _
 from odoo.tools.float_utils import float_compare
 from odoo.exceptions import UserError
 from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
 
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
+    STOCK_PICKING_CODE_INTERNAL = 'internal'
+    STOCK_PICKING_CODE_INCOMING = 'incoming'
+    STOCK_PICKING_NAME_PURCHASE = 'Receipts'
+
 
     def button_validate(self):
         self.validate_batch_quantity_for_internal_transfer()
-        res = super(StockPicking, self).button_validate()
-        self.update_price_details_for_lots()
-        return res
+        if self._is_validation_needed():
+            return self.show_validation_screen()
+        else:
+            res = super(StockPicking, self).button_validate()
+            self.update_price_details_for_lots()
+            return res
 
     def validate_batch_quantity_for_internal_transfer(self):
-        if self.picking_type_id and self.picking_type_id.code == 'internal':
+        if self.picking_type_id and self.picking_type_id.code == self.STOCK_PICKING_CODE_INTERNAL:
             for line in self.move_line_ids:
                 if line.product_id.tracking != 'none':
                     stock_quant_lot = self.env['stock.quant'].search([
@@ -27,14 +38,40 @@ class StockPicking(models.Model):
                         raise UserError("Insufficient batch(%s) quantity for %s and available quantity is %s" \
                                         %(line.lot_id.name, line.product_id.name, stock_quant_lot.quantity))
 
+    def show_validation_screen(self):
+        view_id = self.env.ref('bahmni_stock.stock_picking_validate_wizard_view').id
+        context = dict(self.env.context)
+        context.update({
+            'default_move_lines': [(6, 0, self.move_line_ids.filtered(lambda line: line.qty_done > 0).ids)],
+            'default_picking_id': self.id
+        })
+        return {
+            'name': _('Validate Stock Entries'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'stock.picking.validate.wizard',
+            'view_mode': 'form',
+            'views': [(view_id, 'form')],
+            'view_id': view_id,
+            'target': 'new',
+            'context': context,
+        }
     def update_price_details_for_lots(self):
-        if self.picking_type_id and self.picking_type_id.code == 'incoming' and self.picking_type_id.name == 'Receipts':
+        if self.picking_type_id and self.picking_type_id.code == self.STOCK_PICKING_CODE_INCOMING\
+                and self.picking_type_id.name == self.STOCK_PICKING_NAME_PURCHASE:
             for line in self.move_line_ids:
                 if line.product_id.tracking != 'none':
                     line.lot_id.cost_price = line.cost_price
                     line.lot_id.sale_price = line.sale_price
                     line.lot_id.mrp = line.mrp
                     line.lot_id.expiration_date = line.expiration_date
+
+    def _is_validation_needed(self):
+        if self.env.context.get('validation_confirmed'):
+            return False
+        if self.picking_type_id.code in [self.STOCK_PICKING_CODE_INTERNAL, self.STOCK_PICKING_CODE_INCOMING]:
+            return True
+        return False
+
 
     # this method is overridden to update cost_price, sale_price and mrp while lot is getting created
     def _create_lots_for_picking(self):
