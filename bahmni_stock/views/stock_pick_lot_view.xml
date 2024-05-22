@@ -30,7 +30,7 @@
 			</xpath>
 			<xpath expr="//tree" position="attributes">
 				<attribute name="decoration-danger">False</attribute>
-				<attribute name="decoration-warning">is_move_line_lot_expiring_soon</attribute>
+				<attribute name="decoration-warning">is_move_line_lot_expiring_soon and state != 'done'</attribute>
 			</xpath>
 		</field>
 	</record>
@@ -54,7 +54,7 @@
 			</xpath>
 			<xpath expr="//tree" position="attributes">
 				<attribute name="decoration-danger">False</attribute>
-				<attribute name="decoration-warning">is_move_line_lot_expiring_soon</attribute>
+				<attribute name="decoration-warning">is_move_line_lot_expiring_soon and state != 'done'</attribute>
 			</xpath>
 		</field>
 	</record>
