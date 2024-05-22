@@ -12,16 +12,16 @@ class odoo10_data_import(models.Model):
 
      def connect_to_external_db(self):
         """ To connect the external database """
-        
-        data_congig = self.env['db.details'].search([])       
-        
+
+        database_config = self.env['db.details'].search([])
+
         try:
             conn = psycopg2.connect(
-                dbname= (data_congig.db_name),
-                user= (data_congig.db_uname),
-                password= (data_congig.db_pwd),
-                host= (data_congig.db_ip),
-                port= (data_congig.db_port)
+                dbname= (database_config.db_name),
+                user= (database_config.db_uname),
+                password= (database_config.db_pwd),
+                host= (database_config.db_ip),
+                port= (database_config.db_port)
             )
             return conn
         except Exception as e:
@@ -69,8 +69,8 @@ class odoo10_data_import(models.Model):
                             print("PASS")
                             pass
                          else:
-                            print("partner_from:", partner_from)                            
-                            print("++++++++++++++++++++++count:", count)                            
+                            print("partner_from:", partner_from)
+                            print("++++++++++++++++++++++count:", count)
                             def _greb_village(v_name):
                                 """ Village fetching & creation """
                                 if v_name:
@@ -95,32 +95,32 @@ class odoo10_data_import(models.Model):
                                             "street": partner_from[11] if partner_from[11] else False,
                                             "supplier_rank": 0,
                                             "customer_rank": 1,
-                                            "city": partner_from[13] if partner_from[13] else False,  
-                                            "user_id": partner_from[14] if partner_from[14] else False,  
-                                            "zip": partner_from[15] if partner_from[15] else False,  
-                                            "title": partner_from[16] if partner_from[16] else False,  
-                                            "function": partner_from[17] if partner_from[17] else False,  
-                                            "country_id": partner_from[18] if partner_from[18] else False,  
-                                            "parent_id": partner_from[19] if partner_from[19] else False,  
-                                            "employee": partner_from[20] if partner_from[20] else False,  
-                                            "email": partner_from[22] if partner_from[22] else False,  
-                                            "vat": partner_from[23] if partner_from[23] else False,  
-                                            "website": partner_from[24] if partner_from[24] else False,  
-                                            "street2": partner_from[26] if partner_from[26] else False,  
-                                            "phone": partner_from[27] if partner_from[27] else False,  
-                                            "credit_limit": partner_from[28] if partner_from[28] else False,  
-                                            "date": partner_from[29] if partner_from[29] else False,  
-                                            "tz": partner_from[30] if partner_from[30] else False,  
-                                            "mobile": partner_from[32] if partner_from[32] else False,                                             
-                                            "ref": partner_from[33] if partner_from[33] else False,  
-                                            "is_company": partner_from[34] if partner_from[34] else False,  
-                                            "state_id": partner_from[35] if partner_from[35] else False,  
-                                            "signup_type": partner_from[37] if partner_from[37] else False,  
-                                            "signup_expiration": partner_from[38] if partner_from[38] else False,  
-                                            "signup_token": partner_from[39] if partner_from[39] else False,  
-                                            "debit_limit": partner_from[41] if partner_from[41] else False,  
-                                            "local_name": partner_from[43] if partner_from[43] else False,  
-                                            "uuid": partner_from[44] if partner_from[44] else False,  
+                                            "city": partner_from[13] if partner_from[13] else False,
+                                            "user_id": partner_from[14] if partner_from[14] else False,
+                                            "zip": partner_from[15] if partner_from[15] else False,
+                                            "title": partner_from[16] if partner_from[16] else False,
+                                            "function": partner_from[17] if partner_from[17] else False,
+                                            "country_id": partner_from[18] if partner_from[18] else False,
+                                            "parent_id": partner_from[19] if partner_from[19] else False,
+                                            "employee": partner_from[20] if partner_from[20] else False,
+                                            "email": partner_from[22] if partner_from[22] else False,
+                                            "vat": partner_from[23] if partner_from[23] else False,
+                                            "website": partner_from[24] if partner_from[24] else False,
+                                            "street2": partner_from[26] if partner_from[26] else False,
+                                            "phone": partner_from[27] if partner_from[27] else False,
+                                            "credit_limit": partner_from[28] if partner_from[28] else False,
+                                            "date": partner_from[29] if partner_from[29] else False,
+                                            "tz": partner_from[30] if partner_from[30] else False,
+                                            "mobile": partner_from[32] if partner_from[32] else False,
+                                            "ref": partner_from[33] if partner_from[33] else False,
+                                            "is_company": partner_from[34] if partner_from[34] else False,
+                                            "state_id": partner_from[35] if partner_from[35] else False,
+                                            "signup_type": partner_from[37] if partner_from[37] else False,
+                                            "signup_expiration": partner_from[38] if partner_from[38] else False,
+                                            "signup_token": partner_from[39] if partner_from[39] else False,
+                                            "debit_limit": partner_from[41] if partner_from[41] else False,
+                                            "local_name": partner_from[43] if partner_from[43] else False,
+                                            "uuid": partner_from[44] if partner_from[44] else False,
 
                                     })
              finally:
@@ -149,8 +149,8 @@ class odoo10_data_import(models.Model):
                             print("PASS")
                             pass
                          else:
-                            print("partner_from:", partner_from)                            
-                            print("++++++++++++++++++++++count:", count)                            
+                            print("partner_from:", partner_from)
+                            print("++++++++++++++++++++++count:", count)
                             def _greb_village(v_name):
                                 """ Village fetching & creation """
                                 if v_name:
@@ -174,34 +174,34 @@ class odoo10_data_import(models.Model):
                                             "active": partner_from[10] if partner_from[10] else False,
                                             "street": partner_from[11] if partner_from[11] else False,
                                             "supplier_rank": 1,
-                                            "customer_rank": 0, 
-                                            "city": partner_from[13] if partner_from[13] else False,  
-                                            "user_id": partner_from[14] if partner_from[14] else False,  
-                                            "zip": partner_from[15] if partner_from[15] else False,  
-                                            "title": partner_from[16] if partner_from[16] else False,  
-                                            "function": partner_from[17] if partner_from[17] else False,  
-                                            "country_id": partner_from[18] if partner_from[18] else False,  
-                                            "parent_id": partner_from[19] if partner_from[19] else False,  
-                                            "employee": partner_from[20] if partner_from[20] else False,  
-                                            "email": partner_from[22] if partner_from[22] else False,  
-                                            "vat": partner_from[23] if partner_from[23] else False,  
-                                            "website": partner_from[24] if partner_from[24] else False,  
-                                            "street2": partner_from[26] if partner_from[26] else False,  
-                                            "phone": partner_from[27] if partner_from[27] else False,  
-                                            "credit_limit": partner_from[28] if partner_from[28] else False,  
-                                            "date": partner_from[29] if partner_from[29] else False,  
-                                            "tz": partner_from[30] if partner_from[30] else False,  
-                                            "mobile": partner_from[32] if partner_from[32] else False,                                             
-                                            "ref": partner_from[33] if partner_from[33] else False,  
-                                            "is_company": partner_from[34] if partner_from[34] else False,  
-                                            "state_id": partner_from[35] if partner_from[35] else False,  
-                                            "signup_type": partner_from[37] if partner_from[37] else False,  
-                                            "signup_expiration": partner_from[38] if partner_from[38] else False,  
-                                            "signup_token": partner_from[39] if partner_from[39] else False,  
-                                            "debit_limit": partner_from[41] if partner_from[41] else False,  
-                                            "village_id": _greb_village(partner_from[42] if partner_from[42] else False),  
-                                            "local_name": partner_from[43] if partner_from[43] else False,  
-                                            "uuid": partner_from[44] if partner_from[44] else False,  
+                                            "customer_rank": 0,
+                                            "city": partner_from[13] if partner_from[13] else False,
+                                            "user_id": partner_from[14] if partner_from[14] else False,
+                                            "zip": partner_from[15] if partner_from[15] else False,
+                                            "title": partner_from[16] if partner_from[16] else False,
+                                            "function": partner_from[17] if partner_from[17] else False,
+                                            "country_id": partner_from[18] if partner_from[18] else False,
+                                            "parent_id": partner_from[19] if partner_from[19] else False,
+                                            "employee": partner_from[20] if partner_from[20] else False,
+                                            "email": partner_from[22] if partner_from[22] else False,
+                                            "vat": partner_from[23] if partner_from[23] else False,
+                                            "website": partner_from[24] if partner_from[24] else False,
+                                            "street2": partner_from[26] if partner_from[26] else False,
+                                            "phone": partner_from[27] if partner_from[27] else False,
+                                            "credit_limit": partner_from[28] if partner_from[28] else False,
+                                            "date": partner_from[29] if partner_from[29] else False,
+                                            "tz": partner_from[30] if partner_from[30] else False,
+                                            "mobile": partner_from[32] if partner_from[32] else False,
+                                            "ref": partner_from[33] if partner_from[33] else False,
+                                            "is_company": partner_from[34] if partner_from[34] else False,
+                                            "state_id": partner_from[35] if partner_from[35] else False,
+                                            "signup_type": partner_from[37] if partner_from[37] else False,
+                                            "signup_expiration": partner_from[38] if partner_from[38] else False,
+                                            "signup_token": partner_from[39] if partner_from[39] else False,
+                                            "debit_limit": partner_from[41] if partner_from[41] else False,
+                                            "village_id": _greb_village(partner_from[42] if partner_from[42] else False),
+                                            "local_name": partner_from[43] if partner_from[43] else False,
+                                            "uuid": partner_from[44] if partner_from[44] else False,
 
                                     })
              finally:
@@ -228,10 +228,10 @@ class odoo10_data_import(models.Model):
                                                 "uuid": uom_cate_from[1] if uom_cate_from[1] else False})
              finally:
                 self.close_connection(external_conn)
-                
+
      def product_update_feed(self):
          """ Product Update in Odoo 16 """
-                  
+
          self.env.cr.execute("""            
             UPDATE product_template
             SET active = 'f'
@@ -240,7 +240,7 @@ class odoo10_data_import(models.Model):
             and product_product.product_tmpl_id = product_template.id             
             """)
          return True
-         
+
 
 
      def uom_data_feed(self):
@@ -258,15 +258,15 @@ class odoo10_data_import(models.Model):
                     for uom_from in result:
                         if uom_to.search([("uuid", '=', uom_from[0] if uom_from[0] else uom_from[7]),"|", ('active', '=', True)\
                                                 ,('active', '=', False)]):
-                                                    
+
                             print("IF data ")
                             pass
                         else:
                             print("Creation of data else")
                             uom_mapping = uom_to.create({
                                                 "uuid": uom_from[0] if uom_from[0] else uom_from[7],
-                                                "name": uom_from[1] if uom_from[1] else False, 
-                                                "uom_type": 'bigger', 
+                                                "name": uom_from[1] if uom_from[1] else False,
+                                                "uom_type": 'bigger',
                                                 "rounding": uom_from[3] if uom_from[3] else False,
                                                 "factor": uom_from[4] if uom_from[4] else False,
                                                 "active": uom_from[5] if uom_from[5] else False,
@@ -289,7 +289,7 @@ class odoo10_data_import(models.Model):
                         if product_cate_to.search([("uuid", '=', product_cate_from[1] if product_cate_from[1] else False)]):
                             pass
                         else:
-                            if product_cate_from[0]: ##without name with uuid data not allowed. 
+                            if product_cate_from[0]: ##without name with uuid data not allowed.
                                 if product_cate_from[2]:
                                     parent_query = """ SELECT name from product_category where id = %s limit 1""" %(product_cate_from[2])
                                     parent_result = self.execute_query(external_conn, parent_query)
@@ -299,12 +299,12 @@ class odoo10_data_import(models.Model):
                                     parrent_id = product_cate_parent_id.id
                                 else:
                                     parrent_id = False
-                                    
+
                                 product_cate_mapping = product_cate_to.create({
                                                     "name": product_cate_from[0] if product_cate_from[0] else False,
                                                     "parent_id": parrent_id,
                                                     "uuid": product_cate_from[1] if product_cate_from[1] else False})
-                
+
                 query = "SELECT name,uuid,parent_id from product_category order by id desc"
                 result = self.execute_query(external_conn, query)
                 product_cate_to = self.env['product.category']
@@ -313,7 +313,7 @@ class odoo10_data_import(models.Model):
                         if product_cate_to.search([("uuid", '=', product_cate_from[1] if product_cate_from[1] else False)]):
                             pass
                         else:
-                            if product_cate_from[0]: ##without name with uuid data not allowed. 
+                            if product_cate_from[0]: ##without name with uuid data not allowed.
                                 if product_cate_from[2]:
                                     parent_query = """ SELECT name from product_category where id = %s limit 1""" %(product_cate_from[2])
                                     parent_result = self.execute_query(external_conn, parent_query)
@@ -323,12 +323,12 @@ class odoo10_data_import(models.Model):
                                     parrent_id = product_cate_parent_id.id
                                 else:
                                     parrent_id = False
-                                    
+
                                 product_cate_mapping = product_cate_to.create({
                                                     "name": product_cate_from[0] if product_cate_from[0] else False,
                                                     "parent_id": parrent_id,
                                                     "uuid": product_cate_from[1] if product_cate_from[1] else False})
-                
+
              finally:
                 self.close_connection(external_conn)
 
