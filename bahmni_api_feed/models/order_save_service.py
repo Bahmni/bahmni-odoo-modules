@@ -386,9 +386,6 @@ class OrderSaveService(models.Model):
             _logger.info("DEFAULT QUANTITY TOTAL")
             _logger.info(default_quantity_total)
             default_quantity_value = 0
-
-            # Check available quantity from all batches
-            total_quantity_available = sum([lot['stock_forecast'] for _, lot in sorted_batches])
             order['quantity'] = self._get_order_quantity(order, default_quantity_value, prod_obj.uom_id)
             order_line_uom = self._get_order_line_uom(order, prod_obj.uom_id)
             product_uom_qty = order['quantity']
