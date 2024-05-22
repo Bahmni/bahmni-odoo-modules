@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_picking_validate_wizard_view" model="ir.ui.view">
+        <field name="name">Validate Stock Picking</field>
+        <field name="model">stock.picking.validate.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Validation">
+                <field name="picking_id" invisible="1"/>
+                <field name="picking_code" invisible="1"/>
+                <div class="row h3" attrs="{'invisible': [['picking_code', '!=', 'internal']]}">
+                    <div class="col-sm">
+                        <label for="source_location"/>
+                        <field name="source_location"/>
+                    </div>
+                    <div class="col-sm">
+                        <label for="destination_location"/>
+                        <field name="destination_location"/>
+                    </div>
+                </div>
+                <br/>
+                <field name="move_lines">
+                    <tree string="Stock Move Lines">
+                        <field name="product_id"/>
+                        <field name="qty_done" string="Quantity"/>
+                        <field name="balance" string="Balance Quantity"
+                               attrs="{'column_invisible': [['parent.picking_code', '!=', 'internal']]}"/>
+                        <field name="product_uom_id"/>
+                        <field name="lot_id"
+                               attrs="{'column_invisible': [['parent.picking_code', '!=', 'internal']]}"/>
+                        <field name="lot_name" string="Lot/Serial Number"
+                               attrs="{'column_invisible': [['parent.picking_code', '!=', 'incoming']]}"/>
+                        <field name="expiration_date"
+                               attrs="{'column_invisible': [['parent.picking_code', '!=', 'incoming']]}"/>/>
+                        <field name="cost_price"
+                               attrs="{'column_invisible': [['parent.picking_code', '!=', 'incoming']]}"/>
+                        <field name="sale_price"
+                               attrs="{'column_invisible': [['parent.picking_code', '!=', 'incoming']]}"/>
+                        <field name="mrp" attrs="{'column_invisible': [['parent.picking_code', '!=', 'incoming']]}"/>
+                    </tree>
+                </field>
+                <footer>
+                    <button name="btn_confirm"
+                            string="Confirm"
+                            type="object"
+                            data-hotkey="q"
+                            class="btn-primary"/>
+                    <button string="Discard"
+                            class="btn-secondary"
+                            special="cancel" data-hotkey="z"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
