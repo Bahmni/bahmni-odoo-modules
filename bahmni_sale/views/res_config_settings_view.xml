@@ -52,7 +52,7 @@
                                 <field name="allocate_quantity_from_multiple_batches"/>
                             </div>
                             <div class="o_setting_right_pane">
-                                <label for="allocate_quantity_from_multiple_batches" string="Allocate quantity from multiple batches"/>
+                                <label for="allocate_quantity_from_multiple_batches" string="allocate quantity from multiple batches"/>
                                 <div class="text-muted">
                                     Quotation should select product from multiple batches if the nearest expiry batch does not have sufficient quantity when order syncs from Bahmni.
                                 </div>
