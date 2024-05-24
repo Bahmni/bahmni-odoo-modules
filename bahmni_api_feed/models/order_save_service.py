@@ -349,26 +349,22 @@ class OrderSaveService(models.Model):
         context['search_in_child'] = True
         shop_location_id = sale_order.shop_id.location_id.id if sale_order.shop_id.location_id.id else self.order_id.shop_id.location_id.id
         stock_quant_lot = self.env['stock.quant'].search([
-            ('product_id','=', product_id.id if type(product_id) != list else product_id[0]),
+            ('product_id', '=', product_id.id if type(product_id) != list else product_id[0]),
             ('location_id', '=', shop_location_id),
-            ('quantity', '>' , 0)
+            ('quantity', '>', 0)
         ])
         already_used_batch_ids = [line.lot_id.id for line in sale_order.order_line if line.lot_id]
-        available_batches = {}
-        total_quantity = 0
+        available_batches = []
         for prodlot in stock_quant_lot:
             if prodlot.lot_id.id not in already_used_batch_ids:
                 if prodlot.lot_id.expiration_date and prodlot.quantity > 0:
                     date_length = len(str(prodlot.lot_id.expiration_date))
                     formatted_ts = datetime.strptime(str(prodlot.lot_id.expiration_date), "%Y-%m-%d %H:%M:%S.%f").strftime("%Y-%m-%d %H:%M:%S") if date_length > 20 else datetime.strptime(str(prodlot.lot_id.expiration_date), "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
                     if formatted_ts and datetime.strptime(str(formatted_ts), DTF) > datetime.today():
-                        available_batches[prodlot.lot_id.id] = {'expiration_date': prodlot.lot_id.expiration_date, 'stock_forecast': prodlot.quantity}
-                        total_quantity += prodlot.quantity
+                        available_batches.append(prodlot)
                 elif prodlot.quantity > 0:
-                    available_batches[prodlot.lot_id.id] = {'expiration_date': False, 'stock_forecast': prodlot.quantity}
-                    total_quantity += prodlot.quantity
+                    available_batches.append(prodlot)
         return available_batches
-
 
     @api.model
     def _create_sale_order_line_function(self, sale_order, order):
@@ -378,8 +374,8 @@ class OrderSaveService(models.Model):
             prod_obj = self.env['product.product'].browse(prod_id)
             sale_order_line_obj = self.env['sale.order.line']
             # Get available batches
-            prod_lot = self.get_available_batch_details(prod_id, sale_order)
-            sorted_batches = sorted(prod_lot.items(), key=lambda x: x[1]['expiration_date'])
+            prod_lots = self.get_available_batch_details(prod_id, sale_order)
+            sorted_batches = sorted(prod_lots, key=lambda x: x.lot_id.expiration_date)
             actual_quantity = order['quantity']
             default_quantity_total = self.env['res.config.settings'].group_default_quantity
             _logger.info(f"default_quantity_total: {default_quantity_total}")
@@ -415,23 +411,23 @@ class OrderSaveService(models.Model):
                 else:
                     self._create_single_order_line(sale_order, prod_id, prod_obj, sorted_batches, actual_quantity, order_line_uom, description, order_line_dispensed, order)
 
-
     def _create_multiple_order_lines(self, sale_order, prod_id, prod_obj, sorted_batches, product_uom_qty, order_line_uom, description, order_line_dispensed, order):
         sale_order_line_obj = self.env['sale.order.line']
-        total_quantity_available = sum([lot['stock_forecast'] for _, lot in sorted_batches])
-        available_batches = [(lot_id, lot) for lot_id, lot in sorted_batches if lot['stock_forecast'] > 0]
+        # Calculate total_quantity_available from prodlot objects
+        total_quantity_available = sum([lot.quantity for lot in sorted_batches])
+        available_batches = [lot for lot in sorted_batches if lot.quantity > 0]  # List comprehension to filter available batches
 
         if not available_batches or total_quantity_available < product_uom_qty:
             _logger.info("Creating single order line")
             self._create_single_order_line(sale_order, prod_id, prod_obj, sorted_batches, product_uom_qty, order_line_uom, description, order_line_dispensed, order)
         else:
             _logger.info("Creating multiple order lines")
-            for lot_id, lot in available_batches:
+            for lot in available_batches:
                 if product_uom_qty <= 0:
                     break
-                qty_to_create = min(product_uom_qty, lot['stock_forecast'])
+                qty_to_create = min(product_uom_qty, lot.quantity)
                 product_uom_qty -= qty_to_create
-                self._create_order_line(sale_order_line_obj, sale_order, prod_id, prod_obj, lot_id, lot, qty_to_create, order_line_uom, description, order_line_dispensed, order)
+                self._create_order_line(sale_order_line_obj, sale_order, prod_id, prod_obj, lot, qty_to_create, order_line_uom, description, order_line_dispensed, order)
 
         _logger.info("Completed _create_multiple_order_lines")
 
@@ -440,12 +436,11 @@ class OrderSaveService(models.Model):
 
         nearest_batch = sorted_batches[0] if sorted_batches else None
         if nearest_batch:
-            lot_id, lot = nearest_batch
-            qty_to_create = min(actual_quantity, lot['stock_forecast'])
+            qty_to_create = min(actual_quantity, nearest_batch.quantity)
 
-            self._create_order_line(sale_order_line_obj, sale_order, prod_id, prod_obj, lot_id, lot, actual_quantity, order_line_uom, description, order_line_dispensed, order)
+            self._create_order_line(sale_order_line_obj, sale_order, prod_id, prod_obj, nearest_batch, actual_quantity, order_line_uom, description, order_line_dispensed, order)
 
-    def _create_order_line(self, sale_order_line_obj, sale_order, prod_id, prod_obj, lot_id, lot, qty_to_create, order_line_uom, description, order_line_dispensed, order):
+    def _create_order_line(self, sale_order_line_obj, sale_order, prod_id, prod_obj, lot, qty_to_create, order_line_uom, description, order_line_dispensed, order):
         sale_order_line = {
             'product_id': prod_id[0],
             'price_unit': prod_obj.list_price,
@@ -457,8 +452,8 @@ class OrderSaveService(models.Model):
             'name': description,
             'state': 'draft',
             'dispensed': order_line_dispensed,
-            'lot_id': lot_id,
-            'expiry_date': lot['expiration_date'],
+            'lot_id': lot.lot_id.id,
+            'expiry_date': lot.lot_id.expiration_date,
         }
 
         sale_line = sale_order_line_obj.create(sale_order_line)
@@ -477,10 +472,12 @@ class OrderSaveService(models.Model):
             price = self.env['account.tax']._fix_tax_included_price_company(sale_line._get_display_price(), prod_obj.taxes_id, sale_line.tax_id, sale_line.company_id)
             _logger.info(f"price: {price}")
 
+            # Check if lot has attribute sale_price before accessing it
             if lot and bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.sale_price_markup')) == True:
-                sale_line.price_unit = lot.sale_price if lot.sale_price > 0.0 else sale_line.price_unit
+                sale_line.price_unit = lot.sale_price if hasattr(lot, 'sale_price') and lot.sale_price > 0.0 else sale_line.price_unit
             else:
                 sale_line.price_unit = price if price > 0.0 else sale_line.price_unit
+
 
 
     def _fetch_parent(self, all_orders, child_order):
