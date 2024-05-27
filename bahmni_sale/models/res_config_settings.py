@@ -6,7 +6,7 @@ class ResConfigSettings(models.TransientModel):
     is_delivery_automated = fields.Boolean(string="Enable auto delivery on sale order confirm action", config_parameter="bahmni_sale.is_delivery_automated")
     sale_price_markup = fields.Boolean(string="Sale Price Markup Rule", config_parameter="bahmni_sale.sale_price_markup" )
     is_invoice_automated = fields.Boolean(string="Enable auto invoice on sale order confirm action", config_parameter="bahmni_sale.is_invoice_automated")
-    allocate_quantity_from_multiple_batches = fields.Boolean(string="allocate quantity from multiple batches", config_parameter="bahmni_sale.allocate_quantity_from_multiple_batches")
+    allocate_quantity_from_multiple_batches = fields.Boolean(string="Allocate quantity from multiple batches", config_parameter="bahmni_sale.allocate_quantity_from_multiple_batches")
 
     group_final_so_charge = fields.Boolean(string="Allow to enter final Sale Order charge",
                                            implied_group='bahmni_sale.group_allow_change_so_charge')
