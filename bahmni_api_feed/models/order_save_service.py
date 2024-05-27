@@ -415,14 +415,13 @@ class OrderSaveService(models.Model):
         sale_order_line_obj = self.env['sale.order.line']
         # Calculate total_quantity_available from prodlot objects
         total_quantity_available = sum([lot.quantity for lot in sorted_batches])
-        available_batches = [lot for lot in sorted_batches if lot.quantity > 0]  # List comprehension to filter available batches
 
-        if not available_batches or total_quantity_available < product_uom_qty:
+        if total_quantity_available < product_uom_qty:
             _logger.info("Creating single order line")
             self._create_single_order_line(sale_order, prod_id, prod_obj, sorted_batches, product_uom_qty, order_line_uom, description, order_line_dispensed, order)
         else:
             _logger.info("Creating multiple order lines")
-            for lot in available_batches:
+            for lot in sorted_batches:
                 if product_uom_qty <= 0:
                     break
                 qty_to_create = min(product_uom_qty, lot.quantity)
@@ -436,8 +435,6 @@ class OrderSaveService(models.Model):
 
         nearest_batch = sorted_batches[0] if sorted_batches else None
         if nearest_batch:
-            qty_to_create = min(actual_quantity, nearest_batch.quantity)
-
             self._create_order_line(sale_order_line_obj, sale_order, prod_id, prod_obj, nearest_batch, actual_quantity, order_line_uom, description, order_line_dispensed, order)
 
     def _create_order_line(self, sale_order_line_obj, sale_order, prod_id, prod_obj, lot, qty_to_create, order_line_uom, description, order_line_dispensed, order):
