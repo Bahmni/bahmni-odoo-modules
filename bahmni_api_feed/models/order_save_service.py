@@ -348,23 +348,41 @@ class OrderSaveService(models.Model):
         context['location_id'] = sale_order.location_id and sale_order.location_id.id or False
         context['search_in_child'] = True
         shop_location_id = sale_order.shop_id.location_id.id if sale_order.shop_id.location_id.id else self.order_id.shop_id.location_id.id
+        if isinstance(product_id, list):
+            product_id = product_id[0]
         stock_quant_lot = self.env['stock.quant'].search([
-            ('product_id', '=', product_id.id if type(product_id) != list else product_id[0]),
+            ('product_id', '=', product_id),
             ('location_id', '=', shop_location_id),
             ('quantity', '>', 0)
         ])
         already_used_batch_ids = [line.lot_id.id for line in sale_order.order_line if line.lot_id]
         available_batches = []
+        # Track the allocated quantities for batches within the same encounter
+        allocated_quantities = {prodlot.lot_id.id: prodlot.quantity for prodlot in stock_quant_lot}
+        # Deduct quantities already allocated in the same encounter
+        for line in sale_order.order_line:
+            if line.lot_id:
+                allocated_quantities[line.lot_id.id] -= line.product_uom_qty
         for prodlot in stock_quant_lot:
-            if prodlot.lot_id.id not in already_used_batch_ids:
-                if prodlot.lot_id.expiration_date and prodlot.quantity > 0:
+            _logger.info("Checking batch %s with quantity %s and expiration date %s", prodlot.lot_id.name, allocated_quantities[prodlot.lot_id.id], prodlot.lot_id.expiration_date)
+            if allocated_quantities[prodlot.lot_id.id] > 0:
+                if prodlot.lot_id.expiration_date:
                     date_length = len(str(prodlot.lot_id.expiration_date))
                     formatted_ts = datetime.strptime(str(prodlot.lot_id.expiration_date), "%Y-%m-%d %H:%M:%S.%f").strftime("%Y-%m-%d %H:%M:%S") if date_length > 20 else datetime.strptime(str(prodlot.lot_id.expiration_date), "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
-                    if formatted_ts and datetime.strptime(str(formatted_ts), DTF) > datetime.today():
+                    if formatted_ts and datetime.strptime(str(formatted_ts), "%Y-%m-%d %H:%M:%S") > datetime.today():
+                        _logger.info("Adding batch %s to available_batches", prodlot.lot_id.name)
                         available_batches.append(prodlot)
-                elif prodlot.quantity > 0:
+                else:
+                    _logger.info("Adding batch %s to available_batches", prodlot.lot_id.name)
                     available_batches.append(prodlot)
+
+        _logger.info("Available Batches: %s", available_batches)
+
+        if not available_batches:
+            _logger.warning("No batch/lot available for product ID: %s", product_id)
+
         return available_batches
+
 
     @api.model
     def _create_sale_order_line_function(self, sale_order, order):
@@ -390,7 +408,7 @@ class OrderSaveService(models.Model):
             allocate_quantity_from_multiple_batches = self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.allocate_quantity_from_multiple_batches')
 
             # Handling case when no batch/lot is available for the product
-            if not sorted_batches:
+            if not sorted_batches or product_uom_qty == 0:
                 _logger.warning("No batch/lot available for product ID: %s", prod_id)
                 sale_line_vals = {
                     'product_id': prod_id[0],
