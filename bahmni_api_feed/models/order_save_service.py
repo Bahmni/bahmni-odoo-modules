@@ -489,7 +489,7 @@ class OrderSaveService(models.Model):
 
             # Check if lot has attribute sale_price before accessing it
             if lot and bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.sale_price_markup')) == True:
-                sale_line.price_unit = lot.sale_price if hasattr(lot, 'sale_price') and lot.sale_price > 0.0 else sale_line.price_unit
+                sale_line.price_unit = lot.lot_id.sale_price if hasattr(lot.lot_id, 'sale_price') and lot.lot_id.sale_price > 0.0 else sale_line.price_unit
             else:
                 sale_line.price_unit = price if price > 0.0 else sale_line.price_unit
 
