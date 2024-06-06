@@ -361,7 +361,7 @@ class OrderSaveService(models.Model):
         allocated_quantities = {prodlot.lot_id.id: prodlot.quantity for prodlot in stock_quant_lot}
         # Deduct quantities already allocated in the same encounter
         for line in sale_order.order_line:
-            if line.lot_id:
+            if line.lot_id and line.lot_id.id in allocated_quantities:
                 allocated_quantities[line.lot_id.id] -= line.product_uom_qty
         for prodlot in stock_quant_lot:
             _logger.info("Checking batch %s with quantity %s and expiration date %s", prodlot.lot_id.name, allocated_quantities[prodlot.lot_id.id], prodlot.lot_id.expiration_date)
@@ -489,7 +489,7 @@ class OrderSaveService(models.Model):
 
             # Check if lot has attribute sale_price before accessing it
             if lot and bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.sale_price_markup')) == True:
-                sale_line.price_unit = lot.sale_price if hasattr(lot, 'sale_price') and lot.sale_price > 0.0 else sale_line.price_unit
+                sale_line.price_unit = lot.lot_id.sale_price if hasattr(lot.lot_id, 'sale_price') and lot.lot_id.sale_price > 0.0 else sale_line.price_unit
             else:
                 sale_line.price_unit = price if price > 0.0 else sale_line.price_unit
 
