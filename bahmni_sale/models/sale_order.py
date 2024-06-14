@@ -95,9 +95,8 @@ class SaleOrder(models.Model):
     def _total_receivable(self):
         receivable = 0.0
         if self.partner_id:
-            self._cr.execute("""select sum(amount_residual) from account_move where 
-                          amount_residual > 0 and partner_id = %s
-                          """, (self.partner_id.id,))
+            self._cr.execute("""select sum(amount_residual_signed) from account_move where 
+                           partner_id = %s""", (self.partner_id.id,))
             outstaning_value = self._cr.fetchall()
             if outstaning_value[0][0] != None:
                 receivable = outstaning_value[0][0]
