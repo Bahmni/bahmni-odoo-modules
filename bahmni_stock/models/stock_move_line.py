@@ -52,9 +52,10 @@ class StockMoveLine(models.Model):
         move_ids = self.env['stock.move'].search([('picking_id', '=', res.get('picking_id')),('product_id', '=', res.get('product_id'))],limit=1)
         associated_purchase_line = move_ids.purchase_line_id
         if associated_purchase_line:
-            res.update({'mrp': associated_purchase_line.product_uom._compute_price(associated_purchase_line.mrp, self.product_uom_id)})
+            product_default_uom=self.env['product.product'].search([('id', '=', res.get('product_id'))],limit=1).product_tmpl_id.uom_id
+            res.update({'mrp': associated_purchase_line.product_uom._compute_price(associated_purchase_line.mrp, product_default_uom)})
             total_cost_value = associated_purchase_line.price_unit + (associated_purchase_line.price_tax / associated_purchase_line.product_qty)
-            cost_value_per_unit = associated_purchase_line.product_uom._compute_price(total_cost_value, self.product_uom_id)
+            cost_value_per_unit = associated_purchase_line.product_uom._compute_price(total_cost_value, product_default_uom)
             if cost_value_per_unit > 0.00:
                 res.update({'cost_price': cost_value_per_unit,
                             'sale_price': self.env['price.markup.table'].calculate_price_with_markup(cost_value_per_unit)
