@@ -10,8 +10,8 @@
 				<field name="date_order"/>
 			</xpath>
 			
-			<xpath expr="//field[@name='partner_id']" position="after">
-				<field name="partner_id" domain="[('supplier_rank', '>', 0)]" invisible="1"/>
+			<xpath expr="//field[@name='partner_id']" position="attributes">
+				<attribute name="domain">[('supplier_rank', '&gt;', 0)]</attribute>
 			</xpath>
 			<xpath expr="//tree/field[@name='price_unit']" position="after">
 				<field name="mrp"/>

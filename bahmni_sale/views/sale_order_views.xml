@@ -12,8 +12,10 @@
 				<field name="provider_name" attrs="{'readonly': [('state', 'not in', ['draft', 'sent'])]}"/>
 			</xpath>
 			<xpath expr="//field[@name='partner_id']" position="after">
-				<field name="partner_id" domain="[('customer_rank', '>', 0)]" invisible="1"/>
 				<field name="partner_uuid" invisible="1"/>
+			</xpath>
+			<xpath expr="//field[@name='partner_id']" position="attributes">
+				<attribute name="domain">[('customer_rank', '&gt;', 0)]</attribute>
 			</xpath>
 			<xpath expr="//field[@name='payment_term_id']" position="after">
 				<field name="shop_id" attrs="{'readonly': [('state', 'not in', ['draft', 'sent'])]}"/>
