@@ -24,7 +24,7 @@
                 <field name="disc_acc_id"
                        attrs="{'readonly': [('state', '!=', 'draft')],'required': [('discount', '!=', 0.0)],'invisible': ['|', ('discount_type', '=', 'none'),('discount', '=', 0.0)]}"/>
 
-                <field name="round_off_amount" widget='monetary' attrs="{'readonly': [('state', '!=', 'draft')]}"
+                <field name="round_off_amount" widget='monetary' force_save = "1"  readonly="1"
                        options="{'currency_field': 'currency_id'}"/>
 
                 <div class="oe_subtotal_footer_separator oe_inline o_td_label">

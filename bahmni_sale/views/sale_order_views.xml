@@ -51,7 +51,7 @@
                             <field name="disc_acc_id"  force_save = "1"                                  
                                    attrs="{'required': [('discount', '!=', 0.0)],'invisible': [('discount_type', '=', 'none')],'readonly': [('state', 'not in', ['draft', 'sent'])]}"/>
                             
-                            <field name="round_off_amount" widget='monetary' attrs="{'readonly': [('state', 'not in', ['draft', 'sent'])]}"
+                            <field name="round_off_amount" widget='monetary' force_save = "1"  readonly="1"
                                    options="{'currency_field': 'currency_id'}"/>
                                    
                                                       
