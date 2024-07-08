@@ -8,9 +8,9 @@ from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWar
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
 
-    sale_price = fields.Float(string="Sale Price")
-    mrp = fields.Float(string="MRP")
-    cost_price = fields.Float(string="Cost Price")
+    sale_price = fields.Float(string="Sale Price", digits='Product Price')
+    mrp = fields.Float(string="MRP", digits='Product Price')
+    cost_price = fields.Float(string="Cost Price", digits='Product Price')
     balance = fields.Float(string="Balance")
     existing_lot_id = fields.Many2one(
         'stock.lot', 'Lot/Serial Number',
