@@ -88,9 +88,9 @@ class StockProductionLot(models.Model):
                         product_uom = self.env['product.uom'].browse(product_uom_id)
                         lot.stock_forecast = result[0].get('sum') * product_uom.factor
 
-    sale_price = fields.Float(string="Sale Price")
-    mrp = fields.Float(string="MRP")
-    cost_price = fields.Float(string="Cost Price")
+    sale_price = fields.Float(string="Sale Price", digits='Product Price')
+    mrp = fields.Float(string="MRP", digits='Product Price')
+    cost_price = fields.Float(string="Cost Price", digits='Product Price')
     stock_forecast = fields.Float(string="Available forecast",
                                      compute=_get_future_stock_forecast,store=True,
                                      digits=dp.get_precision('Product Unit of Measure'),
