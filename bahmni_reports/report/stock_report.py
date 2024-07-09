@@ -166,6 +166,7 @@ class StockReport(models.Model):
                           'internal_inward_qty': sum([int_in.qty_done for int_in in stock_move_line.search([('product_id', '=', drug.id),
                                ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
                                ('picking_id.location_dest_id', '=', rec.location_id.id),
+                               ('location_id.name','!=', 'Inventory adjustment'),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'),('move_id.state','=','done')])]), ##Internal Inward
                           'internal_inward_total': sum([int_in.qty_done * (int_in.lot_id.cost_price \
                                if drug.tracking == "lot" else\
@@ -173,11 +174,30 @@ class StockReport(models.Model):
                                ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
                                for int_in in stock_move_line.search([('product_id', '=', drug.id),
                                ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
+                               ('location_id.name','!=', 'Inventory adjustment'),
                                ('picking_id.location_dest_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'),('move_id.state','=','done')])]),
+                          ##Inventory Adjustment Stock
+                          'inventory_adj_qty': sum([int_in.qty_done for int_in in stock_move_line.search([('product_id', '=', drug.id),
+                               ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
+                               ('location_dest_id', '=', rec.location_id.id),
+                               ('location_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])]) - 
+                               sum([int_out.qty_done for int_out in stock_move_line.search([('product_id', '=', drug.id),
+                               ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
+                               ('location_id', '=', rec.location_id.id),
+                               ('location_dest_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])]),
+                          'inventory_adj_total': sum([int_in.qty_done * (int_in.lot_id.cost_price \
+                               if drug.tracking == "lot" else\
+                               sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
+                               ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
+                               for int_in in stock_move_line.search([('product_id', '=', drug.id),
+                               ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
+                               ('location_dest_id', '=', rec.location_id.id),
+                               ('location_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])]),
                           ## Internal Outward Stock
                           'internal_outward_qty': sum([int_out.qty_done for int_out in stock_move_line.search([('product_id', '=', drug.id),
                                ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
+                               ('location_dest_id.name','!=', 'Inventory adjustment'),
                                ('picking_id.location_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'),('move_id.state','=','done')])]), ##Internal outward
                           'internal_outward_total': sum([int_out.qty_done * (int_out.lot_id.cost_price \
@@ -265,6 +285,7 @@ class StockReport(models.Model):
 				  'internal_inward_qty': sum([int_in.qty_done for int_in in stock_move_line.search([\
                                        ('product_id', '=', rec.drug_ids.id),
 				       ('picking_id.location_dest_id', '=', rec.location_id.id),
+                                       ('location_id.name','!=', 'Inventory adjustment'),
 				       ('picking_id.picking_type_id.sequence_code','=', 'INT'),
                                        ('move_id.state','=','done')]) if int_in.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
                                        int_in.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]), ##Internal Inward
@@ -274,12 +295,41 @@ class StockReport(models.Model):
 				       ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
 				       for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
 				       ('picking_id.location_dest_id', '=', rec.location_id.id),
+                                       ('location_id.name','!=', 'Inventory adjustment'),
 				       ('picking_id.picking_type_id.sequence_code','=', 'INT'),
                                        ('move_id.state','=','done')]) if int_in.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
                                        int_in.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
+				  'inventory_adj_qty': sum([int_in.qty_done for int_in in stock_move_line.search([\
+                                       ('product_id', '=', rec.drug_ids.id),
+				       ('location_dest_id', '=', rec.location_id.id),
+				       ('location_id.name','=', 'Inventory adjustment'),
+                                       ('move_id.state','=','done')]) if int_in.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
+                                       int_in.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]) - 
+                                       sum([int_out.qty_done for int_out in stock_move_line.search([\
+                                       ('product_id', '=', rec.drug_ids.id),
+                                       ('location_id', '=', rec.location_id.id),
+                                       ('location_dest_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])
+                                       if int_out.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
+                                       int_out.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]), ##Inventory Adjustment
+				  'inventory_adj_total': sum([int_in.qty_done * (int_in.lot_id.cost_price \
+				       if rec.drug_ids.tracking == "lot" else\
+				       sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
+				       ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
+				       for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
+				       ('location_dest_id', '=', rec.location_id.id),
+				       ('location_id.name','=', 'Inventory adjustment'),
+                                       ('move_id.state','=','done')]) if int_in.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
+                                       int_in.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
+				  'inventory_adj_outward_qty': sum([int_out.qty_done for int_out in stock_move_line.search([\
+                                       ('product_id', '=', rec.drug_ids.id),
+				       ('location_id', '=', rec.location_id.id),
+				       ('location_dest_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')]) 
+                                       if int_out.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
+                                       int_out.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
 				  ## Internal Outward Stock
 				  'internal_outward_qty': sum([int_out.qty_done for int_out in stock_move_line.search([\
                                        ('product_id', '=', rec.drug_ids.id),
+                                       ('location_dest_id.name','!=', 'Inventory adjustment'),
 				       ('picking_id.location_id', '=', rec.location_id.id),
 				       ('picking_id.picking_type_id.sequence_code','=', 'INT'),('move_id.state','=','done')]) 
                                        if int_out.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
@@ -350,8 +400,11 @@ class StockReport(models.Model):
         issue_format = workbook.add_format({'font_size': 10, 'font_name': 'Calibri','border': 1, 'bg_color': '#FFE4B5'})
         issue_format.set_align('right')
         internal_inward_format_head = workbook.add_format({'font_size': 10, 'bold':True,'align':'center','font_name': 'Calibri','border': 1, 'bg_color': '#FFB6C1'})
+        inventory_adj_format_head = workbook.add_format({'font_size': 10, 'bold':True,'align':'center','font_name': 'Calibri','border': 1, 'bg_color': '#cef542'})
         internal_inward_format = workbook.add_format({'font_size': 10, 'font_name': 'Calibri','border': 1, 'bg_color': '#FFB6C1'})
         internal_inward_format.set_align('right')
+        inventory_adj_format = workbook.add_format({'font_size': 10, 'font_name': 'Calibri','border': 1, 'bg_color': '#cef542'})
+        inventory_adj_format.set_align('right')
         internal_outward_format_head = workbook.add_format({'font_size': 10, 'bold':True,'align':'center','font_name': 'Calibri','border': 1, 'bg_color': '#F0FFFF'})
         internal_outward_format = workbook.add_format({'font_size': 10, 'font_name': 'Calibri','border': 1, 'bg_color': '#F0FFFF'})
         internal_outward_format.set_align('right')
@@ -403,10 +456,12 @@ class StockReport(models.Model):
         sheet.merge_range(6, 7 + details, 6, 8 + details,
                           "Internal Inward", internal_inward_format_head)
         sheet.merge_range(6, 9 + details, 6, 10 + details,
-                          "Internal Outward", internal_outward_format_head)
+                          "Inventory Adjustment", inventory_adj_format_head)
         sheet.merge_range(6, 11 + details, 6, 12 + details,
-                          "Issue", issue_format_head)
+                          "Internal Outward", internal_outward_format_head)
         sheet.merge_range(6, 13 + details, 6, 14 + details,
+                          "Issue", issue_format_head)
+        sheet.merge_range(6, 15 + details, 6, 16 + details,
                           "Closing Stock", closing_stock_head)
         sheet.write(7, 0, "S.No", format2)
         sheet.set_column('A:A', 5)
@@ -441,6 +496,10 @@ class StockReport(models.Model):
         sheet.set_column('O:O' if data['report_type'] == 'details' else 'N:N', 7)
         sheet.write(7,15 if data['report_type'] == 'details' else 14, "Total Value", format2)
         sheet.set_column('P:P' if data['report_type'] == 'details' else 'O:O', 12)
+        sheet.write(7,16 if data['report_type'] == 'details' else 15, "Qty", format2)
+        sheet.set_column('Q:Q' if data['report_type'] == 'details' else 'P:P', 7)
+        sheet.write(7,17 if data['report_type'] == 'details' else 16, "Total Value", format2)
+        sheet.set_column('R:R' if data['report_type'] == 'details' else 'Q:Q', 12)
         row_num = 8
         s_no = 1
         grand_total = 0
@@ -459,24 +518,28 @@ class StockReport(models.Model):
                 sheet.write(row_num,7 if data['report_type'] == 'details' else 6,"{:.2f}".format(drug['purchase_total']), purchase_format)
                 sheet.write(row_num,8 if data['report_type'] == 'details' else 7,"{:.2f}".format(drug['internal_inward_qty']), internal_inward_format)
                 sheet.write(row_num,9 if data['report_type'] == 'details' else 8, "{:.2f}".format(drug['internal_inward_total']), internal_inward_format)
-                sheet.write(row_num,10 if data['report_type'] == 'details' else 9,"{:.2f}".format(drug['internal_outward_qty']), internal_outward_format)
-                sheet.write(row_num,11 if data['report_type'] == 'details' else 10,"{:.2f}".format(drug['internal_outward_total']), internal_outward_format)
-                sheet.write(row_num,12 if data['report_type'] == 'details' else 11,"{:.2f}".format(drug['issue_qty']), issue_format)
-                sheet.write(row_num,13 if data['report_type'] == 'details' else 12,"{:.2f}".format(drug['issue_total']), issue_format)
-                closing_stock_qty = (drug['open_stock_qty'] + drug['purchase_qty'] + drug['internal_inward_qty']) -\
-                               (drug['internal_outward_qty'] + drug['issue_qty'])
-                closing_stock_total = (drug['open_stock_total'] + drug['purchase_total'] + drug['internal_inward_total']) -\
+                sheet.write(row_num,10 if data['report_type'] == 'details' else 9,"{:.2f}".format(drug['inventory_adj_qty']), inventory_adj_format)
+                sheet.write(row_num,11 if data['report_type'] == 'details' else 10, "{:.2f}".format(drug['inventory_adj_total']), inventory_adj_format)
+                sheet.write(row_num,12 if data['report_type'] == 'details' else 11,"{:.2f}".format(drug['internal_outward_qty'] + drug['inventory_adj_outward_qty']), internal_outward_format)
+                sheet.write(row_num,13 if data['report_type'] == 'details' else 12,"{:.2f}".format(drug['internal_outward_total']), internal_outward_format)
+                sheet.write(row_num,14 if data['report_type'] == 'details' else 13,"{:.2f}".format(drug['issue_qty']), issue_format)
+                sheet.write(row_num,15 if data['report_type'] == 'details' else 14,"{:.2f}".format(drug['issue_total']), issue_format)
+                closing_stock_qty = (drug['open_stock_qty'] + drug['purchase_qty'] + \
+                                 drug['internal_inward_qty'] + drug['inventory_adj_qty']) -\
+                               (drug['internal_outward_qty'] + drug['issue_qty'] + drug['inventory_adj_outward_qty'])
+                closing_stock_total = (drug['open_stock_total'] + drug['purchase_total'] + \
+                               drug['internal_inward_total'] + drug['inventory_adj_total']) -\
                                (drug['internal_outward_total'] + drug['issue_total'])
                 grand_total += closing_stock_total
-                sheet.write(row_num,14 if data['report_type'] == 'details' else 13,"{:.2f}".format(closing_stock_qty), closing_stock_format)
-                sheet.write(row_num,15 if data['report_type'] == 'details' else 14,"{:.2f}".format(closing_stock_total), closing_stock_format)
+                sheet.write(row_num,16 if data['report_type'] == 'details' else 15,"{:.2f}".format(closing_stock_qty), closing_stock_format)
+                sheet.write(row_num,17 if data['report_type'] == 'details' else 16,"{:.2f}".format(closing_stock_total), closing_stock_format)
                 row_num += 1
                 s_no += 1
 
         if data['report_type'] != 'details':
-            sheet.merge_range(10 + s_no, 12 + details, 10 + s_no, 13 + details,
+            sheet.merge_range(10 + s_no, 14 + details, 10 + s_no, 15 + details,
                           "Grand Total", grand_total_format)
-            sheet.write(10+s_no,14,"{:.2f}".format(grand_total), grand_total_format_ans)
+            sheet.write(10+s_no,16,"{:.2f}".format(grand_total), grand_total_format_ans)
         workbook.close()
         output.seek(0)
         response.stream.write(output.read())
