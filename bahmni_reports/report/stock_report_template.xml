@@ -104,6 +104,7 @@
                                             <th colspan="2" >Opening Stock</th>
                                             <th colspan="2" >Purchase</th>
                                             <th colspan="2" >Internal Inward</th>
+                                            <th colspan="2" >Inventory Adjustment</th>
                                             <th colspan="2" >Internal Outward</th>
                                             <th colspan="2" >Issue</th>
                                             <th colspan="3" >Closing Stock</th>
@@ -116,6 +117,8 @@
                                             </t>
                                             <th>Product Name</th>
                                             <th>UOM</th>
+                                            <th>Qty</th>
+                                            <th>Total Value</th>
                                             <th>Qty</th>
                                             <th>Total Value</th>
                                             <th>Qty</th>
@@ -166,6 +169,12 @@
 						      <td style="text-align: right;width:8%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:8px;padding-right: 8px;">
 						      <t t-esc="'%.2f'%(item['internal_inward_total'])"/>
 						      </td>
+						      <td style="text-align: right;width:10%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:4px;padding-right: 4px;">
+						      <t t-esc="'%.2f'%(item['inventory_adj_qty'])"/>
+						      </td>
+						      <td style="text-align: right;width:8%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:8px;padding-right: 8px;">
+						      <t t-esc="'%.2f'%(item['inventory_adj_total'])"/>
+						      </td>
 						      <td style="text-align: right;width:5%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:4px;padding-right: 4px;">
 						      <t t-esc="'%.2f'%(item['internal_outward_qty'])"/>
 						      </td>
@@ -178,13 +187,13 @@
 						      <td style="text-align: right;width:8%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:8px;padding-right: 8px;">
 						          <t t-esc="'%.2f'%(item['issue_total'])"/>
 						      </td>
-                                                      <t t-set="inward_qty" t-value="item['open_stock_qty'] + item['purchase_qty'] + item['internal_inward_qty']"/>
+                                                      <t t-set="inward_qty" t-value="item['open_stock_qty'] + item['purchase_qty'] + item['internal_inward_qty'] + item['inventory_adj_qty']"/>
                                                       <t t-set="outward_qty" t-value="item['issue_qty'] + item['internal_outward_qty']"/>
                                                       <t t-set="closing_qty" t-value="inward_qty - outward_qty"/>
 						      <td style="text-align: right;width:5%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:4px;padding-right: 4px;">
 						      <t t-esc="'%.2f'%(closing_qty)"/>
 						      </td>
-                                                      <t t-set="inward_total" t-value="item['open_stock_total'] + item['purchase_total'] + item['internal_inward_total']"/>
+                                                      <t t-set="inward_total" t-value="item['open_stock_total'] + item['purchase_total'] + item['internal_inward_total'] + item['inventory_adj_total']"/>
                                                       <t t-set="outward_total" t-value="item['issue_total'] + item['internal_outward_total']"/>
                                                       <t t-set="closing_total" t-value="inward_total - outward_total"/>
 						      <td style="text-align: right;width:8%; height: 20px;padding-top:10px;padding-bottom:5px;padding-left:8px;padding-right: 8px;">
@@ -197,7 +206,7 @@
 						    </t>
                                          <tr style="border: none;">
 				            <t t-if="o.report_type != 'details'">
-                                               <th colspan="12" style="border: none; width:2%; height: 5px;"></th>
+                                               <th colspan="14" style="border: none; width:2%; height: 5px;"></th>
                                                <th colspan="2" style="width:5%; height: 5px;">Grand Total</th>
                                                <th colspan="1" style="width:5%; height: 5px;"><t t-esc="'%.2f'%(grand_total)"/></th>
 				            </t>
