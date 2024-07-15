@@ -320,12 +320,6 @@ class StockReport(models.Model):
 				       ('location_id.name','=', 'Inventory adjustment'),
                                        ('move_id.state','=','done')]) if int_in.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
                                        int_in.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
-				  'inventory_adj_outward_qty': sum([int_out.qty_done for int_out in stock_move_line.search([\
-                                       ('product_id', '=', rec.drug_ids.id),
-				       ('location_id', '=', rec.location_id.id),
-				       ('location_dest_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')]) 
-                                       if int_out.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
-                                       int_out.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
 				  ## Internal Outward Stock
 				  'internal_outward_qty': sum([int_out.qty_done for int_out in stock_move_line.search([\
                                        ('product_id', '=', rec.drug_ids.id),
@@ -520,13 +514,13 @@ class StockReport(models.Model):
                 sheet.write(row_num,9 if data['report_type'] == 'details' else 8, "{:.2f}".format(drug['internal_inward_total']), internal_inward_format)
                 sheet.write(row_num,10 if data['report_type'] == 'details' else 9,"{:.2f}".format(drug['inventory_adj_qty']), inventory_adj_format)
                 sheet.write(row_num,11 if data['report_type'] == 'details' else 10, "{:.2f}".format(drug['inventory_adj_total']), inventory_adj_format)
-                sheet.write(row_num,12 if data['report_type'] == 'details' else 11,"{:.2f}".format(drug['internal_outward_qty'] + drug['inventory_adj_outward_qty']), internal_outward_format)
+                sheet.write(row_num,12 if data['report_type'] == 'details' else 11,"{:.2f}".format(drug['internal_outward_qty']), internal_outward_format)
                 sheet.write(row_num,13 if data['report_type'] == 'details' else 12,"{:.2f}".format(drug['internal_outward_total']), internal_outward_format)
                 sheet.write(row_num,14 if data['report_type'] == 'details' else 13,"{:.2f}".format(drug['issue_qty']), issue_format)
                 sheet.write(row_num,15 if data['report_type'] == 'details' else 14,"{:.2f}".format(drug['issue_total']), issue_format)
                 closing_stock_qty = (drug['open_stock_qty'] + drug['purchase_qty'] + \
                                  drug['internal_inward_qty'] + drug['inventory_adj_qty']) -\
-                               (drug['internal_outward_qty'] + drug['issue_qty'] + drug['inventory_adj_outward_qty'])
+                               (drug['internal_outward_qty'] + drug['issue_qty'])
                 closing_stock_total = (drug['open_stock_total'] + drug['purchase_total'] + \
                                drug['internal_inward_total'] + drug['inventory_adj_total']) -\
                                (drug['internal_outward_total'] + drug['issue_total'])
