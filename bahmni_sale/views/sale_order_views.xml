@@ -12,8 +12,10 @@
 				<field name="provider_name" attrs="{'readonly': [('state', 'not in', ['draft', 'sent'])]}"/>
 			</xpath>
 			<xpath expr="//field[@name='partner_id']" position="after">
-				<field name="partner_id" domain="[('customer_rank', '>', 0)]" invisible="1"/>
 				<field name="partner_uuid" invisible="1"/>
+			</xpath>
+			<xpath expr="//field[@name='partner_id']" position="attributes">
+				<attribute name="domain">[('customer_rank', '&gt;', 0)]</attribute>
 			</xpath>
 			<xpath expr="//field[@name='payment_term_id']" position="after">
 				<field name="shop_id" attrs="{'readonly': [('state', 'not in', ['draft', 'sent'])]}"/>
@@ -21,9 +23,9 @@
 
 
 			<xpath expr="//tree" position="attributes">
-				<attribute name="decoration-danger">product_uom_qty&lt;=0</attribute>
-				<attribute name="decoration-bf">product_uom_qty&lt;=0</attribute>
-				<attribute name="decoration-it">product_uom_qty&lt;=0</attribute>
+				<attribute name="decoration-danger">product_uom_qty&lt;=0 and display_type!='line_section' and display_type!='line_note'</attribute>
+				<attribute name="decoration-bf">product_uom_qty&lt;=0 and display_type!='line_section' and display_type!='line_note'</attribute>
+				<attribute name="decoration-it">product_uom_qty&lt;=0 and display_type!='line_section' and display_type!='line_note'</attribute>
 			</xpath>
 
 			<xpath expr="//group[@name='note_group']" position="replace">
@@ -49,7 +51,7 @@
                             <field name="disc_acc_id"  force_save = "1"                                  
                                    attrs="{'required': [('discount', '!=', 0.0)],'invisible': [('discount_type', '=', 'none')],'readonly': [('state', 'not in', ['draft', 'sent'])]}"/>
                             
-                            <field name="round_off_amount" widget='monetary' attrs="{'readonly': [('state', 'not in', ['draft', 'sent'])]}"
+                            <field name="round_off_amount" widget='monetary' force_save = "1"  readonly="1"
                                    options="{'currency_field': 'currency_id'}"/>
                                    
                                                       
@@ -91,11 +93,11 @@
 	
 			
 			<xpath expr="//field[@name='order_line']/tree/field[@name='qty_delivered']" position="after">
-				<field name="lot_id" context = "{'parent_shop_id':parent.shop_id}" domain="['|',('expiration_date','&gt;', datetime.datetime.combine(context_today(), datetime.time(23,59,59))),('expiration_date','=',False),('product_qty','>' ,0),('product_id','=',product_id)]"/>
+				<field name="lot_id" context = "{'parent_shop_id':parent.shop_id}" options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,}" domain="['|',('expiration_date','&gt;', datetime.datetime.combine(context_today(), datetime.time(23,59,59))),('expiration_date','=',False),('product_qty','>' ,0),('product_id','=',product_id)]"/>
 				<field name="expiry_date" force_save="1" readonly="1"/>
 			</xpath>
 			<xpath expr="//field[@name='order_line']/form/group/group/field[@name='price_unit']" position="after">
-				<field name="lot_id" context = "{'parent_shop_id':parent.shop_id}" domain="['|',('expiration_date','&gt;', datetime.datetime.combine(context_today(), datetime.time(23,59,59))),('expiration_date','=',False),('product_qty','>' ,0),('product_id','=',product_id)]"/>
+				<field name="lot_id" context = "{'parent_shop_id':parent.shop_id}" options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,}" domain="['|',('expiration_date','&gt;', datetime.datetime.combine(context_today(), datetime.time(23,59,59))),('expiration_date','=',False),('product_qty','>' ,0),('product_id','=',product_id)]"/>
 				<field name="expiry_date" readonly="1"/>
 			</xpath>
 			<xpath expr="//field[@name='order_line']/tree/field[@name='product_template_id']" position="replace">

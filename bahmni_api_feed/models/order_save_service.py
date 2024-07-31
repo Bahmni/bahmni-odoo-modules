@@ -22,7 +22,7 @@ class OrderSaveService(models.Model):
         orders_string = vals.get("orders")
         order_group = orders_string
         return order_group.get('openERPOrders', None)
-    
+
     @api.model
     def _get_warehouse_id(self, location, order_type_ref):
         _logger.info("\n identifying warehouse for warehouse %s, location %s", order_type_ref, location)
@@ -49,8 +49,8 @@ class OrderSaveService(models.Model):
         else:
             _logger.warning("Location with name '%s' does not exists in the system")
 
-       
-    @api.model 
+
+    @api.model
     def _get_shop_and_location_id(self, orderType, location_name, order_type_record):
         _logger.info("Identifying shop and location for order type %s, location %s", orderType, location_name)
         OrderTypeShopMap = self.env['order.type.shop.map']
@@ -276,7 +276,7 @@ class OrderSaveService(models.Model):
 
         return sale_order_lines_unliked
 
-        
+
     @api.model
     def _process_orders(self, sale_order, all_orders, order):
         external_order_id = order['orderId']
@@ -296,25 +296,25 @@ class OrderSaveService(models.Model):
             self._update_sale_order_line(sale_order.id, order, parent_order_line)
         else:
             self._create_sale_order_line(sale_order.id, order)
-    
+
     @api.model
     def _delete_sale_order_line(self, parent_order_line):
         if(parent_order_line):
             if(parent_order_line[0] and parent_order_line[0].order_id.state == 'draft'):
                 for parent in parent_order_line:
                     parent.unlink()
-    
+
     @api.model
     def _update_sale_order_line(self, sale_order, order, parent_order_line):
         self._delete_sale_order_line(parent_order_line)
         self._create_sale_order_line(sale_order, order)
-    
+
     @api.model
     def _create_sale_order_line(self, sale_order, order):
         if self._order_already_processed(order['orderId'], order.get('dispensed', ORDER_DISPENSED_FALSE)):
             return
         self._create_sale_order_line_function(sale_order, order)
-        
+
     @api.model
     def _get_order_quantity(self, order, default_quantity_value, product_default_uom):
         if(not self.env['syncable.units.mapping'].search([('name', '=', order['quantityUnits'])])):
@@ -330,80 +330,171 @@ class OrderSaveService(models.Model):
 
     @api.model
     def _get_order_line_uom(self, order_line, product_default_uom):
-        
+
         uom_ids = self.env['syncable.units.mapping'].search([('name', '=', order_line['quantityUnits'])])
         if(uom_ids):
             uom_id = uom_ids.ids[0]
             uom_obj = self.env['syncable.units.mapping'].browse(uom_id)
             if uom_obj.unit_of_measure.id == product_default_uom.id:
                 return uom_obj.unit_of_measure.id
-        
+
         _logger.info("%s uom expected %s, but found %s"\
                 %(order_line['productName'],order_line['quantityUnits'],product_default_uom.name))
         return product_default_uom.id
+    @api.model
+    def get_available_batch_details(self, product_id, sale_order):
+        context = self._context.copy() or {}
+        sale_order = self.env['sale.order'].browse(sale_order)
+        context['location_id'] = sale_order.location_id and sale_order.location_id.id or False
+        context['search_in_child'] = True
+        shop_location_id = sale_order.shop_id.location_id.id if sale_order.shop_id.location_id.id else self.order_id.shop_id.location_id.id
+        if isinstance(product_id, list):
+            product_id = product_id[0]
+        stock_quant_lot = self.env['stock.quant'].search([
+            ('product_id', '=', product_id),
+            ('location_id', '=', shop_location_id),
+            ('quantity', '>', 0)
+        ])
+        already_used_batch_ids = [line.lot_id.id for line in sale_order.order_line if line.lot_id]
+        available_batches = []
+        # Track the allocated quantities for batches within the same encounter
+        allocated_quantities = {prodlot.lot_id.id: prodlot.quantity for prodlot in stock_quant_lot}
+        # Deduct quantities already allocated in the same encounter
+        for line in sale_order.order_line:
+            if line.lot_id and line.lot_id.id in allocated_quantities:
+                allocated_quantities[line.lot_id.id] -= line.product_uom_qty
+        for prodlot in stock_quant_lot:
+            _logger.info("Checking batch %s with quantity %s and expiration date %s", prodlot.lot_id.name, allocated_quantities[prodlot.lot_id.id], prodlot.lot_id.expiration_date)
+            if allocated_quantities[prodlot.lot_id.id] > 0:
+                if prodlot.lot_id.expiration_date:
+                    date_length = len(str(prodlot.lot_id.expiration_date))
+                    formatted_ts = datetime.strptime(str(prodlot.lot_id.expiration_date), "%Y-%m-%d %H:%M:%S.%f").strftime("%Y-%m-%d %H:%M:%S") if date_length > 20 else datetime.strptime(str(prodlot.lot_id.expiration_date), "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+                    if formatted_ts and datetime.strptime(str(formatted_ts), "%Y-%m-%d %H:%M:%S") > datetime.today():
+                        _logger.info("Adding batch %s to available_batches", prodlot.lot_id.name)
+                        available_batches.append(prodlot)
+                else:
+                    _logger.info("Adding batch %s to available_batches", prodlot.lot_id.name)
+                    available_batches.append(prodlot)
+
+        _logger.info("Available Batches: %s", available_batches)
+
+        if not available_batches:
+            _logger.warning("No batch/lot available for product ID: %s", product_id)
+
+        return available_batches
+
 
     @api.model
     def _create_sale_order_line_function(self, sale_order, order):
         stored_prod_ids = self._get_product_ids(order)
-        if(stored_prod_ids):
+        if stored_prod_ids:
             prod_id = stored_prod_ids
             prod_obj = self.env['product.product'].browse(prod_id)
             sale_order_line_obj = self.env['sale.order.line']
-            prod_lot = sale_order_line_obj.get_available_batch_details(prod_id, sale_order)
-
+            # Get available batches
+            prod_lots = self.get_available_batch_details(prod_id, sale_order)
+            sorted_batches = sorted(prod_lots, key=lambda x: x.lot_id.expiration_date)
             actual_quantity = order['quantity']
-
             default_quantity_total = self.env['res.config.settings'].group_default_quantity
+            _logger.info(f"default_quantity_total: {default_quantity_total}")
             _logger.info("DEFAULT QUANTITY TOTAL")
             _logger.info(default_quantity_total)
             default_quantity_value = 0
-
             order['quantity'] = self._get_order_quantity(order, default_quantity_value, prod_obj.uom_id)
             order_line_uom = self._get_order_line_uom(order, prod_obj.uom_id)
             product_uom_qty = order['quantity']
-            if(prod_lot != None and order['quantity'] > prod_lot.stock_forecast and prod_lot.stock_forecast > 0):
-                product_uom_qty = prod_lot.stock_forecast
             description = " ".join([prod_obj.name, "-", str(actual_quantity), str(order.get('quantityUnits', None))])
             order_line_dispensed = True if order.get('dispensed') == 'true' or (order.get('dispensed') and order.get('dispensed') != 'false') else False
-            sale_order_line = {
-                'product_id': prod_id[0],
-                'price_unit': prod_obj.list_price,
-                'product_uom_qty': product_uom_qty,
-                'product_uom': order_line_uom,
-                'order_id': sale_order,
-                'external_id': order['encounterId'],
-                'external_order_id': order['orderId'],
-                'name': description,
-                'state': 'draft',
-                'dispensed': order_line_dispensed,
-                'lot_id': prod_lot.id if prod_lot else False,
-                'expiry_date': prod_lot.expiration_date if prod_lot else False,
-            }
-            
-            
-            sale_obj = self.env['sale.order'].browse(sale_order)
-            sale_line = sale_order_line_obj.create(sale_order_line)
-            
-            sale_line._compute_tax_id()
-            if sale_obj.pricelist_id:
-                line_product = prod_obj.with_context(
-                    lang = sale_obj.partner_id.lang,
-                    partner = sale_obj.partner_id.id,
-                    quantity = sale_line.product_uom_qty,
-                    date = sale_obj.date_order,
-                    pricelist = sale_obj.pricelist_id.id,
-                    uom = prod_obj.uom_id.id
-                )
-                price = self.env['account.tax']._fix_tax_included_price_company(sale_line._get_display_price(), prod_obj.taxes_id, sale_line.tax_id, sale_line.company_id)
-                if prod_lot != None and bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.sale_price_markup')) == True:
-                    sale_line.price_unit = prod_lot.sale_price if prod_lot.sale_price > 0.0 else sale_line.price_unit
-                else:
-                    sale_line.price_unit = price if price > 0.0 else sale_line.price_unit
+            allocate_quantity_from_multiple_batches = self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.allocate_quantity_from_multiple_batches')
 
-            if product_uom_qty != order['quantity']:
-                order['quantity'] = order['quantity'] - product_uom_qty
-                self._create_sale_order_line_function(sale_order, order)
-    
+            # Handling case when no batch/lot is available for the product
+            if not sorted_batches or product_uom_qty == 0:
+                _logger.warning("No batch/lot available for product ID: %s", prod_id)
+                sale_line_vals = {
+                    'product_id': prod_id[0],
+                    'price_unit': prod_obj.list_price,
+                    'product_uom_qty': product_uom_qty,
+                    'product_uom': order_line_uom,
+                    'order_id': sale_order,
+                    'external_id': order['encounterId'],
+                    'external_order_id': order['orderId'],
+                    'name': description,
+                    'state': 'draft',
+                    'dispensed': order_line_dispensed,
+                }
+                sale_order_line_obj.create(sale_line_vals)
+            else:
+                if allocate_quantity_from_multiple_batches == 'True':
+                    self._create_multiple_order_lines(sale_order, prod_id, prod_obj, sorted_batches, product_uom_qty, order_line_uom, description, order_line_dispensed, order)
+                else:
+                    self._create_single_order_line(sale_order, prod_id, prod_obj, sorted_batches, actual_quantity, order_line_uom, description, order_line_dispensed, order)
+
+    def _create_multiple_order_lines(self, sale_order, prod_id, prod_obj, sorted_batches, product_uom_qty, order_line_uom, description, order_line_dispensed, order):
+        sale_order_line_obj = self.env['sale.order.line']
+        # Calculate total_quantity_available from prodlot objects
+        total_quantity_available = sum([lot.quantity for lot in sorted_batches])
+
+        if total_quantity_available < product_uom_qty:
+            _logger.info("Creating single order line")
+            self._create_single_order_line(sale_order, prod_id, prod_obj, sorted_batches, product_uom_qty, order_line_uom, description, order_line_dispensed, order)
+        else:
+            _logger.info("Creating multiple order lines")
+            for lot in sorted_batches:
+                if product_uom_qty <= 0:
+                    break
+                qty_to_create = min(product_uom_qty, lot.quantity)
+                product_uom_qty -= qty_to_create
+                self._create_order_line(sale_order_line_obj, sale_order, prod_id, prod_obj, lot, qty_to_create, order_line_uom, description, order_line_dispensed, order)
+
+        _logger.info("Completed _create_multiple_order_lines")
+
+    def _create_single_order_line(self, sale_order, prod_id, prod_obj, sorted_batches, actual_quantity, order_line_uom, description, order_line_dispensed, order):
+        sale_order_line_obj = self.env['sale.order.line']
+
+        nearest_batch = sorted_batches[0] if sorted_batches else None
+        if nearest_batch:
+            self._create_order_line(sale_order_line_obj, sale_order, prod_id, prod_obj, nearest_batch, actual_quantity, order_line_uom, description, order_line_dispensed, order)
+
+    def _create_order_line(self, sale_order_line_obj, sale_order, prod_id, prod_obj, lot, qty_to_create, order_line_uom, description, order_line_dispensed, order):
+        sale_order_line = {
+            'product_id': prod_id[0],
+            'price_unit': prod_obj.list_price,
+            'product_uom_qty': qty_to_create,
+            'product_uom': order_line_uom,
+            'order_id': sale_order,
+            'external_id': order['encounterId'],
+            'external_order_id': order['orderId'],
+            'name': description,
+            'state': 'draft',
+            'dispensed': order_line_dispensed,
+            'lot_id': lot.lot_id.id,
+            'expiry_date': lot.lot_id.expiration_date,
+        }
+
+        sale_line = sale_order_line_obj.create(sale_order_line)
+        sale_line._compute_tax_id()
+        sale_obj = self.env['sale.order'].browse(sale_order)
+        if sale_obj.pricelist_id:
+            line_product = prod_obj.with_context(
+                lang=sale_obj.partner_id.lang,
+                partner=sale_obj.partner_id.id,
+                quantity=sale_line.product_uom_qty,
+                date=sale_obj.date_order,
+                pricelist=sale_obj.pricelist_id.id,
+                uom=prod_obj.uom_id.id
+            )
+
+            price = self.env['account.tax']._fix_tax_included_price_company(sale_line._get_display_price(), prod_obj.taxes_id, sale_line.tax_id, sale_line.company_id)
+            _logger.info(f"price: {price}")
+
+            # Check if lot has attribute sale_price before accessing it
+            if lot and bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.sale_price_markup')) == True:
+                sale_line.price_unit = lot.lot_id.sale_price if hasattr(lot.lot_id, 'sale_price') and lot.lot_id.sale_price > 0.0 else sale_line.price_unit
+            else:
+                sale_line.price_unit = price if price > 0.0 else sale_line.price_unit
+
+
+
     def _fetch_parent(self, all_orders, child_order):
         for order in all_orders:
             if(order.get("orderId") == child_order.get("previousOrderId")):

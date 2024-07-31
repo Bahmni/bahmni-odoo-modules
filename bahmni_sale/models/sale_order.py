@@ -95,9 +95,8 @@ class SaleOrder(models.Model):
     def _total_receivable(self):
         receivable = 0.0
         if self.partner_id:
-            self._cr.execute("""select sum(amount_residual) from account_move where 
-                          amount_residual > 0 and partner_id = %s
-                          """, (self.partner_id.id,))
+            self._cr.execute("""select sum(amount_residual_signed) from account_move where 
+                           partner_id = %s""", (self.partner_id.id,))
             outstaning_value = self._cr.fetchall()
             if outstaning_value[0][0] != None:
                 receivable = outstaning_value[0][0]
@@ -382,6 +381,8 @@ class SaleOrder(models.Model):
     #So Once we Confirm the sale order it will create the invoice and ask for the register payment.
     def action_confirm(self):
         for line in self.order_line:
+           if line.display_type in ('line_section', 'line_note'):
+               continue
            if line.product_uom_qty <=0:
                raise UserError("Quantity for %s is %s. Please update the quantity or remove the product line."%(line.product_id.name,line.product_uom_qty))
            if line.product_id.tracking == 'lot' and not line.lot_id:

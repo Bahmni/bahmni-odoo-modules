@@ -47,11 +47,22 @@
 
                     </div>
 
-                 </div>
-               </div>
-           </xpath>
-       </field>
-   </record>
+                        <div class="col-12 col-lg-6 o_setting_box" id="variant_options">
+                            <div class="o_setting_left_pane">
+                                <field name="allocate_quantity_from_multiple_batches"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for="allocate_quantity_from_multiple_batches" string="Allocate quantity from multiple batches"/>
+                                <div class="text-muted">
+                                    Quotation should select product from multiple batches if the nearest expiry batch does not have sufficient quantity when order syncs from Bahmni.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
 
    <record id="res_config_settings_action"
        model="ir.actions.act_window">
