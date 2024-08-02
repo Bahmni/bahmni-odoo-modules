@@ -194,11 +194,11 @@ class StockReport(models.Model):
                                 ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
                                 ('location_dest_id', '=', rec.location_id.id),
                                 ('location_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])]) -
-                                sum([adj_in.qty_done * (adj_in.lot_id.cost_price \
+                                sum([adj_out.qty_done * (adj_out.lot_id.cost_price \
                                 if drug.tracking == "lot" else \
                                 sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([ \
                                 ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)]))
-                                for adj_in in stock_move_line.search([('product_id', '=', drug.id),
+                                for adj_out in stock_move_line.search([('product_id', '=', drug.id),
                                 ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
                                 ('location_id', '=', rec.location_id.id),
                                 ('location_dest_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])]),
@@ -319,20 +319,22 @@ class StockReport(models.Model):
                                        ('location_dest_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])
                                        if int_out.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
                                        int_out.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]), ##Inventory Adjustment
-				  'inventory_adj_total': sum([(sum([int_in.qty_done for int_in in stock_move_line.search([\
-                                       ('product_id', '=', rec.drug_ids.id),
-                                       ('location_dest_id', '=', rec.location_id.id),
-                                       ('location_id.name','=', 'Inventory adjustment'),
-                                       ('move_id.state','=','done')]) if int_in.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
-                                       int_in.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]) - int_in.qty_done) * (int_in.lot_id.cost_price \
-				       if rec.drug_ids.tracking == "lot" else\
-				       sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
-				       ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
-				       for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
-				       ('location_id', '=', rec.location_id.id),
-				       ('location_dest_id.name','=', 'Inventory adjustment'),
-                                       ('move_id.state','=','done')]) if int_in.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
-                                       int_in.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
+				  'inventory_adj_total': sum([adj_in.qty_done * (adj_in.lot_id.cost_price \
+                                        if rec.drug_ids.tracking == "lot" else \
+                                        sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([ \
+                                        ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)]))
+                                        for adj_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
+                                        ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
+                                        ('location_dest_id', '=', rec.location_id.id),
+                                        ('location_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])]) -
+                                        sum(adj_out.qty_done * (adj_out.lot_id.cost_price \
+                                        if rec.drug_ids.tracking == "lot" else \
+                                        sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([ \
+                                        ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)]))
+                                        for adj_out in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
+                                        ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
+                                        ('location_id', '=', rec.location_id.id),
+                                        ('location_dest_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])),
 				  ## Internal Outward Stock
 				  'internal_outward_qty': sum([int_out.qty_done for int_out in stock_move_line.search([\
                                        ('product_id', '=', rec.drug_ids.id),
