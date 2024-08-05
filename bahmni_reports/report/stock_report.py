@@ -513,7 +513,7 @@ class StockReport(models.Model):
         s_no = 1
         grand_total = 0
         for drug in data['drug']:
-            if drug['open_stock_qty'] or drug['purchase_qty'] or drug['issue_qty'] or drug['internal_inward_qty'] or drug['internal_outward_qty']:
+            if drug['open_stock_qty'] or drug['purchase_qty'] or drug['issue_qty'] or drug['internal_inward_qty'] or drug['internal_outward_qty'] or drug['inventory_adj_qty']:
                 sheet.write(row_num, 0, s_no, sno_format)
                 if data['report_type'] == 'details':
                    sheet.write(row_num, 1, drug['date'], basic_format)
