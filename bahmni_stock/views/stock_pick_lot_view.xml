@@ -25,6 +25,13 @@
 				<field name="sale_price" invisible="not context.get('show_lots_text')"/>
 				<field name="mrp" invisible="not context.get('show_lots_text')"/>
 			</xpath>
+			<xpath expr="//tree" position="inside">
+				<field name="is_move_line_lot_expiring_soon" invisible="1"/>
+			</xpath>
+			<xpath expr="//tree" position="attributes">
+				<attribute name="decoration-danger">False</attribute>
+				<attribute name="decoration-warning">is_move_line_lot_expiring_soon and state != 'done'</attribute>
+			</xpath>
 		</field>
 	</record>
 
@@ -41,6 +48,13 @@
 			</xpath>
 			<xpath expr="//tree/field[@name='location_dest_id'][2]" position="attributes">
 				<attribute name="attrs">{'column_invisible': [['parent.picking_type_code', 'in', ['incoming','internal']]]}</attribute>
+			</xpath>
+			<xpath expr="//tree" position="inside">
+				<field name="is_move_line_lot_expiring_soon" invisible="1"/>
+			</xpath>
+			<xpath expr="//tree" position="attributes">
+				<attribute name="decoration-danger">False</attribute>
+				<attribute name="decoration-warning">is_move_line_lot_expiring_soon and state != 'done'</attribute>
 			</xpath>
 		</field>
 	</record>
