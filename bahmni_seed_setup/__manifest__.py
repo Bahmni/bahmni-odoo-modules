@@ -1,6 +1,6 @@
 {
     'name': 'Bahmni Seed Setup',
-    'version': '1.0',
+    'version': '1.1.0',
     'summary': 'Custom csv data seed setup bahmni requirement',
     'sequence': 1,
     'description': """

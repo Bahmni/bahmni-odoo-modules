@@ -1,7 +1,7 @@
 
 {
     'name': 'Bahmni Stock',
-    'version': '1.0',
+    'version': '1.1.0',
     'summary': 'Custom stock module to meet bahmni requirement',
     'sequence': 1,
     'description': """

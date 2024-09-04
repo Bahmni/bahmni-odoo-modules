@@ -1,6 +1,6 @@
 {
     'name': 'Bahmni API Feed',
-    'version': '1.0',
+    'version': '1.1.0',
     'summary': 'Module to sync Bahmni with Odoo',
     'sequence': 1,
     'description': """

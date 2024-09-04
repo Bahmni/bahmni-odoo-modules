@@ -1,6 +1,6 @@
 {
     'name': 'Bahmni Address Mapping',
-    'version': '1.0',
+    'version': '1.1.0',
     'summary': 'Module to add additional fields to the address model',
     'sequence': 1,
     'description': """

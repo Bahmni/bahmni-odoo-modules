@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Bahmni Purchase',
-    'version': '1.0',
+    'version': '1.1.0',
     'summary': 'Custom purchase module to meet bahmni requirement',
     'sequence': 1,
     'description': """
