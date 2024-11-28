@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Form View -->
+        <record id="bahmni_customer_return_form" model="ir.ui.view">
+            <field name="name">bahmni.customer.return.form</field>
+            <field name="model">bahmni.customer.return</field>
+            <field name="arch" type="xml">
+                <form string="Customer Return">
+                    <header>
+						<button name="entry_confirm" type="object" string="Confirm" class="oe_highlight" attrs="{'invisible': [('status', 'not in', ['draft'])]}" confirm="Are you sure to proceed?"/>
+                    </header>
+                    
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" readonly="1"/>
+                                <field name="customer_id" required="1" attrs="{'readonly': [('status', 'not in', ['draft'])]}"/>
+                                <field name="product_ids"  widget="many2many_tags" required="1" attrs="{'readonly': [('status', 'not in', ['draft'])]}"/>
+                            </group>
+                            <group>
+                                <field name="entry_date" required="1" attrs="{'readonly': [('status', 'not in', ['draft'])]}"/>
+                                <field name="location_id" required="1" attrs="{'readonly': [('status', 'not in', ['draft'])]}"/>
+                                <field name="status" readonly="1" invisible="1" />
+                                <field name="currency_id" invisible="1" />
+                            </group>
+                        </group>
+                        
+                        <notebook>
+                            <page string="Product Details">
+                                <field name="line_ids" nolabel="1" attrs="{'readonly': [('status', 'not in', ['draft'])]}">
+                                    <tree string="Details" editable="bottom">
+                                        <field name="header_id" invisible="1" />
+                                        <field name="product_id" required="1" readonly = "1" force_save="1" options="{'no_create': True}" />
+                                        <field name="qty" required="1"/>
+                                        <field name="order_qty" required="1" readonly = "1" force_save="1"/>
+                                        <field name="uom_id" options="{'no_create': True}" readonly = "1" force_save="1"/>
+                                        <field name="lot_id" readonly = "1" force_save="1"/>
+                                        <field name="expiry_date" readonly = "1" force_save="1"/>
+                                        <field name="unit_price" readonly = "1" force_save="1"/>
+                                        <field name="sub_total" readonly = "1" force_save="1"/>
+                                        <field name="sale_date" readonly = "1" force_save="1"/>
+                                        <field name="sale_order_id" readonly = "1" force_save="1"/>
+                                        <field name="company_id" invisible="1" />
+                                        <field name="sale_order_line_id" readonly = "1" force_save="1" invisible="1" />
+                                    </tree>
+                                </field>
+                            </page>
+                            
+                            
+                        </notebook>
+                        
+                        <br></br>
+						<group class="oe_subtotal_footer oe_right">
+							<field name="tot_amt" widget='monetary' readonly = "1" force_save="1" string="Total Amount"
+										options="{'currency_field': 'currency_id'}"/>
+						</group>
+                        
+                        <group>
+                            <field name="remarks" placeholder="Write your remarks here." />
+                        </group>
+                        <div class="oe_chatter">
+                            <field name="message_ids" />
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Tree View -->
+        <record id="bahmni_customer_return_tree" model="ir.ui.view">
+            <field name="name">bahmni.customer.return.tree</field>
+            <field name="model">bahmni.customer.return</field>
+            <field name="priority" eval="1" />
+            <field name="arch" type="xml">
+                <tree string="Customer Return"
+                      decoration-info="status == 'draft'" 
+                      decoration-success="status == 'editable'"
+                      decoration-bf="status in ('active','draft')"
+                      decoration-primary="status == 'inactive'">
+                    <field name="name" />
+                    <field name="entry_date" />
+                    <field name="customer_id" />
+                    <field name="location_id" />
+                    <field name="currency_id" invisible="1" />
+                    <field name="tot_amt" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                    <field name="status" widget="badge" 
+                           decoration-info="status == 'draft'"
+                           decoration-bf="status == 'confirm'" />
+                    <field name="confirm_user_id" />
+                    <field name="crt_date" />
+                </tree>
+            </field>
+        </record>
+
+        <!-- Search View -->
+        <record id="bahmni_customer_return_search" model="ir.ui.view">
+            <field name="name">bahmni.customer.return.search</field>
+            <field name="model">bahmni.customer.return</field>
+            <field name="arch" type="xml">
+                <search string="Customer Return">
+                    <field name="name" string="Return No" filter_domain="[('name', 'ilike', self)]" />
+                    <field name="customer_id" string="Customer" filter_domain="[('customer_id', 'ilike', self)]" />
+                    <field name="location_id" string="Return Location" filter_domain="[('location_id', 'ilike', self)]" />
+                    <field name="line_ids" string="Products" filter_domain="[('line_ids.product_id','ilike',self)]"/>
+                    
+                    <filter name="my_entries" string="My Entries" domain="[('user_id', '=', uid)]" />
+                    <filter name="Draft" domain="[('status', '=', 'draft')]" />
+                    <filter name="Confirmed" domain="[('status', '=', 'confirm')]" />
+                    <filter name="My Draft" string="My Draft" domain="[('user_id', '=', uid), ('status', '=', 'draft')]" />
+                    <filter name="My Confirmed" string="My Confirmed" domain="[('user_id', '=', uid), ('status', '=', 'confirm')]" />
+                    <filter name="Hidden" domain="[('active', '=', False)]" />
+                    
+                    <group expand="0" string="Group By">
+                        <filter string="Customer" name="customer_id" domain="[]" context="{'group_by': 'customer_id'}" />
+                        <filter string="Return Location" name="location_id" domain="[]" context="{'group_by': 'location_id'}" />
+                        <filter string="Entry Date" name="entry_date" domain="[]" context="{'group_by': 'entry_date'}" />
+                        <filter string="Status" name="status" domain="[]" context="{'group_by': 'status'}" />
+                        <filter string="Confirmed By" name="confirm_user_id" domain="[]" context="{'group_by': 'confirm_user_id'}" />
+                        <filter string="Confirmed Date" name="confirm_date" domain="[]" context="{'group_by': 'confirm_date'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Window Action -->
+        <record id="bahmni_customer_return_win_action" model="ir.actions.act_window">
+            <field name="name">Customer Return</field>
+            <field name="res_model">bahmni.customer.return</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="bahmni_customer_return_tree" />
+            <field name="search_view_id" ref="bahmni_customer_return_search" />
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">No records found. Let's create one!</p>
+            </field>
+        </record>
+
+
+        <!-- Submenu -->
+        <menuitem name="Customer Return" id="bahmni_customer_return_act_menu" parent="sale.sale_order_menu" action="bahmni_customer_return_win_action" sequence="40" />
+    </data>
+</odoo>
