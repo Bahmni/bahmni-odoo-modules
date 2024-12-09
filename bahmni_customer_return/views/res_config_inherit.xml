@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_bahmni_customer_returns" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.bahmni.customer.returns</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="1"/>
+        <field name="inherit_id" ref="bahmni_sale.res_config_settings_view_form_i"/> <!-- Ensure this view exists -->
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='bahmni-custom-configs']" position="inside">
+                <div class="row mt16 o_settings_container" name="bahmni_customer_return_configurations">
+                    <h2 style="text-align: center;">Customer Return Configurations</h2>
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane">
+                            <field name="allowed_days" widget="integer"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="allowed_days"/>
+                            <div class="text-muted">
+                                System will accept the customer return which is sold below the mentioned days.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
