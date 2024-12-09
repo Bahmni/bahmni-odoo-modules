@@ -33,7 +33,7 @@ class BahmniCustomerReturn(models.Model):
 	currency_id = fields.Many2one('res.currency', string="Currency", copy=False, default=lambda self: self.env.company.currency_id.id, ondelete='restrict', readonly=True, tracking=True)
 	
 	tot_amt = fields.Float(string="Return Amount", store=True, compute='_compute_all_line')
-	product_ids = fields.Many2many('product.product','customer_returns_products','return_id','product_id','Products',domain=[('active', '=', True),('type','=','product')])
+	product_ids = fields.Many2many('product.product','customer_returns_products','return_id','product_id','Products',domain=[('active', '=', True)])
 	
 	
 	active = fields.Boolean(string="Visible", default=True)
@@ -144,9 +144,93 @@ class BahmniCustomerReturn(models.Model):
 		return self.display_warnings(warning_msg, kw)
 	
 	
+	@api.model
+	def auto_return_stock(self):
+		"""Automatically create a stock return picking."""
+		
+		picking_vals = {
+			'partner_id': self.customer_id.id,  # Customer
+			'picking_type_id': self.env['stock.picking.type'].search([('code', '=', 'incoming'),('sequence_code', '=', 'IN'),('barcode', '=', 'WH-RETURNS')], limit=1).id, 
+			'location_id': self.env['stock.location'].search([('usage', '=', 'customer')], limit=1).id, 
+			'location_dest_id': self.location_id.id,  
+			'move_type': 'direct',  
+			'scheduled_date': time.strftime(TIME_FORMAT),  
+			}
+		
+		return_picking = self.env['stock.picking'].create(picking_vals)
+		
+		for order in self.line_ids:			
+			
+			# Create a stock.move entry
+			move = self.env['stock.move'].create({
+				'name': order.product_id.name,
+				'product_id': order.product_id.id,
+				'product_uom_qty': order.qty,
+				'product_uom': order.sale_order_line_id.product_uom.id,
+				'picking_id': return_picking.id,
+				'location_id': return_picking.location_id.id,
+				'location_dest_id': return_picking.location_dest_id.id,
+			})			
+			
+			# Get the associated outgoing delivery picking
+			picking = order.sale_order_id.picking_ids.filtered(
+				lambda p: p.state == 'done' and p.picking_type_id.code == 'outgoing'
+			)
+			if not picking:
+				raise UserError("No completed delivery order found for this sale order.")
+
+			# Find the move line matching the given lot
+			if order.product_id.detailed_type =='product' and order.product_id.tracking == 'lot':
+				move_line = picking.move_line_ids.filtered(lambda ml: ml.lot_id.id == order.lot_id.id)
+				if not move_line:
+					raise UserError("The specified lot is not found in the delivery order.")
+				return_lot_id = order.lot_id.id
+			else:
+				return_lot_id = False
+			
+			# Create a stock.move.line entry
+			move_line = self.env['stock.move.line'].create({
+				'move_id': move.id,
+				'picking_id': return_picking.id,
+				'product_id': order.product_id.id,
+				'product_uom_id': order.sale_order_line_id.product_uom.id,
+				'qty_done': order.qty,
+				'location_id': return_picking.location_id.id,
+				'location_dest_id': return_picking.location_dest_id.id,
+				'lot_id': return_lot_id,
+			})
+
+		##validate picking		
+		return_picking.button_validate()
+		
+			
+
+			
+	
 	def entry_confirm(self):
 		if self.status in ('draft'):
 			self.validations()
+			
+			for record in self.line_ids:
+				### Return Entry Process Start here
+				# Search for existing return lines for the same sale order line
+				return_lines = self.env['bahmni.customer.return.line'].search([
+					('sale_order_line_id', '=', record.sale_order_line_id.id)])
+				
+				# Calculate the total return quantity for this sale order line
+				total_return_qty = sum(line.qty for line in return_lines)
+								
+				# Minus the current record's quantity to the total qty
+				already_done_return_qty = total_return_qty - record.qty
+				
+				# Validation: check if total return quantity exceeds the sale order quantity
+				if total_return_qty > record.sale_order_line_id.product_uom_qty:  
+					raise UserError(f"Sale Order Ref {record.sale_order_id.name} - Already Return quantity {already_done_return_qty} for the product {record.sale_order_line_id.product_id.name} "
+									f"cannot exceed the total order quantity ({record.sale_order_line_id.product_uom_qty}).")
+			self.auto_return_stock()
+				
+			### Return Entry Process End
+					
 			self.name = self.env['ir.sequence'].next_by_code('bahmni.customer.return.sequence') or 'New'
 			self.write({'status': 'confirm',
 						'confirm_user_id': self.env.user.id,
