@@ -201,11 +201,53 @@ class BahmniCustomerReturn(models.Model):
 			})
 
 		##validate picking		
-		return_picking.button_validate()
+		return_picking.with_context(validation_confirmed=True).button_validate()
 		
 			
-
+	@api.model
+	def create_partial_credit_note(self):	
+		
+		# Prepare line items for the credit note
+		line_items = []
+		cumulative_discount_value = 0.00
+		for line in self.line_ids:
+			invoice = line.sale_order_id.invoice_ids.filtered(lambda inv: inv.state == 'posted' and inv.move_type == 'out_invoice')	
+					
+			total_sale_value_with_tax = line.sale_order_id.amount_untaxed + line.sale_order_id.amount_tax
+			applied_discount_percentage = (line.sale_order_id.discount / total_sale_value_with_tax) * 100 
+			line_discount_value = (line.sub_total * applied_discount_percentage) / 100
+			cumulative_discount_value += line_discount_value
+						
+			if not invoice:
+				raise ValueError(_("No valid invoice found for the selected Sale Order."))
 			
+			line_items.append((0, 0, {
+				'product_id': line.sale_order_line_id.product_id.id,
+				'name': line.sale_order_line_id.product_id.display_name or 'Product',
+				'quantity': line.qty,
+				'price_unit': line.sale_order_line_id.price_unit,
+				'account_id': line.sale_order_line_id.product_id.categ_id.property_account_income_categ_id.id or self.env['ir.property']._get('property_account_income_categ_id', 'product.category').id,
+			}))
+		
+		line_items.append((0, 0, {
+			'product_id': self.env['product.product'].search([('default_code', '=', 'DISC')], limit=1).id,
+			'name': self.env['product.product'].search([('default_code', '=', 'DISC')], limit=1).display_name or 'Product',
+			'quantity': 1,
+			'price_unit': -abs(cumulative_discount_value),
+			'account_id': self.env['product.product'].search([('default_code', '=', 'DISC')], limit=1).categ_id.property_account_income_categ_id.id or self.env['ir.property']._get('property_account_income_categ_id', 'product.category').id,
+		}))
+		
+		# Create the credit note
+		credit_note = self.env['account.move'].create({
+			'move_type': 'out_refund',
+			'partner_id': self.customer_id.id,
+			'invoice_date': fields.Date.today(),
+			'ref': self.name,
+			'invoice_line_ids': line_items,
+		})
+
+		# Post the credit note
+		credit_note.action_post()			
 	
 	def entry_confirm(self):
 		if self.status in ('draft'):
@@ -230,7 +272,10 @@ class BahmniCustomerReturn(models.Model):
 			self.auto_return_stock()
 				
 			### Return Entry Process End
-					
+				
+			### Credit Note Entry Process Start here
+			self.create_partial_credit_note()		
+							
 			self.name = self.env['ir.sequence'].next_by_code('bahmni.customer.return.sequence') or 'New'
 			self.write({'status': 'confirm',
 						'confirm_user_id': self.env.user.id,
