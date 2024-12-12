@@ -32,7 +32,9 @@ class BahmniCustomerReturn(models.Model):
 	company_id = fields.Many2one('res.company', copy=False, default=lambda self: self.env.company, ondelete='restrict', readonly=True, required=True)
 	currency_id = fields.Many2one('res.currency', string="Currency", copy=False, default=lambda self: self.env.company.currency_id.id, ondelete='restrict', readonly=True, tracking=True)
 	
-	tot_amt = fields.Float(string="Return Amount", store=True, compute='_compute_all_line')
+	tot_amt = fields.Float(string="Total Amount", store=True, compute='_compute_all_line')
+	discount_value = fields.Float(string="Dicount Amount", store=True, compute='_compute_all_line')
+	return_amt = fields.Float(string="Return Amount", store=True, compute='_compute_all_line')
 	product_ids = fields.Many2many('product.product','customer_returns_products','return_id','product_id','Products',domain=[('active', '=', True)])
 	
 	
@@ -108,7 +110,16 @@ class BahmniCustomerReturn(models.Model):
 	@api.depends('line_ids')
 	def _compute_all_line(self):
 		for data in self:
-			data.tot_amt = sum(line.sub_total for line in data.line_ids)          
+			cumulative_discount_value = 0
+			for line in self.line_ids:			
+				total_sale_value_with_tax = line.sale_order_id.amount_untaxed + line.sale_order_id.amount_tax
+				applied_discount_percentage = (line.sale_order_id.discount / total_sale_value_with_tax) * 100 
+				line_discount_value = (line.sub_total * applied_discount_percentage) / 100
+				cumulative_discount_value += line_discount_value
+			
+			data.discount_value = cumulative_discount_value
+			data.tot_amt = sum(line.sub_total for line in data.line_ids)			
+			data.return_amt = (sum(line.sub_total for line in data.line_ids)  - cumulative_discount_value  ) 
 	
 	
 	def display_warnings(self, warning_msg, kw):
@@ -212,11 +223,6 @@ class BahmniCustomerReturn(models.Model):
 		cumulative_discount_value = 0.00
 		for line in self.line_ids:
 			invoice = line.sale_order_id.invoice_ids.filtered(lambda inv: inv.state == 'posted' and inv.move_type == 'out_invoice')	
-					
-			total_sale_value_with_tax = line.sale_order_id.amount_untaxed + line.sale_order_id.amount_tax
-			applied_discount_percentage = (line.sale_order_id.discount / total_sale_value_with_tax) * 100 
-			line_discount_value = (line.sub_total * applied_discount_percentage) / 100
-			cumulative_discount_value += line_discount_value
 						
 			if not invoice:
 				raise ValueError(_("No valid invoice found for the selected Sale Order."))
@@ -228,14 +234,14 @@ class BahmniCustomerReturn(models.Model):
 				'price_unit': line.sale_order_line_id.price_unit,
 				'account_id': line.sale_order_line_id.product_id.categ_id.property_account_income_categ_id.id or self.env['ir.property']._get('property_account_income_categ_id', 'product.category').id,
 			}))
-		
-		line_items.append((0, 0, {
-			'product_id': self.env['product.product'].search([('default_code', '=', 'DISC')], limit=1).id,
-			'name': self.env['product.product'].search([('default_code', '=', 'DISC')], limit=1).display_name or 'Product',
-			'quantity': 1,
-			'price_unit': -abs(cumulative_discount_value),
-			'account_id': self.env['product.product'].search([('default_code', '=', 'DISC')], limit=1).categ_id.property_account_income_categ_id.id or self.env['ir.property']._get('property_account_income_categ_id', 'product.category').id,
-		}))
+		if self.discount_value > 0:
+			line_items.append((0, 0, {
+				'product_id': self.env['product.product'].search([('default_code', '=', 'DISC')], limit=1).id,
+				'name': self.env['product.product'].search([('default_code', '=', 'DISC')], limit=1).display_name or 'Product',
+				'quantity': 1,
+				'price_unit': -abs(self.discount_value),
+				'account_id': self.env['product.product'].search([('default_code', '=', 'DISC')], limit=1).categ_id.property_account_income_categ_id.id or self.env['ir.property']._get('property_account_income_categ_id', 'product.category').id,
+			}))
 		
 		# Create the credit note
 		credit_note = self.env['account.move'].create({
