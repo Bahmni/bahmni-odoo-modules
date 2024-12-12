@@ -52,7 +52,11 @@
                         
                         <br></br>
 						<group class="oe_subtotal_footer oe_right">
-							<field name="tot_amt" widget='monetary' readonly = "1" force_save="1" string="Total Amount"
+							<field name="tot_amt" widget='monetary' readonly = "1" force_save="1" 
+										options="{'currency_field': 'currency_id'}"/>
+							<field name="discount_value" widget='monetary' readonly = "1" force_save="1" 
+										options="{'currency_field': 'currency_id'}"/>
+							<field name="return_amt" widget='monetary' readonly = "1" force_save="1" 
 										options="{'currency_field': 'currency_id'}"/>
 						</group>
                         
