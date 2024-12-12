@@ -24,7 +24,9 @@ class BahmniCustomerReturn(models.Model):
 	
 	name = fields.Char(string="Return No")
 	entry_date = fields.Datetime('Entry Date',default=fields.Datetime.now)
-	location_id = fields.Many2one('stock.location', 'Return Location',domain=[('active', '=', True),('usage', '=', 'internal')])
+	location_id = fields.Many2one('stock.location', 'Return Location',
+	default=lambda self: self.env['stock.picking.type'].search([('code', '=', 'incoming'),('sequence_code', '=', 'IN'),('barcode', '=', 'WH-RETURNS')], limit=1).default_location_dest_id.id,
+	domain=[('active', '=', True),('usage', '=', 'internal')])
 	customer_id = fields.Many2one('res.partner', 'Customer',domain=[('active', '=', True),('customer_rank', '>', 0)])
 	
 	status = fields.Selection(selection=CUSTOM_STATUS, string="Status", copy=False, default="draft", readonly=True, store=True, tracking=True)
