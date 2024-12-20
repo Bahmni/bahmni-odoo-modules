@@ -19,6 +19,7 @@ COPY bahmni_auto_payment_reconciliation ${ADDON_PATH}/bahmni_auto_payment_reconc
 COPY openerp7_data_import ${ADDON_PATH}/openerp7_data_import/
 COPY odoo10_data_import ${ADDON_PATH}/odoo10_data_import/
 COPY bahmni_reports ${ADDON_PATH}/bahmni_reports
+COPY bahmni_customer_return ${ADDON_PATH}/bahmni_customer_return
 COPY community_modules ${ADDON_PATH}/community_modules/
 COPY package/resources/data/address.seed.csv ${ADDON_PATH}/bahmni_initializer/data/
 COPY package/resources/data/uom_seed.xml ${ADDON_PATH}/bahmni_initializer/data/
