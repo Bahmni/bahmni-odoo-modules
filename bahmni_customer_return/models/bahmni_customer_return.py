@@ -72,6 +72,7 @@ class BahmniCustomerReturn(models.Model):
 			sale_order_lines = self.env['sale.order.line'].search([
 				('order_partner_id', '=', self.customer_id.id),
 				('product_id', 'in', new_product_ids),
+				('state', '=', 'sale'),
 				('order_id.date_order', '>=', date_threshold)
 			])
 
