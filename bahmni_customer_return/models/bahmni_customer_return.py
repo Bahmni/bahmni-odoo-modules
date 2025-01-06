@@ -25,7 +25,7 @@ class BahmniCustomerReturn(models.Model):
 	name = fields.Char(string="Return No")
 	entry_date = fields.Datetime('Entry Date',default=fields.Datetime.now)
 	location_id = fields.Many2one('stock.location', 'Return Location',
-	default=lambda self: self.env['stock.picking.type'].search([('code', '=', 'incoming'),('sequence_code', '=', 'IN'),('barcode', '=', 'WH-RETURNS')], limit=1).default_location_dest_id.id,
+	default=lambda self: self.env['stock.picking.type'].search([('code', '=', 'incoming'),('sequence_code', 'in', ('IN','RET')),('barcode', '=', 'WH-RETURNS')], limit=1).default_location_dest_id.id,
 	domain=[('active', '=', True),('usage', '=', 'internal')])
 	customer_id = fields.Many2one('res.partner', 'Customer',domain=[('active', '=', True),('customer_rank', '>', 0)])
 	
@@ -164,7 +164,7 @@ class BahmniCustomerReturn(models.Model):
 		
 		picking_vals = {
 			'partner_id': self.customer_id.id,  # Customer
-			'picking_type_id': self.env['stock.picking.type'].search([('code', '=', 'incoming'),('sequence_code', '=', 'IN'),('barcode', '=', 'WH-RETURNS')], limit=1).id, 
+			'picking_type_id': self.env['stock.picking.type'].search([('code', '=', 'incoming'),('sequence_code', 'in', ('IN','RET')),('barcode', '=', 'WH-RETURNS')], limit=1).id, 
 			'location_id': self.env['stock.location'].search([('usage', '=', 'customer')], limit=1).id, 
 			'location_dest_id': self.location_id.id,  
 			'move_type': 'direct',  
