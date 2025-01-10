@@ -12,8 +12,8 @@ class AccountPayment(models.Model):
     _inherit = "account.payment"
 
     is_auto_reconciliation_applicable = fields.Boolean(compute="_compute_is_auto_reconciliation_applicable")
-    current_outstanding = fields.Float(string="Current Outstanding")
-    balance_outstanding = fields.Float(string="Balance Outstanding")
+    current_outstanding = fields.Float(string="Current Outstanding", digits='Account')
+    balance_outstanding = fields.Float(string="Balance Outstanding", digits='Account')
 
     outstanding_invoice_lines = fields.One2many(
         "account.payment.outstanding.invoice.line",
@@ -47,6 +47,7 @@ class AccountPayment(models.Model):
             if self.partner_id:
                 self.current_outstanding = self.total_receivable()
                 self.balance_outstanding = self.total_receivable()
+                self.payment_type = 'outbound' if self.current_outstanding < 0 else 'inbound'
                 outstanding_invoices = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
                                                                         ("amount_residual", ">", 0.0),
                                                                         ("state", "=", "posted"),
@@ -133,37 +134,45 @@ class AccountPayment(models.Model):
         if self.amount < 0:
             raise ValidationError("Payment amount should not be in negative")
         if self.is_auto_reconciliation_applicable:
-            self.balance_outstanding = self.total_receivable() - self.amount
-            if self.balance_outstanding < 0 and self.amount > 0:
+            if self.amount > abs(self.current_outstanding):
                 raise ValidationError("Payment amount should not be greater than current outstanding amount")
-            paid_amt = self.amount + self.total_credit()
-            for line in self.outstanding_invoice_lines:
+            is_refund_payment = self.payment_type == 'outbound'
+            self.balance_outstanding = (
+                self.current_outstanding + self.amount if is_refund_payment
+                else self.current_outstanding - self.amount
+            )
+            amount_to_allocate = self.amount + (self.total_outstanding() if is_refund_payment else self.total_credit())
+
+            invoice_lines_to_allocate = (
+                self.credit_invoice_lines if is_refund_payment
+                else self.outstanding_invoice_lines
+            )
+            for line in invoice_lines_to_allocate:
                 line.remaining_amt = line.invoice_amt
                 line.allocated_amount = 0.00
                 line.selected = False
-                if line.remaining_amt >= paid_amt and paid_amt > 0:
-                    line.allocated_amount = paid_amt
-                    line.remaining_amt = line.remaining_amt - paid_amt
-                    line.selected = True
-                    paid_amt = 0
-                else:
-                    if line.remaining_amt < paid_amt:
-                        remaining_bal = 0
-                        paid_amt = paid_amt - line.remaining_amt
+
+                if amount_to_allocate > 0:
+                    if line.remaining_amt >= amount_to_allocate:
+                        line.allocated_amount = amount_to_allocate
+                        line.remaining_amt -= amount_to_allocate
+                        line.selected = True
+                        amount_to_allocate = 0
+                    else:
                         line.allocated_amount = line.remaining_amt
-                        line.remaining_amt = remaining_bal
+                        amount_to_allocate -= line.remaining_amt
+                        line.remaining_amt = 0
                         line.selected = True
 
     def action_post(self):
         if self.is_auto_reconciliation_applicable:
-            if self.balance_outstanding < 0 and self.amount > 0:
-                raise ValidationError("Payment amount should not be greater than current outstanding amount")
+            self.validations()
             res = super(AccountPayment, self).action_post()
             if len(self.credit_invoice_lines) > 0:
                 self.assign_credit_invoices_to_outstanding_invoices()
-            unprocessed_outstanding_invoices = self.get_unprocessed_outstanding_invoices()
-            if unprocessed_outstanding_invoices and self.amount > 0 and self.payment_type == 'inbound':
-                self.assign_payment_to_outstanding_invoices(unprocessed_outstanding_invoices)
+            if self.amount > 0:
+                open_invoices = self.get_unprocessed_outstanding_invoices() if self.payment_type == 'inbound' else self.get_unprocessed_credit_invoices()
+                self.assign_payment_to_open_invoices(open_invoices)
         else:
             res = super(AccountPayment, self).action_post()
         return res
@@ -224,20 +233,33 @@ class AccountPayment(models.Model):
     def get_unprocessed_outstanding_invoices(self):
         return self.outstanding_invoice_lines.filtered(lambda l: l.selected and l.invoice_id.amount_residual > 0)
 
-    def assign_payment_to_outstanding_invoices(self, outstanding_invoices):
+    def get_unprocessed_credit_invoices(self):
+        return self.credit_invoice_lines.filtered(lambda l: l.selected and l.invoice_id.amount_residual != 0)
+
+    def assign_payment_to_open_invoices(self, open_invoices):
         payment_line_entry = self.env["account.move.line"].search([("partner_id", "=", self.partner_id.id),
                                                                    ("payment_id", "=", self.id),
                                                                    ("company_id", "=", self.company_id.id),
-                                                                   ("amount_residual", "<", 0.0),
+                                                                   ("amount_residual", "<", 0.0)
+                                                                   if self.payment_type == 'inbound'
+                                                                   else ("amount_residual", ">", 0.0)
                                                                    ])
         associated_invoices = []
-        for outstanding_invoice in outstanding_invoices:
-            outstanding_invoice.invoice_id.js_assign_outstanding_line(payment_line_entry.id)
-            associated_invoices.append(outstanding_invoice.invoice_id.name)
+        for open_invoice in open_invoices:
+            open_invoice.invoice_id.js_assign_outstanding_line(payment_line_entry.id)
+            associated_invoices.append(open_invoice.invoice_id.name)
             if payment_line_entry.amount_residual == 0:
                 _logger.info("Payment %s assigned to : %s" % (self.name,
                                                               ', '.join(associated_invoices)))
                 break
+
+    def validations(self):
+        if self.amount > abs(self.current_outstanding):
+            raise ValidationError("Payment amount should not be greater than current outstanding amount")
+        if self.current_outstanding < 0 and self.payment_type == 'inbound':
+            raise ValidationError("Payment type should be Send for refund payments")
+        if self.current_outstanding > 0 and self.payment_type == 'outbound':
+            raise ValidationError("Payment type should be Receive for invoice payments")
 
     def unlink_credit_invoice_associations(self):
         allocated_credit_invoices = self.credit_invoice_lines.filtered(lambda l: l.selected)

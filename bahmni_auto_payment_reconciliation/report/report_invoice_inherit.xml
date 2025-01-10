@@ -213,7 +213,8 @@
                                     <tr>
                                         <td>
                                             <label for="paid_amt" class="answer">
-                                                <span>Paid Amount</span>
+                                                <span t-if="o.payment_type == 'inbound'">Paid Amount</span>
+                                                <span t-if="o.payment_type == 'outbound'">Refund Amount</span>
                                             </label>
                                         </td>
                                         <td>
@@ -415,7 +416,8 @@
                                     <tr>
                                         <td>
                                             <label for="paid_amt" class="answer">
-                                                <span>Paid Amount</span>
+                                                <span t-if="o.payment_type == 'inbound'">Paid Amount</span>
+                                                <span t-if="o.payment_type == 'outbound'">Refund Amount</span>
                                             </label>
                                         </td>
                                         <td>
