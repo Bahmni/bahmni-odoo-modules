@@ -234,7 +234,8 @@ class BahmniCustomerReturn(models.Model):
 				'product_id': line.sale_order_line_id.product_id.id,
 				'name': line.sale_order_line_id.product_id.display_name or 'Product',
 				'quantity': line.qty,
-				'price_unit': line.sale_order_line_id.price_reduce_taxinc,
+				'price_unit': line.sale_order_line_id.price_unit,
+				'tax_ids': [(6, 0, line.sale_order_line_id.tax_id.ids)],
 				'account_id': line.sale_order_line_id.product_id.categ_id.property_account_income_categ_id.id or self.env['ir.property']._get('property_account_income_categ_id', 'product.category').id,
 			}))
 		if self.discount_value > 0:
