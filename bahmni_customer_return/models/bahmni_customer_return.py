@@ -99,7 +99,7 @@ class BahmniCustomerReturn(models.Model):
 						'uom_id': line.product_uom.id,
 						'lot_id': line.lot_id.id if line.lot_id else False,
 						'expiry_date': line.expiry_date,
-						'unit_price': line.price_unit,
+						'unit_price': line.price_reduce_taxinc,
 						'sale_date': line.order_id.date_order,
 						'sale_order_ref': line.order_id.name,
 						'sale_order_id': line.order_id.id,
@@ -235,6 +235,7 @@ class BahmniCustomerReturn(models.Model):
 				'name': line.sale_order_line_id.product_id.display_name or 'Product',
 				'quantity': line.qty,
 				'price_unit': line.sale_order_line_id.price_unit,
+				'tax_ids': [(6, 0, line.sale_order_line_id.tax_id.ids)],
 				'account_id': line.sale_order_line_id.product_id.categ_id.property_account_income_categ_id.id or self.env['ir.property']._get('property_account_income_categ_id', 'product.category').id,
 			}))
 		if self.discount_value > 0:
