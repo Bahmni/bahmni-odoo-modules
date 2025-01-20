@@ -116,7 +116,10 @@ class BahmniCustomerReturn(models.Model):
 			cumulative_discount_value = 0
 			for line in self.line_ids:			
 				total_sale_value_with_tax = line.sale_order_id.amount_untaxed + line.sale_order_id.amount_tax
-				applied_discount_percentage = (line.sale_order_id.discount / total_sale_value_with_tax) * 100 
+				if total_sale_value_with_tax > 0:
+					applied_discount_percentage = (line.sale_order_id.discount / total_sale_value_with_tax) * 100 
+				else:
+					applied_discount_percentage = 0
 				line_discount_value = (line.sub_total * applied_discount_percentage) / 100
 				cumulative_discount_value += line_discount_value
 			
@@ -138,7 +141,7 @@ class BahmniCustomerReturn(models.Model):
 	def validate_detail_lines(self, detail_line, warning_msg):
 		if detail_line.qty <= 0:
 			warning_msg.append(f"({detail_line.product_id.name}) return quantity should be greater than zero")
-		if detail_line.unit_price <= 0:
+		if detail_line.unit_price < 0:
 			warning_msg.append(f"({detail_line.product_id.name}) unit price should be greater than zero")
 		if detail_line.qty > detail_line.order_qty:
 			warning_msg.append(f"({detail_line.description}) quantity cannot be greater than the ordered quantity")
@@ -161,61 +164,62 @@ class BahmniCustomerReturn(models.Model):
 	@api.model
 	def auto_return_stock(self):
 		"""Automatically create a stock return picking."""
+		non_service_products = list(filter(lambda order: order.product_id.detailed_type != 'service', self.line_ids))
+		if non_service_products:
 		
-		picking_vals = {
-			'partner_id': self.customer_id.id,  # Customer
-			'picking_type_id': self.env['stock.picking.type'].search([('code', '=', 'incoming'),('sequence_code', 'in', ('IN','RET')),('barcode', '=', 'WH-RETURNS')], limit=1).id, 
-			'location_id': self.env['stock.location'].search([('usage', '=', 'customer')], limit=1).id, 
-			'location_dest_id': self.location_id.id,  
-			'move_type': 'direct',  
-			'scheduled_date': time.strftime(TIME_FORMAT),  
-			}
-		
-		return_picking = self.env['stock.picking'].create(picking_vals)
-		
-		for order in self.line_ids:			
+			picking_vals = {
+				'partner_id': self.customer_id.id,  # Customer
+				'picking_type_id': self.env['stock.picking.type'].search([('code', '=', 'incoming'),('sequence_code', 'in', ('IN','RET')),('barcode', '=', 'WH-RETURNS')], limit=1).id, 
+				'location_id': self.env['stock.location'].search([('usage', '=', 'customer')], limit=1).id, 
+				'location_dest_id': self.location_id.id,  
+				'move_type': 'direct',  
+				'scheduled_date': time.strftime(TIME_FORMAT),  
+				}
 			
-			# Create a stock.move entry
-			move = self.env['stock.move'].create({
-				'name': order.product_id.name,
-				'product_id': order.product_id.id,
-				'product_uom_qty': order.qty,
-				'product_uom': order.sale_order_line_id.product_uom.id,
-				'picking_id': return_picking.id,
-				'location_id': return_picking.location_id.id,
-				'location_dest_id': return_picking.location_dest_id.id,
-			})			
+			return_picking = self.env['stock.picking'].create(picking_vals)
 			
-			# Get the associated outgoing delivery picking
-			picking = order.sale_order_id.picking_ids.filtered(
-				lambda p: p.state == 'done' and p.picking_type_id.code == 'outgoing'
-			)
-			if not picking:
-				raise UserError("No completed delivery order found for this sale order.")
+			for order in non_service_products:			
+				# Create a stock.move entry
+				move = self.env['stock.move'].create({
+					'name': order.product_id.name,
+					'product_id': order.product_id.id,
+					'product_uom_qty': order.qty,
+					'product_uom': order.sale_order_line_id.product_uom.id,
+					'picking_id': return_picking.id,
+					'location_id': return_picking.location_id.id,
+					'location_dest_id': return_picking.location_dest_id.id,
+				})			
+				
+				# Get the associated outgoing delivery picking				
+				picking = order.sale_order_id.picking_ids.filtered(
+					lambda p: p.state == 'done' and p.picking_type_id.code == 'outgoing'
+				)
+				if not picking:
+					raise UserError("No completed delivery order found for this sale order.")
 
-			# Find the move line matching the given lot
-			if order.product_id.detailed_type =='product' and order.product_id.tracking == 'lot':
-				move_line = picking.move_line_ids.filtered(lambda ml: ml.lot_id.id == order.lot_id.id)
-				if not move_line:
-					raise UserError("The specified lot is not found in the delivery order.")
-				return_lot_id = order.lot_id.id
-			else:
-				return_lot_id = False
-			
-			# Create a stock.move.line entry
-			move_line = self.env['stock.move.line'].create({
-				'move_id': move.id,
-				'picking_id': return_picking.id,
-				'product_id': order.product_id.id,
-				'product_uom_id': order.sale_order_line_id.product_uom.id,
-				'qty_done': order.qty,
-				'location_id': return_picking.location_id.id,
-				'location_dest_id': return_picking.location_dest_id.id,
-				'lot_id': return_lot_id,
-			})
+				# Find the move line matching the given lot
+				if order.product_id.detailed_type =='product' and order.product_id.tracking == 'lot':
+					move_line = picking.move_line_ids.filtered(lambda ml: ml.lot_id.id == order.lot_id.id)
+					if not move_line:
+						raise UserError("The specified lot is not found in the delivery order.")
+					return_lot_id = order.lot_id.id
+				else:
+					return_lot_id = False
+				
+				# Create a stock.move.line entry
+				move_line = self.env['stock.move.line'].create({
+					'move_id': move.id,
+					'picking_id': return_picking.id,
+					'product_id': order.product_id.id,
+					'product_uom_id': order.sale_order_line_id.product_uom.id,
+					'qty_done': order.qty,
+					'location_id': return_picking.location_id.id,
+					'location_dest_id': return_picking.location_dest_id.id,
+					'lot_id': return_lot_id,
+				})
 
-		##validate picking		
-		return_picking.with_context(validation_confirmed=True).button_validate()
+			##validate picking		
+			return_picking.with_context(validation_confirmed=True).button_validate()
 		
 			
 	@api.model
