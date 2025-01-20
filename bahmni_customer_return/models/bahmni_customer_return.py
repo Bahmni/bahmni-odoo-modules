@@ -116,7 +116,10 @@ class BahmniCustomerReturn(models.Model):
 			cumulative_discount_value = 0
 			for line in self.line_ids:			
 				total_sale_value_with_tax = line.sale_order_id.amount_untaxed + line.sale_order_id.amount_tax
-				applied_discount_percentage = (line.sale_order_id.discount / total_sale_value_with_tax) * 100 
+				if total_sale_value_with_tax > 0:
+					applied_discount_percentage = (line.sale_order_id.discount / total_sale_value_with_tax) * 100 
+				else:
+					applied_discount_percentage = 0
 				line_discount_value = (line.sub_total * applied_discount_percentage) / 100
 				cumulative_discount_value += line_discount_value
 			
@@ -138,7 +141,7 @@ class BahmniCustomerReturn(models.Model):
 	def validate_detail_lines(self, detail_line, warning_msg):
 		if detail_line.qty <= 0:
 			warning_msg.append(f"({detail_line.product_id.name}) return quantity should be greater than zero")
-		if detail_line.unit_price <= 0:
+		if detail_line.unit_price < 0:
 			warning_msg.append(f"({detail_line.product_id.name}) unit price should be greater than zero")
 		if detail_line.qty > detail_line.order_qty:
 			warning_msg.append(f"({detail_line.description}) quantity cannot be greater than the ordered quantity")
@@ -187,11 +190,12 @@ class BahmniCustomerReturn(models.Model):
 			})			
 			
 			# Get the associated outgoing delivery picking
-			picking = order.sale_order_id.picking_ids.filtered(
-				lambda p: p.state == 'done' and p.picking_type_id.code == 'outgoing'
-			)
-			if not picking:
-				raise UserError("No completed delivery order found for this sale order.")
+			if order.product_id.detailed_type != 'service':
+				picking = order.sale_order_id.picking_ids.filtered(
+					lambda p: p.state == 'done' and p.picking_type_id.code == 'outgoing'
+				)
+				if not picking:
+					raise UserError("No completed delivery order found for this sale order.")
 
 			# Find the move line matching the given lot
 			if order.product_id.detailed_type =='product' and order.product_id.tracking == 'lot':
