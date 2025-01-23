@@ -98,21 +98,37 @@ class StockReport(models.Model):
                 'drug_count': 'Limited' if rec.drug_ids else 'All',
                 'drug': [{'name': drug.name,
                           'uom': drug.product_tmpl_id.uom_id.name,
-                          ### Opening stock = (purchase order + Internal Inward) - (Issue + Internal Outward)
+                          ### Opening stock = (purchase order + Internal Inward + Customer Return + Inventory Adjustment) - (Issue + Internal Outward)
                           'open_stock_qty': (sum([po.qty_done for po in stock_move_line.search([('product_id', '=', drug.id),\
-                               ('date', '<',  rec.from_date),('picking_id.location_dest_id', '=', rec.location_id.id),
+                               ('date', '<',  rec.from_date),('location_dest_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'IN'), ##Purchase Order
+                               ('picking_id.picking_type_id.barcode', '=', 'WH-RECEIPTS'),
                                ('move_id.state','=','done')])]) + sum([int_in.qty_done for int_in in stock_move_line.search([\
                                ('product_id', '=', drug.id),('date', '<',  rec.from_date),
-                               ('picking_id.location_dest_id', '=', rec.location_id.id),
+                               ('location_dest_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'), ##Internal Inward
-                               ('move_id.state','=','done')])])) - (sum([int_out.qty_done for int_out in stock_move_line.search([\
+                               ('move_id.state','=','done')])]) +                               
+                               sum([po.qty_done for po in stock_move_line.search([('product_id', '=', drug.id),\
+                               ('date', '<',  rec.from_date),
+                               ('location_dest_id', '=', rec.location_id.id),
+                               ('picking_id.picking_type_id.sequence_code', 'in', ('IN','RET')), 
+                               ('picking_id.picking_type_id.barcode', '=', 'WH-RETURNS'), ##Customer Return
+                               ('move_id.state','=','done')])]) +                  
+                               (sum([int_in.qty_done for int_in in stock_move_line.search([('product_id', '=', drug.id),
+                               ('date', '<',  rec.from_date),
+                               ('location_dest_id', '=', rec.location_id.id), ##Inventory Adjustment
+                               ('location_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])]) - 
+                               sum([int_out.qty_done for int_out in stock_move_line.search([('product_id', '=', drug.id),
+                               ('date', '<',  rec.from_date),
+                               ('location_id', '=', rec.location_id.id),
+                               ('location_dest_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])]))      
+                               )-(sum([int_out.qty_done for int_out in stock_move_line.search([\
                                ('product_id', '=', drug.id),('date', '<',  rec.from_date),
-                               ('picking_id.location_id', '=', rec.location_id.id),
+                               ('location_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'), ##Internal Outward
                                ('move_id.state','=','done')])]) + sum([issue.qty_done for issue in stock_move_line.search([\
                                ('product_id', '=', drug.id),('date', '<',  rec.from_date),
-                               ('picking_id.location_id', '=', rec.location_id.id),('move_id.state','=','done'),
+                               ('location_id', '=', rec.location_id.id),('move_id.state','=','done'),
                                ('picking_id.picking_type_id.sequence_code','=', 'OUT')])])), ##Item Issue
                           ##If Lot True means move line qty_done * Lot cost_price else
                           #latest purchase order unit price * move line qty_done is the total value. 
@@ -121,37 +137,69 @@ class StockReport(models.Model):
                                ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
                                for po in stock_move_line.search([\
                                ('product_id', '=', drug.id),('date', '<',  rec.from_date),
-                               ('picking_id.location_dest_id', '=', rec.location_id.id),
+                               ('location_dest_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'IN'),
-                               ('move_id.state','=','done')])]) + sum([int_in.qty_done * (int_in.lot_id.cost_price \
+                               ('picking_id.picking_type_id.barcode', '=', 'WH-RECEIPTS'),
+                               ('move_id.state','=','done')])])                               
+                               + ## Internal Inward
+                               sum([int_in.qty_done * (int_in.lot_id.cost_price \
                                if drug.tracking == "lot" else\
                                sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
                                ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
                                for int_in in stock_move_line.search([\
                                ('product_id', '=', drug.id),('date', '<',  rec.from_date),
-                               ('picking_id.location_dest_id', '=', rec.location_id.id),
+                               ('location_dest_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'),
-                               ('move_id.state','=','done')])])) - (sum([int_out.qty_done * (int_out.cost_price\
+                               ('move_id.state','=','done')])])                                
+                               + ##Customer Return                               
+                               sum([cus_return.qty_done * (cus_return.lot_id.cost_price if drug.tracking == "lot" else\
+                               sum([cus_return.price_total / cus_return.product_qty for cus_return in self.env['purchase.order.line'].search([\
+                               ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
+                               for cus_return in stock_move_line.search([\
+                               ('product_id', '=', drug.id),('date', '<',  rec.from_date),
+                               ('location_dest_id', '=', rec.location_id.id),
+                               ('picking_id.picking_type_id.sequence_code', 'in', ('IN','RET')), 
+                               ('picking_id.picking_type_id.barcode', '=', 'WH-RETURNS'), ##Customer Return
+                               ('move_id.state','=','done')])])                                
+                               + ##Inventory adjustment                               
+                               ((sum([int_in.qty_done for int_in in stock_move_line.search([('product_id', '=', drug.id),
+                               ('date', '<',  rec.from_date),
+                               ('location_dest_id', '=', rec.location_id.id),
+                               ('location_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])]) - sum([ 
+								 int_in.qty_done for int_in in stock_move_line.search([('product_id', '=', drug.id),
+								('date', '<',  rec.from_date),
+								('location_id', '=', rec.location_id.id),('location_dest_id.name','=', 'Inventory adjustment'),\
+								('move_id.state','=','done')])])) * (sum([int_in.lot_id.cost_price \
+								for int_in in stock_move_line.search([('product_id', '=', drug.id),
+                               ('date', '<',  rec.from_date),
+                               ('move_id.state','=','done')], order='id desc', limit=1)]) if drug.tracking == "lot" else\
+                               sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
+                               ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) ) )                                
+                               - ## Internal outward                                
+                               (sum([int_out.qty_done * (int_out.cost_price\
                                if drug.tracking == "lot" else\
                                sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
                                ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
                                for int_out in stock_move_line.search([\
                                ('product_id', '=', drug.id),('date', '<',  rec.from_date),
-                               ('picking_id.location_id', '=', rec.location_id.id),
+                               ('location_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'),
-                               ('move_id.state','=','done')])]) + sum([issue.qty_done * (issue.cost_price\
+                               ('move_id.state','=','done')])]) 
+                               +  ## Issue
+                               sum([issue.qty_done * (issue.lot_id.cost_price\
                                if drug.tracking == "lot" else\
                                sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
                                ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
                                for issue in stock_move_line.search([\
                                ('product_id', '=', drug.id),('date', '<',  rec.from_date),
-                               ('picking_id.location_id', '=', rec.location_id.id),('move_id.state','=','done'),
+                               ('location_id', '=', rec.location_id.id),('move_id.state','=','done'),
                                ('picking_id.picking_type_id.sequence_code','=', 'OUT')])])),
                           ## Purchase Stock
                           'purchase_qty': sum([po.qty_done for po in stock_move_line.search([('product_id', '=', drug.id),\
                                ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
-                               ('picking_id.location_dest_id', '=', rec.location_id.id),
-                               ('picking_id.picking_type_id.sequence_code','=', 'IN'), ##Purchase Order
+                               ('location_dest_id', '=', rec.location_id.id),
+                               ('picking_id.picking_type_id.sequence_code','=', 'IN'), 
+                               ('picking_id.picking_type_id.barcode', '=', 'WH-RECEIPTS'), ##Purchase Order
                                ('move_id.state','=','done')])]),
                           'purchase_total': sum([po.qty_done * (po.lot_id.cost_price\
                                if drug.tracking == "lot" else\
@@ -159,13 +207,34 @@ class StockReport(models.Model):
                                ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
                                for po in stock_move_line.search([('product_id', '=', drug.id),\
                                ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
-                               ('picking_id.location_dest_id', '=', rec.location_id.id),
+                               ('location_dest_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'IN'),
+                               ('picking_id.picking_type_id.barcode', '=', 'WH-RECEIPTS'), ##Purchase Order
                                ('move_id.state','=','done')])]),
+                               
+                          ## Customer Return Stock
+                          'customer_return_qty': sum([po.qty_done for po in stock_move_line.search([('product_id', '=', drug.id),\
+                               ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
+                               ('location_dest_id', '=', rec.location_id.id),
+                               ('picking_id.picking_type_id.sequence_code', 'in', ('IN','RET')), 
+                               ('picking_id.picking_type_id.barcode', '=', 'WH-RETURNS'), ##Customer Return
+                               ('move_id.state','=','done')])]),
+                          'customer_return_total': sum([po.qty_done * (po.lot_id.cost_price\
+                               if drug.tracking == "lot" else\
+                               sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
+                               ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
+                               for po in stock_move_line.search([('product_id', '=', drug.id),\
+                               ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
+                               ('location_dest_id', '=', rec.location_id.id),
+                               ('picking_id.picking_type_id.sequence_code', 'in', ('IN','RET')),
+                               ('picking_id.picking_type_id.barcode', '=', 'WH-RETURNS'), ##Customer Return
+                               ('move_id.state','=','done')])]),
+                               
+                               
                           ## Internal Inward Stock
                           'internal_inward_qty': sum([int_in.qty_done for int_in in stock_move_line.search([('product_id', '=', drug.id),
                                ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
-                               ('picking_id.location_dest_id', '=', rec.location_id.id),
+                               ('location_dest_id', '=', rec.location_id.id),
                                ('location_id.name','!=', 'Inventory adjustment'),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'),('move_id.state','=','done')])]), ##Internal Inward
                           'internal_inward_total': sum([int_in.qty_done * (int_in.lot_id.cost_price \
@@ -175,7 +244,7 @@ class StockReport(models.Model):
                                for int_in in stock_move_line.search([('product_id', '=', drug.id),
                                ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
                                ('location_id.name','!=', 'Inventory adjustment'),
-                               ('picking_id.location_dest_id', '=', rec.location_id.id),
+                               ('location_dest_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'),('move_id.state','=','done')])]),
                           ##Inventory Adjustment Stock
                           'inventory_adj_qty': sum([int_in.qty_done for int_in in stock_move_line.search([('product_id', '=', drug.id),
@@ -206,7 +275,7 @@ class StockReport(models.Model):
                           'internal_outward_qty': sum([int_out.qty_done for int_out in stock_move_line.search([('product_id', '=', drug.id),
                                ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
                                ('location_dest_id.name','!=', 'Inventory adjustment'),
-                               ('picking_id.location_id', '=', rec.location_id.id),
+                               ('location_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'),('move_id.state','=','done')])]), ##Internal outward
                           'internal_outward_total': sum([int_out.qty_done * (int_out.lot_id.cost_price \
                                if drug.tracking == "lot" else\
@@ -214,12 +283,12 @@ class StockReport(models.Model):
                                ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
                                for int_out in stock_move_line.search([('product_id', '=', drug.id),
                                ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
-                               ('picking_id.location_id', '=', rec.location_id.id),
+                               ('location_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'),('move_id.state','=','done')])]),
                           ## Item Issue
                           'issue_qty': sum([issue.qty_done for issue in stock_move_line.search([('product_id', '=', drug.id),
                                ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
-                               ('picking_id.location_id', '=', rec.location_id.id),
+                               ('location_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'OUT'),('move_id.state','=','done')])]), ##Item Issue
                           'issue_total': sum([issue.qty_done * (issue.lot_id.cost_price \
                                if drug.tracking == "lot" else\
@@ -227,72 +296,146 @@ class StockReport(models.Model):
                                ('product_id', '=', drug.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
                                for issue in stock_move_line.search([('product_id', '=', drug.id),
                                ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
-                               ('picking_id.location_id', '=', rec.location_id.id),
+                               ('location_id', '=', rec.location_id.id),
                                ('picking_id.picking_type_id.sequence_code','=', 'OUT'),('move_id.state','=','done')])])}\
                            for drug in drug_list]\
                            if rec.report_type == 'summary'\
                            else [{'name': rec.drug_ids.name,
                                   'uom': rec.drug_ids.product_tmpl_id.uom_id.name,
 				  'open_stock_qty': (sum([po.qty_done for po in stock_move_line.search([('product_id', '=', rec.drug_ids.id),\
-				       ('picking_id.location_dest_id', '=', rec.location_id.id),
+				       ('location_dest_id', '=', rec.location_id.id),
 				       ('picking_id.picking_type_id.sequence_code','=', 'IN'), ##Purchase Order
+				       ('picking_id.picking_type_id.barcode', '=', 'WH-RECEIPTS'),
 				       ('move_id.state','=','done')]) if po.date < days]) + sum([int_in.qty_done\
                                        for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
-				       ('picking_id.location_dest_id', '=', rec.location_id.id),
+				       ('location_dest_id', '=', rec.location_id.id),
 				       ('picking_id.picking_type_id.sequence_code','=', 'INT'), ##Internal Inward
-				       ('move_id.state','=','done')]) if int_in.date < days])) - (sum([int_out.qty_done\
+				       ('move_id.state','=','done')]) if int_in.date < days]) +
+				       sum([po.qty_done for po in stock_move_line.search([('product_id', '=', rec.drug_ids.id),				   
+					   ('location_dest_id', '=', rec.location_id.id),
+					   ('picking_id.picking_type_id.sequence_code', 'in', ('IN','RET')), 
+					   ('picking_id.picking_type_id.barcode', '=', 'WH-RETURNS'), ##Customer Return
+					   ('move_id.state','=','done')]) if po.date < days]) +                  
+					   (sum([int_in.qty_done for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),					   
+					   ('location_dest_id', '=', rec.location_id.id), ##Inventory Adjustment
+					   ('location_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')]) if int_in.date < days]) - 
+					   sum([int_out.qty_done for int_out in stock_move_line.search([('product_id', '=', rec.drug_ids.id),					   
+					   ('location_id', '=', rec.location_id.id),
+					   ('location_dest_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')]) if int_in.date < days]))				       
+				       ) - (sum([int_out.qty_done\
                                        for int_out in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
-				       ('picking_id.location_id', '=', rec.location_id.id),
+				       ('location_id', '=', rec.location_id.id),
 				       ('picking_id.picking_type_id.sequence_code','=', 'INT'), ##Internal Outward
 				       ('move_id.state','=','done')]) if int_out.date < days]) + sum([issue.qty_done\
                                        for issue in stock_move_line.search([('product_id', '=', rec.drug_ids.id),\
-				       ('picking_id.location_id', '=', rec.location_id.id),('move_id.state','=','done'),
+				       ('location_id', '=', rec.location_id.id),('move_id.state','=','done'),
 				       ('picking_id.picking_type_id.sequence_code','=', 'OUT')]) if issue.date < days])), ##Issue
-				  'open_stock_total': (sum([po.qty_done * ( po.lot_id.cost_price \
-                                       if rec.drug_ids.tracking == "lot" else\
-                                       sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
-                                       ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
-                                       for po in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
-				       ('picking_id.location_dest_id', '=', rec.location_id.id),
+				  'open_stock_total': (sum([po.qty_done * ( po.lot_id.cost_price 	  
+					   if rec.drug_ids.tracking == "lot" else\
+					   sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
+					   ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
+					   for po in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
+					   ('location_dest_id', '=', rec.location_id.id),
+					   ('picking_id.picking_type_id.sequence_code','=', 'IN'),
+                       ('picking_id.picking_type_id.barcode', '=', 'WH-RECEIPTS'),
+					   ('move_id.state','=','done')]) if po.date < days])
+					   
+					    + ## Internal Inward
+					    
+					   sum([int_in.qty_done * (int_in.lot_id.cost_price\
+					   if rec.drug_ids.tracking == "lot" else\
+					   sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
+					   ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
+					   for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
+				       ('location_dest_id', '=', rec.location_id.id),
+				       ('picking_id.picking_type_id.sequence_code','=', 'INT'), ('move_id.state','=','done')])\
+					   if int_in.date < days]) 
+					   
+						+ ##Customer Return 
+					   
+					    sum([cus_return.qty_done * (cus_return.lot_id.cost_price if rec.drug_ids.tracking == "lot" else\
+					   sum([cus_return.price_total / cus_return.product_qty for cus_return in self.env['purchase.order.line'].search([\
+					   ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
+					   for cus_return in stock_move_line.search([\
+					   ('product_id', '=', rec.drug_ids.id),
+					   ('location_dest_id', '=', rec.location_id.id),
+					   ('picking_id.picking_type_id.sequence_code', 'in', ('IN','RET')), 
+					   ('picking_id.picking_type_id.barcode', '=', 'WH-RETURNS'), ##Customer Return
+					   ('move_id.state','=','done')]) if cus_return.date < days]) 
+					   
+					   + ##Inventory adjustment                               
+					   ((sum([int_in.qty_done for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),					   
+					   ('location_dest_id', '=', rec.location_id.id),
+					   ('location_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')]) if int_in.date < days]) - sum([ 
+						 int_in.qty_done for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),						
+						('location_id', '=', rec.location_id.id),('location_dest_id.name','=', 'Inventory adjustment'),\
+						('move_id.state','=','done')]) if int_in.date < days])) * (sum([int_in.lot_id.cost_price \
+						for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),					   
+					   ('move_id.state','=','done')], order='id desc', limit=1) if int_in.date < days]) if rec.drug_ids.tracking == "lot" else\
+					   sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
+					   ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1) if int_in.date < days])) ) )
+					   
+					   
+					   
+					    - ## Internal outward                                
+					   (sum([int_out.qty_done * (int_out.cost_price\
+					   if rec.drug_ids.tracking == "lot" else\
+					   sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
+					   ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
+					   for int_out in stock_move_line.search([\
+					   ('product_id', '=', rec.drug_ids.id),
+					   ('location_id', '=', rec.location_id.id),
+					   ('picking_id.picking_type_id.sequence_code','=', 'INT'),
+					   ('move_id.state','=','done')]) if int_out.date < days]) 
+					   +  ## Issue
+					   sum([issue.qty_done * (issue.lot_id.cost_price\
+					   if rec.drug_ids.tracking == "lot" else\
+					   sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
+					   ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
+					   for issue in stock_move_line.search([\
+					   ('product_id', '=', rec.drug_ids.id),
+					   ('location_id', '=', rec.location_id.id),('move_id.state','=','done'),
+					   ('picking_id.picking_type_id.sequence_code','=', 'OUT')]) if issue.date < days])),
+				       
+				       
+					   'purchase_qty': sum([po.qty_done for po in stock_move_line.search([('product_id', '=', rec.drug_ids.id),\
+				       ('location_dest_id', '=', rec.location_id.id),
 				       ('picking_id.picking_type_id.sequence_code','=', 'IN'),
-				       ('move_id.state','=','done')]) if po.date < days]) + sum([int_in.qty_done * (int_in.lot_id.cost_price\
-                                       if rec.drug_ids.tracking == "lot" else\
-                                       sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
-                                       ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
-                                       for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
-				       ('picking_id.location_dest_id', '=', rec.location_id.id),
-				       ('picking_id.picking_type_id.sequence_code','=', 'INT'), ('move_id.state','=','done')])\
-                                       if int_in.date < days])) - (sum([int_out.qty_done * (int_out.lot_id.cost_price\
-                                       if rec.drug_ids.tracking == "lot" else\
-                                       sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
-                                       ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
-                                       for int_out in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
-				       ('picking_id.location_id', '=', rec.location_id.id),
-				       ('picking_id.picking_type_id.sequence_code','=', 'INT'), ('move_id.state','=','done')])\
-                                       if int_out.date < days]) + sum([issue.qty_done * (issue.lot_id.cost_price
-                                       if rec.drug_ids.tracking == "lot" else\
-                                       sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
-                                       ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
-                                       for issue in stock_move_line.search([('product_id', '=', rec.drug_ids.id),\
-				       ('picking_id.location_id', '=', rec.location_id.id),('move_id.state','=','done'),
-				       ('picking_id.picking_type_id.sequence_code','=', 'OUT')]) if issue.date < days])),
-				  'purchase_qty': sum([po.qty_done for po in stock_move_line.search([('product_id', '=', rec.drug_ids.id),\
-				       ('picking_id.location_dest_id', '=', rec.location_id.id),
-				       ('picking_id.picking_type_id.sequence_code','=', 'IN'), ##Purchase Order
+				       ('picking_id.picking_type_id.barcode', '=', 'WH-RECEIPTS'), ##Purchase Order
 				       ('move_id.state','=','done')]) if po.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
-                                       po.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
-				  'purchase_total': sum([po.qty_done * (po.lot_id.cost_price\
+                       po.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
+					   'purchase_total': sum([po.qty_done * (po.lot_id.cost_price\
 				       if rec.drug_ids.tracking == "lot" else\
 				       sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
 				       ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
 				       for po in stock_move_line.search([('product_id', '=', rec.drug_ids.id),\
-				       ('picking_id.location_dest_id', '=', rec.location_id.id),
+				       ('location_dest_id', '=', rec.location_id.id),
 				       ('picking_id.picking_type_id.sequence_code','=', 'IN'),
+				       ('picking_id.picking_type_id.barcode', '=', 'WH-RECEIPTS'), ##Purchase Order
+				       ('move_id.state','=','done')]) if po.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
+                       po.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
+                                       
+                   ## Details Report type Customer Return
+                   'customer_return_qty': sum([po.qty_done for po in stock_move_line.search([('product_id', '=', rec.drug_ids.id),\
+				       ('location_dest_id', '=', rec.location_id.id),
+				       ('picking_id.picking_type_id.sequence_code', 'in', ('IN','RET')),
+				       ('picking_id.picking_type_id.barcode', '=', 'WH-RETURNS'), ##Customer Return
 				       ('move_id.state','=','done')]) if po.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
                                        po.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
+				  'customer_return_total': sum([po.qty_done * (po.lot_id.cost_price\
+				       if rec.drug_ids.tracking == "lot" else\
+				       sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
+				       ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
+				       for po in stock_move_line.search([('product_id', '=', rec.drug_ids.id),\
+				       ('location_dest_id', '=', rec.location_id.id),
+				       ('picking_id.picking_type_id.sequence_code', 'in', ('IN','RET')),
+				       ('picking_id.picking_type_id.barcode', '=', 'WH-RETURNS'), ##Customer Return
+				       ('move_id.state','=','done')]) if po.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
+                                       po.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),                    
+                                       
 				  'internal_inward_qty': sum([int_in.qty_done for int_in in stock_move_line.search([\
                                        ('product_id', '=', rec.drug_ids.id),
-				       ('picking_id.location_dest_id', '=', rec.location_id.id),
+				       ('location_dest_id', '=', rec.location_id.id),
                                        ('location_id.name','!=', 'Inventory adjustment'),
 				       ('picking_id.picking_type_id.sequence_code','=', 'INT'),
                                        ('move_id.state','=','done')]) if int_in.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
@@ -302,7 +445,7 @@ class StockReport(models.Model):
 				       sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
 				       ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
 				       for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
-				       ('picking_id.location_dest_id', '=', rec.location_id.id),
+				       ('location_dest_id', '=', rec.location_id.id),
                                        ('location_id.name','!=', 'Inventory adjustment'),
 				       ('picking_id.picking_type_id.sequence_code','=', 'INT'),
                                        ('move_id.state','=','done')]) if int_in.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
@@ -323,23 +466,25 @@ class StockReport(models.Model):
                                         if rec.drug_ids.tracking == "lot" else \
                                         sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([ \
                                         ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)]))
-                                        for adj_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
-                                        ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
+                                        for adj_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),                                        
                                         ('location_dest_id', '=', rec.location_id.id),
-                                        ('location_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])]) -
+                                        ('location_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')]) 
+                                        if adj_in.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
+										adj_in.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]) -
                                         sum(adj_out.qty_done * (adj_out.lot_id.cost_price \
                                         if rec.drug_ids.tracking == "lot" else \
                                         sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([ \
                                         ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)]))
-                                        for adj_out in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
-                                        ('date', '>=',  rec.from_date),('date', '<=',  rec.to_date),
+                                        for adj_out in stock_move_line.search([('product_id', '=', rec.drug_ids.id),                                        
                                         ('location_id', '=', rec.location_id.id),
-                                        ('location_dest_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])),
+                                        ('location_dest_id.name','=', 'Inventory adjustment'),('move_id.state','=','done')])
+                                        if adj_out.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
+										adj_out.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S') ),
 				  ## Internal Outward Stock
 				  'internal_outward_qty': sum([int_out.qty_done for int_out in stock_move_line.search([\
                                        ('product_id', '=', rec.drug_ids.id),
                                        ('location_dest_id.name','!=', 'Inventory adjustment'),
-				       ('picking_id.location_id', '=', rec.location_id.id),
+				       ('location_id', '=', rec.location_id.id),
 				       ('picking_id.picking_type_id.sequence_code','=', 'INT'),('move_id.state','=','done')]) 
                                        if int_out.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
                                        int_out.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
@@ -348,13 +493,13 @@ class StockReport(models.Model):
 				       sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
 				       ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
 				       for int_out in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
-				       ('picking_id.location_id', '=', rec.location_id.id),
+				       ('location_id', '=', rec.location_id.id),
 				       ('picking_id.picking_type_id.sequence_code','=', 'INT'),('move_id.state','=','done')])\
                                        if int_out.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
                                        int_out.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
 				  ## Item Issue
 				  'issue_qty': sum([issue.qty_done for issue in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
-				       ('picking_id.location_id', '=', rec.location_id.id),
+				       ('location_id', '=', rec.location_id.id),
 				       ('picking_id.picking_type_id.sequence_code','=', 'OUT'),('move_id.state','=','done')])\
                                        if issue.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
                                        issue.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]), ##Item Issue
@@ -363,7 +508,7 @@ class StockReport(models.Model):
 				       sum([po.price_total / po.product_qty for po in self.env['purchase.order.line'].search([\
 				       ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
 				       for issue in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
-				       ('picking_id.location_id', '=', rec.location_id.id),
+				       ('location_id', '=', rec.location_id.id),
 				       ('picking_id.picking_type_id.sequence_code','=', 'OUT'),('move_id.state','=','done')])\
                                        if issue.date.strftime('%d-%m-%Y') == days.strftime('%d-%m-%Y') and\
                                        issue.date.strftime('%H:%M:%S') > days.strftime('%H:%M:%S')]),
@@ -404,7 +549,10 @@ class StockReport(models.Model):
         opening_stock_format.set_align('right')
         purchase_format_head = workbook.add_format({'font_size': 10, 'bold':True,'align':'center','font_name': 'Calibri','border': 1, 'bg_color': '#98FB98'})
         purchase_format = workbook.add_format({'font_size': 10, 'font_name': 'Calibri','border': 1, 'bg_color': '#98FB98'})
-        purchase_format.set_align('right')
+        purchase_format.set_align('right')        
+        customer_return_format_head = workbook.add_format({'font_size': 10, 'bold':True,'align':'center','font_name': 'Calibri','border': 1, 'bg_color': '#d8bfd8'})
+        customer_return_format = workbook.add_format({'font_size': 10, 'font_name': 'Calibri','border': 1, 'bg_color': '#d8bfd8'})
+        customer_return_format.set_align('right')        
         issue_format_head = workbook.add_format({'font_size': 10, 'bold':True,'align':'center','font_name': 'Calibri','border': 1, 'bg_color': '#FFE4B5'})
         issue_format = workbook.add_format({'font_size': 10, 'font_name': 'Calibri','border': 1, 'bg_color': '#FFE4B5'})
         issue_format.set_align('right')
@@ -463,14 +611,16 @@ class StockReport(models.Model):
         sheet.merge_range(6, 5 + details, 6, 6 + details,
                           "Purchase", purchase_format_head)
         sheet.merge_range(6, 7 + details, 6, 8 + details,
-                          "Internal Inward", internal_inward_format_head)
+                          "Customer Return", customer_return_format_head)
         sheet.merge_range(6, 9 + details, 6, 10 + details,
-                          "Inventory Adjustment", inventory_adj_format_head)
+                          "Internal Inward", internal_inward_format_head)
         sheet.merge_range(6, 11 + details, 6, 12 + details,
-                          "Internal Outward", internal_outward_format_head)
+                          "Inventory Adjustment", inventory_adj_format_head)
         sheet.merge_range(6, 13 + details, 6, 14 + details,
-                          "Issue", issue_format_head)
+                          "Internal Outward", internal_outward_format_head)
         sheet.merge_range(6, 15 + details, 6, 16 + details,
+                          "Issue", issue_format_head)
+        sheet.merge_range(6, 17 + details, 6, 18 + details,
                           "Closing Stock", closing_stock_head)
         sheet.write(7, 0, "S.No", format2)
         sheet.set_column('A:A', 5)
@@ -509,11 +659,16 @@ class StockReport(models.Model):
         sheet.set_column('Q:Q' if data['report_type'] == 'details' else 'P:P', 7)
         sheet.write(7,17 if data['report_type'] == 'details' else 16, "Total Value", format2)
         sheet.set_column('R:R' if data['report_type'] == 'details' else 'Q:Q', 12)
+        sheet.write(7,18 if data['report_type'] == 'details' else 17, "Qty", format2)
+        sheet.set_column('S:S' if data['report_type'] == 'details' else 'R:R', 7)
+        sheet.write(7,19 if data['report_type'] == 'details' else 18, "Total Value", format2)
+        sheet.set_column('T:T' if data['report_type'] == 'details' else 'S:S', 12)
         row_num = 8
         s_no = 1
         grand_total = 0
         for drug in data['drug']:
-            if drug['open_stock_qty'] or drug['purchase_qty'] or drug['issue_qty'] or drug['internal_inward_qty'] or drug['internal_outward_qty'] or drug['inventory_adj_qty']:
+            if drug['open_stock_qty'] or drug['purchase_qty'] or drug['issue_qty'] or drug['internal_inward_qty']\
+			    or drug['internal_outward_qty'] or drug['inventory_adj_qty'] or drug['customer_return_qty']:
                 sheet.write(row_num, 0, s_no, sno_format)
                 if data['report_type'] == 'details':
                    sheet.write(row_num, 1, drug['date'], basic_format)
@@ -525,30 +680,34 @@ class StockReport(models.Model):
                 sheet.write(row_num,5 if data['report_type'] == 'details' else 4,"{:.2f}".format(drug['open_stock_total']), opening_stock_format)
                 sheet.write(row_num,6 if data['report_type'] == 'details' else 5, "{:.2f}".format(drug['purchase_qty']), purchase_format)
                 sheet.write(row_num,7 if data['report_type'] == 'details' else 6,"{:.2f}".format(drug['purchase_total']), purchase_format)
-                sheet.write(row_num,8 if data['report_type'] == 'details' else 7,"{:.2f}".format(drug['internal_inward_qty']), internal_inward_format)
-                sheet.write(row_num,9 if data['report_type'] == 'details' else 8, "{:.2f}".format(drug['internal_inward_total']), internal_inward_format)
-                sheet.write(row_num,10 if data['report_type'] == 'details' else 9,"{:.2f}".format(drug['inventory_adj_qty']), inventory_adj_format)
-                sheet.write(row_num,11 if data['report_type'] == 'details' else 10, "{:.2f}".format(drug['inventory_adj_total']), inventory_adj_format)
-                sheet.write(row_num,12 if data['report_type'] == 'details' else 11,"{:.2f}".format(drug['internal_outward_qty']), internal_outward_format)
-                sheet.write(row_num,13 if data['report_type'] == 'details' else 12,"{:.2f}".format(drug['internal_outward_total']), internal_outward_format)
-                sheet.write(row_num,14 if data['report_type'] == 'details' else 13,"{:.2f}".format(drug['issue_qty']), issue_format)
-                sheet.write(row_num,15 if data['report_type'] == 'details' else 14,"{:.2f}".format(drug['issue_total']), issue_format)
-                closing_stock_qty = (drug['open_stock_qty'] + drug['purchase_qty'] + \
+                
+                sheet.write(row_num,8 if data['report_type'] == 'details' else 7, "{:.2f}".format(drug['customer_return_qty']), customer_return_format)
+                sheet.write(row_num,9 if data['report_type'] == 'details' else 8,"{:.2f}".format(drug['customer_return_total']), customer_return_format)
+                
+                sheet.write(row_num,10 if data['report_type'] == 'details' else 9,"{:.2f}".format(drug['internal_inward_qty']), internal_inward_format)
+                sheet.write(row_num,11 if data['report_type'] == 'details' else 10, "{:.2f}".format(drug['internal_inward_total']), internal_inward_format)
+                sheet.write(row_num,12 if data['report_type'] == 'details' else 11,"{:.2f}".format(drug['inventory_adj_qty']), inventory_adj_format)
+                sheet.write(row_num,13 if data['report_type'] == 'details' else 12, "{:.2f}".format(drug['inventory_adj_total']), inventory_adj_format)
+                sheet.write(row_num,14 if data['report_type'] == 'details' else 13,"{:.2f}".format(drug['internal_outward_qty']), internal_outward_format)
+                sheet.write(row_num,15 if data['report_type'] == 'details' else 14,"{:.2f}".format(drug['internal_outward_total']), internal_outward_format)
+                sheet.write(row_num,16 if data['report_type'] == 'details' else 15,"{:.2f}".format(drug['issue_qty']), issue_format)
+                sheet.write(row_num,17 if data['report_type'] == 'details' else 16,"{:.2f}".format(drug['issue_total']), issue_format)
+                closing_stock_qty = (drug['open_stock_qty'] + drug['purchase_qty'] + drug['customer_return_qty'] + \
                                  drug['internal_inward_qty'] + drug['inventory_adj_qty']) -\
                                (drug['internal_outward_qty'] + drug['issue_qty'])
-                closing_stock_total = (drug['open_stock_total'] + drug['purchase_total'] + \
+                closing_stock_total = (drug['open_stock_total'] + drug['purchase_total'] + drug['customer_return_total'] + \
                                drug['internal_inward_total'] + drug['inventory_adj_total']) -\
                                (drug['internal_outward_total'] + drug['issue_total'])
                 grand_total += closing_stock_total
-                sheet.write(row_num,16 if data['report_type'] == 'details' else 15,"{:.2f}".format(closing_stock_qty), closing_stock_format)
-                sheet.write(row_num,17 if data['report_type'] == 'details' else 16,"{:.2f}".format(closing_stock_total), closing_stock_format)
+                sheet.write(row_num,18 if data['report_type'] == 'details' else 17,"{:.2f}".format(closing_stock_qty), closing_stock_format)
+                sheet.write(row_num,19 if data['report_type'] == 'details' else 18,"{:.2f}".format(closing_stock_total), closing_stock_format)
                 row_num += 1
                 s_no += 1
 
         if data['report_type'] != 'details':
-            sheet.merge_range(10 + s_no, 14 + details, 10 + s_no, 15 + details,
+            sheet.merge_range(10 + s_no, 16 + details, 10 + s_no, 17 + details,
                           "Grand Total", grand_total_format)
-            sheet.write(10+s_no,16,"{:.2f}".format(grand_total), grand_total_format_ans)
+            sheet.write(10+s_no,18,"{:.2f}".format(grand_total), grand_total_format_ans)
         workbook.close()
         output.seek(0)
         response.stream.write(output.read())
