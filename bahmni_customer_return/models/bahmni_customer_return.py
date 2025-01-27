@@ -37,6 +37,7 @@ class BahmniCustomerReturn(models.Model):
 	tot_amt = fields.Float(string="Total Amount", store=True, compute='_compute_all_line')
 	discount_value = fields.Float(string="Dicount Amount", store=True, compute='_compute_all_line')
 	return_amt = fields.Float(string="Return Amount", store=True, compute='_compute_all_line')
+	round_off_amount = fields.Float(string="Round Off Amount", store=True, compute='_compute_all_line')
 	product_ids = fields.Many2many('product.product','customer_returns_products','return_id','product_id','Products',domain=[('active', '=', True)])
 	
 	
@@ -124,8 +125,10 @@ class BahmniCustomerReturn(models.Model):
 				cumulative_discount_value += line_discount_value
 			
 			data.discount_value = cumulative_discount_value
-			data.tot_amt = sum(line.sub_total for line in data.line_ids)			
-			data.return_amt = (sum(line.sub_total for line in data.line_ids)  - cumulative_discount_value  ) 
+			total_return_amount_without_discount = sum(line.sub_total for line in data.line_ids)
+			data.tot_amt = total_return_amount_without_discount - cumulative_discount_value
+			data.round_off_amount = self.env['rounding.off'].round_off_value_to_nearest(data.tot_amt)
+			data.return_amt = data.tot_amt + data.round_off_amount 
 	
 	
 	def display_warnings(self, warning_msg, kw):
@@ -258,6 +261,7 @@ class BahmniCustomerReturn(models.Model):
 			'invoice_date': fields.Date.today(),
 			'ref': self.name,
 			'invoice_line_ids': line_items,
+			'round_off_amount': self.round_off_amount,
 		})
 
 		# Post the credit note
