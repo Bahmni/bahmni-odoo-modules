@@ -56,7 +56,9 @@
 										options="{'currency_field': 'currency_id'}"/>
 							<field name="discount_value" widget='monetary' readonly = "1" force_save="1" 
 										options="{'currency_field': 'currency_id'}"/>
-							<field name="return_amt" widget='monetary' readonly = "1" force_save="1" 
+							<field name="round_off_amount" widget='monetary' readonly = "1" force_save="1" 
+										options="{'currency_field': 'currency_id'}"/>
+                            <field name="return_amt" widget='monetary' readonly = "1" force_save="1" 
 										options="{'currency_field': 'currency_id'}"/>
 						</group>
                         
