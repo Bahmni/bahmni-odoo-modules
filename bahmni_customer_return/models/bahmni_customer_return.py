@@ -117,7 +117,7 @@ class BahmniCustomerReturn(models.Model):
 			for line in self.line_ids:			
 				total_sale_value_with_tax = line.sale_order_id.amount_untaxed + line.sale_order_id.amount_tax
 				if total_sale_value_with_tax > 0:
-					applied_discount_percentage = (line.sale_order_id.discount / total_sale_value_with_tax) * 100 
+					applied_discount_percentage = min((line.sale_order_id.discount / total_sale_value_with_tax) * 100, 100) 
 				else:
 					applied_discount_percentage = 0
 				line_discount_value = (line.sub_total * applied_discount_percentage) / 100
