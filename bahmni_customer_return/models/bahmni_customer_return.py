@@ -4,6 +4,7 @@ import time
 from datetime import timedelta, datetime
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+from odoo.tools.float_utils import float_round
 
 RES_USERS = 'res.users'
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -38,6 +39,7 @@ class BahmniCustomerReturn(models.Model):
 	discount_value = fields.Float(string="Dicount Amount", store=True, compute='_compute_all_line')
 	return_amt = fields.Float(string="Return Amount", store=True, compute='_compute_all_line')
 	round_off_amount = fields.Float(string="Round Off Amount", store=True, compute='_compute_all_line')
+	billed_amount = fields.Float(string="Billed Amount", store=True, compute='_compute_all_line')
 	product_ids = fields.Many2many('product.product','customer_returns_products','return_id','product_id','Products',domain=[('active', '=', True)])
 	
 	
@@ -123,12 +125,13 @@ class BahmniCustomerReturn(models.Model):
 					applied_discount_percentage = 0
 				line_discount_value = (line.sub_total * applied_discount_percentage) / 100
 				cumulative_discount_value += line_discount_value
-			
-			data.discount_value = cumulative_discount_value
-			total_return_amount_without_discount = sum(line.sub_total for line in data.line_ids)
-			data.tot_amt = total_return_amount_without_discount - cumulative_discount_value
-			data.round_off_amount = self.env['rounding.off'].round_off_value_to_nearest(data.tot_amt)
-			data.return_amt = data.tot_amt + data.round_off_amount 
+
+			prec = self.env['decimal.precision'].precision_get('Account')
+			data.discount_value = float_round(cumulative_discount_value, precision_digits=prec, rounding_method='HALF-UP')
+			data.tot_amt = float_round(sum(line.sub_total for line in data.line_ids), precision_digits=prec, rounding_method='HALF-UP')
+			data.billed_amount = data.tot_amt - data.discount_value
+			data.round_off_amount = self.env['rounding.off'].round_off_value_to_nearest(data.billed_amount)
+			data.return_amt = data.billed_amount + data.round_off_amount
 	
 	
 	def display_warnings(self, warning_msg, kw):
