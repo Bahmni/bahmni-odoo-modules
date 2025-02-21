@@ -371,8 +371,7 @@ class SaleOrder(models.Model):
             'disc_acc_id': self.disc_acc_id.id,
             'discount': tot_discount,
             'round_off_amount': self.round_off_amount,
-            'order_id': self.id,
-            'amount_total': self.amount_total,
+            'order_id': self.id
         }
         return invoice_vals
 
