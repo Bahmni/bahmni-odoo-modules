@@ -106,6 +106,7 @@ class StockReport(models.Model):
                                ('move_id.state','=','done')])]) + sum([int_in.qty_done for int_in in stock_move_line.search([\
                                ('product_id', '=', drug.id),('date', '<',  rec.from_date),
                                ('location_dest_id', '=', rec.location_id.id),
+                               ('location_id.name','!=', 'Inventory adjustment'),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'), ##Internal Inward
                                ('move_id.state','=','done')])]) +                               
                                sum([po.qty_done for po in stock_move_line.search([('product_id', '=', drug.id),\
@@ -125,6 +126,7 @@ class StockReport(models.Model):
                                )-(sum([int_out.qty_done for int_out in stock_move_line.search([\
                                ('product_id', '=', drug.id),('date', '<',  rec.from_date),
                                ('location_id', '=', rec.location_id.id),
+                               ('location_dest_id.name','!=', 'Inventory adjustment'),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'), ##Internal Outward
                                ('move_id.state','=','done')])]) + sum([issue.qty_done for issue in stock_move_line.search([\
                                ('product_id', '=', drug.id),('date', '<',  rec.from_date),
@@ -149,6 +151,7 @@ class StockReport(models.Model):
                                for int_in in stock_move_line.search([\
                                ('product_id', '=', drug.id),('date', '<',  rec.from_date),
                                ('location_dest_id', '=', rec.location_id.id),
+                               ('location_id.name','!=', 'Inventory adjustment'),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'),
                                ('move_id.state','=','done')])])                                
                                + ##Customer Return                               
@@ -183,6 +186,7 @@ class StockReport(models.Model):
                                for int_out in stock_move_line.search([\
                                ('product_id', '=', drug.id),('date', '<',  rec.from_date),
                                ('location_id', '=', rec.location_id.id),
+                               ('location_dest_id.name','!=', 'Inventory adjustment'),
                                ('picking_id.picking_type_id.sequence_code','=', 'INT'),
                                ('move_id.state','=','done')])]) 
                                +  ## Issue
@@ -309,6 +313,7 @@ class StockReport(models.Model):
 				       ('move_id.state','=','done')]) if po.date < days]) + sum([int_in.qty_done\
                                        for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
 				       ('location_dest_id', '=', rec.location_id.id),
+                       ('location_id.name','!=', 'Inventory adjustment'),
 				       ('picking_id.picking_type_id.sequence_code','=', 'INT'), ##Internal Inward
 				       ('move_id.state','=','done')]) if int_in.date < days]) +
 				       sum([po.qty_done for po in stock_move_line.search([('product_id', '=', rec.drug_ids.id),				   
@@ -325,6 +330,7 @@ class StockReport(models.Model):
 				       ) - (sum([int_out.qty_done\
                                        for int_out in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
 				       ('location_id', '=', rec.location_id.id),
+                       ('location_dest_id.name','!=', 'Inventory adjustment'),
 				       ('picking_id.picking_type_id.sequence_code','=', 'INT'), ##Internal Outward
 				       ('move_id.state','=','done')]) if int_out.date < days]) + sum([issue.qty_done\
                                        for issue in stock_move_line.search([('product_id', '=', rec.drug_ids.id),\
@@ -348,6 +354,7 @@ class StockReport(models.Model):
 					   ('product_id', '=', rec.drug_ids.id), ('state', '=', 'purchase')], order='id desc',limit=1)])) 
 					   for int_in in stock_move_line.search([('product_id', '=', rec.drug_ids.id),
 				       ('location_dest_id', '=', rec.location_id.id),
+                       ('location_id.name','!=', 'Inventory adjustment'),
 				       ('picking_id.picking_type_id.sequence_code','=', 'INT'), ('move_id.state','=','done')])\
 					   if int_in.date < days]) 
 					   
@@ -385,6 +392,7 @@ class StockReport(models.Model):
 					   for int_out in stock_move_line.search([\
 					   ('product_id', '=', rec.drug_ids.id),
 					   ('location_id', '=', rec.location_id.id),
+                       ('location_dest_id.name','!=', 'Inventory adjustment'),
 					   ('picking_id.picking_type_id.sequence_code','=', 'INT'),
 					   ('move_id.state','=','done')]) if int_out.date < days]) 
 					   +  ## Issue
