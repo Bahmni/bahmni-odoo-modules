@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-config
+data:
+  restart: "{{ .Values.config.RESTART_POLICY }}"
+  image: "{{ .Values.config.ODOO_DB_IMAGE_NAME }}"
+  TZ: "{{ .Values.global.TZ }}"
+  POSTGRES_DB: "{{ .Values.config.ODOO_DB_NAME }}"
+  ODOO_HOST: "{{ .Values.config.ODOO_HOST }}"
+  ODOO_PORT: "{{ .Values.config.ODOO_HOST }}"
+  ODOO_DB_SERVER: "{{ .Values.config.ODOO_DB_HOST }}"
+  OPENMRS_HOST: "{{ .Values.config.OPENMRS_HOST }}"
+  OPENMRS_PORT: "{{ .Values.config.OPENMRS_PORT }}"

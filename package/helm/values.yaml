@@ -1,0 +1,53 @@
+global:
+  nodeSelector: {}
+  affinity: {}
+  tolerations: {}
+
+replicaCount: 1
+
+metadata:
+  labels:
+    environment: dev
+
+image:
+  repository: bahmni
+  name: ODOO
+  tag: latest
+
+config:
+  restart: ""
+  image: ""
+  TZ: ""
+  POSTGRES_DB: ""
+  ODOO_HOST: ""
+  ODOO_PORT: ""
+  ODOO_DB_SERVER: ""
+  OPENMRS_HOST: ""
+  OPENMRS_PORT:
+    
+secrets:
+  USER: ""
+  PASSWORD: ""
+  POSTGRES_USER: ""
+  POSTGRES_PASSWORD: ""
+  OPENELIS_ATOMFEED_USER: ""
+  OPENELIS_ATOMFEED_PASSWORD: ""
+  OPENMRS_ATOMFEED_USER: ""
+  OPENMRS_ATOMFEED_PASSWORD: ""
+  ODOO_DB_USERNAME: ""
+  ODOO_DB_PASSWORD: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+autoscaling:
+  enabled: false
+  #  minReplicas: 1
+  #  maxReplicas: 5
+  #  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+affinity: {}
+tolerations: {}
