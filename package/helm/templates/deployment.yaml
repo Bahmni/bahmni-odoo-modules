@@ -51,6 +51,35 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          resources: {}          
+          ports:
+            - containerPort: 8069
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ .Chart.Name }}-config
+                optional: false
+            - secretRef:
+                 name: {{.Chart.Name }}-secrets
+                 optional: false 
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}    
+
+          volumeMounts:
+            - mountPath: /var/lib/odoo
+              name: odooappdata
+            - mountPath: /var/lib/odoo/filestore
+              name: odoofilestore
+            - mountPath: /etc/odoo
+              name: odooconfig       
       restartPolicy: Always
+      volumes:
+        - name: odooappdata
+          persistentVolumeClaim:
+            claimName: odooappdata-pvc
+        - name: odoofilestore
+          persistentVolumeClaim:
+            claimName: odoofilestore-pvc
+        - name: odooconfig
+          persistentVolumeClaim:
+            claimName: odooconfig-pvc
 

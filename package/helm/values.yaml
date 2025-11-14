@@ -11,40 +11,23 @@ metadata:
 
 image:
   repository: bahmni
-  name: ODOO
+  name: odoo-16
   tag: latest
 
 config:
-  restart: ""
-  image: ""
   TZ: ""
-  POSTGRES_DB: ""
-  ODOO_HOST: ""
-  ODOO_PORT: ""
-  ODOO_DB_SERVER: ""
-  OPENMRS_HOST: ""
-  OPENMRS_PORT:
+  ODOO_DB_HOST: ""
     
 secrets:
-  OPENELIS_ATOMFEED_USER: ""
-  OPENELIS_ATOMFEED_PASSWORD: ""
-  OPENMRS_ATOMFEED_USER: ""
-  OPENMRS_ATOMFEED_PASSWORD: ""
-  ODOO_DB_USERNAME: ""
+  DOO_DB_USER: ""
   ODOO_DB_PASSWORD: ""
-  ODOO_ATOMFEED_USER: ""
-  ODOO_ATOMFEED_PASSWORD: ""
 
 service:
   type: ClusterIP
-  port: 80
+  port: 8069
 
 autoscaling:
   enabled: false
-  #  minReplicas: 1
-  #  maxReplicas: 5
-  #  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
 affinity: {}
