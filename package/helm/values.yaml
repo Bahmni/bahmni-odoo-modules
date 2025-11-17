@@ -14,6 +14,18 @@ image:
   name: odoo-16
   tag: latest
 
+volumes:
+  odooappdata:
+    capacity: "1Gi"  
+
+volumes:
+  odooconfig:
+    capacity: "1Gi"    
+
+volumes:
+  odoofilestore:
+    capacity: "1Gi" 
+
 config:
   TZ: ""
   ODOO_DB_HOST: ""
