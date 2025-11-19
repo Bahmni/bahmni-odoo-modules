@@ -13,6 +13,8 @@ jobs:
   docker-build-publish:
     name: Docker Build & Publish Odoo 16
     runs-on: ubuntu-latest
+    env:
+      HELM_CHART_PATH: package/helm/
     steps:
       - uses: actions/checkout@v4
       - name: Set env.ARTIFACT_VERSION
