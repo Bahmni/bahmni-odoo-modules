@@ -16,15 +16,11 @@ image:
 
 volumes:
   odooappdata:
-    capacity: "1Gi"  
-
-volumes:
+    capacity: "1Gi"
   odooconfig:
-    capacity: "1Gi"    
-
-volumes:
+    capacity: "1Gi"
   odoofilestore:
-    capacity: "1Gi" 
+    capacity: "1Gi"
 
 config:
   TZ: ""
