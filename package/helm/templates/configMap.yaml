@@ -5,4 +5,5 @@ metadata:
 data:
   TZ: "{{ .Values.global.TZ }}"
   HOST: "{{ .Values.config.ODOO_DB_HOST }}"
+  NAME: "{{ .Values.config.ODOO_DB_NAME }}"
   

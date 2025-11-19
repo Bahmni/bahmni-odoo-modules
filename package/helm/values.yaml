@@ -25,9 +25,10 @@ volumes:
 config:
   TZ: ""
   ODOO_DB_HOST: ""
+  ODOO_DB_NAME: ""
     
 secrets:
-  DOO_DB_USER: ""
+  ODOO_DB_USER: ""
   ODOO_DB_PASSWORD: ""
 
 service:
