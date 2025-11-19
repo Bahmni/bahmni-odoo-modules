@@ -1,0 +1,5 @@
+apiVersion: v2
+name: odoo
+description: Helm chart for odoo
+type: application
+version: 1.0.0

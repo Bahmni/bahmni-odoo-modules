@@ -1,0 +1,43 @@
+global:
+  nodeSelector: {}
+  affinity: {}
+  tolerations: {}
+
+replicaCount: 1
+
+metadata:
+  labels:
+    environment: dev
+
+image:
+  repository: bahmni
+  name: odoo-16
+  tag: latest
+
+volumes:
+  odooappdata:
+    capacity: "1Gi"
+  odooconfig:
+    capacity: "1Gi"
+  odoofilestore:
+    capacity: "1Gi"
+
+config:
+  TZ: ""
+  ODOO_DB_HOST: ""
+  ODOO_DB_NAME: ""
+    
+secrets:
+  ODOO_DB_USER: ""
+  ODOO_DB_PASSWORD: ""
+
+service:
+  type: ClusterIP
+  port: 8069
+
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+affinity: {}
+tolerations: {}
