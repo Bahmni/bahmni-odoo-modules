@@ -81,11 +81,20 @@ class OrderSaveService(models.Model):
     @api.model
     def create_orders(self, vals):
         customer_id = vals.get("customer_id")
+        invoice_customer_id = vals.get("invoice_customer_id")
         location_name = vals.get("locationName")
         all_orders = self._get_openerp_orders(vals)
         _logger.info("Processing %s orders from encounter(%s) for customer %s", len(all_orders), vals.get("encounter_id") ,customer_id)
 
         customer_ids = self.env['res.partner'].search([('ref', '=', customer_id)])
+        
+        invoice_customer = None
+        if(invoice_customer_id and customer_id != invoice_customer_id):
+            invoice_customer_ids = self.env['res.partner'].search([('ref', '=', invoice_customer_id)])
+            if not invoice_customer_ids:
+                raise UserError(("Invoice Patient Id not found in Odoo"))
+            invoice_customer = invoice_customer_ids[0]
+        
         if customer_ids:
             cus_id = customer_ids[0]
 
@@ -131,6 +140,7 @@ class OrderSaveService(models.Model):
                         # replaced create_sale_order method call
                         _logger.debug("\n No existing sale order for Unprocessed non dispensed Orders. Creating .. ")
                         sale_order_vals = {'partner_id': cus_id.id,
+                                           'partner_invoice_id': invoice_customer and invoice_customer.id or False,
                                            'location_id': unprocessed_non_dispensed_order[0]['location_id'],
                                            'warehouse_id': unprocessed_non_dispensed_order[0]['warehouse_id'],
                                            'care_setting': care_setting,
