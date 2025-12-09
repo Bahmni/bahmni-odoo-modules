@@ -97,6 +97,8 @@ class OrderSaveService(models.Model):
         
         if customer_ids:
             cus_id = customer_ids[0]
+            if not invoice_customer:
+                invoice_customer = cus_id
 
             for orderType, ordersGroup in groupby(all_orders, lambda order: order.get('type')):
 
@@ -132,6 +134,7 @@ class OrderSaveService(models.Model):
                 if(len(unprocessed_non_dispensed_order) > 0):
                     _logger.debug("\n Processing Unprocessed non dispensed Orders: %s", list(unprocessed_non_dispensed_order))
                     sale_order_ids = self.env['sale.order'].search([('partner_id', '=', cus_id.id),
+                                                                    ('partner_invoice_id', '=', invoice_customer.id),
                                                                     ('shop_id', '=', shop_id),#shop_id),
                                                                     ('state', '=', 'draft'),
                                                                     ('origin', '=', 'API FEED SYNC')])
@@ -140,7 +143,7 @@ class OrderSaveService(models.Model):
                         # replaced create_sale_order method call
                         _logger.debug("\n No existing sale order for Unprocessed non dispensed Orders. Creating .. ")
                         sale_order_vals = {'partner_id': cus_id.id,
-                                           'partner_invoice_id': invoice_customer and invoice_customer.id or False,
+                                           'partner_invoice_id': invoice_customer.id,
                                            'location_id': unprocessed_non_dispensed_order[0]['location_id'],
                                            'warehouse_id': unprocessed_non_dispensed_order[0]['warehouse_id'],
                                            'care_setting': care_setting,
@@ -178,6 +181,7 @@ class OrderSaveService(models.Model):
 
 
                     sale_order_ids = self.env['sale.order'].search([('partner_id', '=', cus_id.id),
+                                                                    ('partner_invoice_id', '=', invoice_customer.id),
                                                                     ('shop_id', '=', shop_id),
                                                                     ('state', '=', 'draft'),
                                                                     ('origin', '=', 'API FEED SYNC')])
@@ -187,6 +191,7 @@ class OrderSaveService(models.Model):
                         self._unlink_sale_order_lines_and_remove_empty_orders(sale_order_ids,unprocessed_dispensed_order)
 
                     sale_order_ids_for_dispensed = self.env['sale.order'].search([('partner_id', '=', cus_id.id),
+                                                                                  ('partner_invoice_id', '=', invoice_customer.id),
                                                                                   ('shop_id', '=', shop_id),
                                                                                   ('location_id', '=', location_id),
                                                                                   ('state', '=', 'draft'),
@@ -196,6 +201,7 @@ class OrderSaveService(models.Model):
                         _logger.debug("\n Could not find any sale_order at specified shop and stock location. Creating a new Sale order for dispensed orders")
 
                         sale_order_dict = {'partner_id': cus_id.id,
+                                           'partner_invoice_id': invoice_customer.id,
                                            'location_id': location_id,
                                            'warehouse_id': warehouse_id,
                                            'care_setting': care_setting,
@@ -234,6 +240,7 @@ class OrderSaveService(models.Model):
                             # create new sale order
                             _logger.debug("\n Post unlinking of order lines. Could not find  a sale order to append dispensed lines. Creating .. ")
                             sales_order_obj = {'partner_id': cus_id.id,
+                                               'partner_invoice_id': invoice_customer.id,
                                                'location_id': location_id,
                                                'warehouse_id': warehouse_id,
                                                'care_setting': care_setting,
