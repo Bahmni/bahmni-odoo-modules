@@ -6,4 +6,5 @@ data:
   TZ: "{{ .Values.global.TZ }}"
   HOST: "{{ .Values.config.ODOO_DB_HOST }}"
   NAME: "{{ .Values.config.ODOO_DB_NAME }}"
+  DB_FILTER: "{{ .Values.config.ODOO_DB_FILTER }}"
   
