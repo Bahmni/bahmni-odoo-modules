@@ -26,6 +26,7 @@ config:
   TZ: ""
   ODOO_DB_HOST: ""
   ODOO_DB_NAME: ""
+  ODOO_DB_FILTER: ".*"
     
 secrets:
   ODOO_DB_USER: ""
