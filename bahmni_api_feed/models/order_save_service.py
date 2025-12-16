@@ -108,7 +108,7 @@ class OrderSaveService(models.Model):
                     continue
 
                 orders = list(ordersGroup)
-                care_setting = orders[0].get('visitType').lower()
+                care_setting = orders[0].get('visitType').lower() if orders[0].get('visitType') else None
                 provider_name = orders[0].get('providerName')
                 # will return order line data for products which exists in the system, either with productID passed
                 # or with conceptName
