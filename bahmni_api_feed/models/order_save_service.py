@@ -81,13 +81,24 @@ class OrderSaveService(models.Model):
     @api.model
     def create_orders(self, vals):
         customer_id = vals.get("customer_id")
+        invoice_customer_id = vals.get("invoice_customer_id")
         location_name = vals.get("locationName")
         all_orders = self._get_openerp_orders(vals)
         _logger.info("Processing %s orders from encounter(%s) for customer %s", len(all_orders), vals.get("encounter_id") ,customer_id)
 
         customer_ids = self.env['res.partner'].search([('ref', '=', customer_id)])
+        
+        invoice_customer = None
+        if(invoice_customer_id and customer_id != invoice_customer_id):
+            invoice_customer_ids = self.env['res.partner'].search([('ref', '=', invoice_customer_id)])
+            if not invoice_customer_ids:
+                raise UserError(("Invoice Patient Id not found in Odoo"))
+            invoice_customer = invoice_customer_ids[0]
+        
         if customer_ids:
             cus_id = customer_ids[0]
+            if not invoice_customer:
+                invoice_customer = cus_id
 
             for orderType, ordersGroup in groupby(all_orders, lambda order: order.get('type')):
 
@@ -109,6 +120,29 @@ class OrderSaveService(models.Model):
                 warehouse_id = shop_obj.warehouse_id.id
                 _logger.debug("warehouse_id: %s"%(warehouse_id))
 
+                existing_sale_order_filter = [('partner_id', '=', cus_id.id),
+                                              ('partner_invoice_id', '=', invoice_customer.id),
+                                              ('shop_id', '=', shop_id),
+                                              ('state', '=', 'draft'),
+                                              ('origin', '=', 'API FEED SYNC')]
+                default_sale_order_vals = {'partner_id': cus_id.id,
+                                    'partner_invoice_id': invoice_customer.id,
+                                    'location_id': location_id,
+                                    'warehouse_id': warehouse_id,
+                                    'care_setting': care_setting,
+                                    'provider_name': provider_name,
+                                    'date_order': datetime.strftime(datetime.now(), DTF),
+                                    'pricelist_id': cus_id.property_product_pricelist and cus_id.property_product_pricelist.id or False,
+                                    'payment_term_id': shop_obj.payment_default_id.id,
+                                    'picking_policy': 'direct',
+                                    'state': 'draft',
+                                    'shop_id': shop_id,
+                                    'company_id': 1,
+                                    'origin': 'API FEED SYNC',
+                                }
+                if shop_obj.pricelist_id:
+                    default_sale_order_vals.update({'pricelist_id': shop_obj.pricelist_id.id})
+
                 #Adding both the ids to the unprocessed array of orders, Separating to dispensed and non-dispensed orders
                 unprocessed_dispensed_order = []
                 unprocessed_non_dispensed_order = []
@@ -122,31 +156,12 @@ class OrderSaveService(models.Model):
                         unprocessed_non_dispensed_order.append(unprocessed_order)
                 if(len(unprocessed_non_dispensed_order) > 0):
                     _logger.debug("\n Processing Unprocessed non dispensed Orders: %s", list(unprocessed_non_dispensed_order))
-                    sale_order_ids = self.env['sale.order'].search([('partner_id', '=', cus_id.id),
-                                                                    ('shop_id', '=', shop_id),#shop_id),
-                                                                    ('state', '=', 'draft'),
-                                                                    ('origin', '=', 'API FEED SYNC')])
+                    sale_order_ids = self.env['sale.order'].search(existing_sale_order_filter)
                     if(not sale_order_ids):
                         # Non Dispensed New
                         # replaced create_sale_order method call
                         _logger.debug("\n No existing sale order for Unprocessed non dispensed Orders. Creating .. ")
-                        sale_order_vals = {'partner_id': cus_id.id,
-                                           'location_id': unprocessed_non_dispensed_order[0]['location_id'],
-                                           'warehouse_id': unprocessed_non_dispensed_order[0]['warehouse_id'],
-                                           'care_setting': care_setting,
-                                           'provider_name': provider_name,
-                                           'date_order': datetime.strftime(datetime.now(), DTF),
-                                           'pricelist_id': cus_id.property_product_pricelist and cus_id.property_product_pricelist.id or False,
-                                           'payment_term_id': shop_obj.payment_default_id.id,
-                                           'picking_policy': 'direct',
-                                           'state': 'draft',
-                                           'shop_id': shop_id,
-                                           'company_id': 1,
-                                           'origin': 'API FEED SYNC',
-                                           }
-                        if shop_obj.pricelist_id:
-                            sale_order_vals.update({'pricelist_id': shop_obj.pricelist_id.id})
-                        sale_order = self.env['sale.order'].create(sale_order_vals)
+                        sale_order = self.env['sale.order'].create(default_sale_order_vals)
                         _logger.debug("\n Created a new Sale Order for non dispensed orders. ID: %s. Processing order lines ..", sale_order.id)
                         for rec in unprocessed_non_dispensed_order:
                             self._process_orders(sale_order, unprocessed_non_dispensed_order, rec)
@@ -167,40 +182,18 @@ class OrderSaveService(models.Model):
                     auto_invoice_dispensed = self.env.ref('bahmni_sale.auto_register_invoice_payment_for_dispensed').value
 
 
-                    sale_order_ids = self.env['sale.order'].search([('partner_id', '=', cus_id.id),
-                                                                    ('shop_id', '=', shop_id),
-                                                                    ('state', '=', 'draft'),
-                                                                    ('origin', '=', 'API FEED SYNC')])
+                    sale_order_ids = self.env['sale.order'].search(existing_sale_order_filter)
 
                     if any(sale_order_ids):
                         _logger.debug("\n For exsiting sale orders for the shop, trying to unlink any openmrs order if any")
                         self._unlink_sale_order_lines_and_remove_empty_orders(sale_order_ids,unprocessed_dispensed_order)
 
-                    sale_order_ids_for_dispensed = self.env['sale.order'].search([('partner_id', '=', cus_id.id),
-                                                                                  ('shop_id', '=', shop_id),
-                                                                                  ('location_id', '=', location_id),
-                                                                                  ('state', '=', 'draft'),
-                                                                                  ('origin', '=', 'API FEED SYNC')])
+                    sale_order_ids_for_dispensed = self.env['sale.order'].search(existing_sale_order_filter)
 
                     if not sale_order_ids_for_dispensed:
                         _logger.debug("\n Could not find any sale_order at specified shop and stock location. Creating a new Sale order for dispensed orders")
 
-                        sale_order_dict = {'partner_id': cus_id.id,
-                                           'location_id': location_id,
-                                           'warehouse_id': warehouse_id,
-                                           'care_setting': care_setting,
-                                           'provider_name': provider_name,
-                                           'date_order': datetime.strftime(datetime.now(), DTF),
-                                           'pricelist_id': cus_id.property_product_pricelist and cus_id.property_product_pricelist.id or False,
-                                           'payment_term_id': shop_obj.payment_default_id.id,
-                                           'project_id': shop_obj.project_id.id if shop_obj.project_id else False,
-                                           'picking_policy': 'direct',
-                                           'state': 'draft',
-                                           'shop_id': shop_id,
-                                           'origin': 'API FEED SYNC'}
-                        if shop_obj.pricelist_id:
-                            sale_order_dict.update({'pricelist_id': shop_obj.pricelist_id.id})
-                        new_sale_order = self.env['sale.order'].create(sale_order_dict)
+                        new_sale_order = self.env['sale.order'].create(default_sale_order_vals)
                         _logger.debug("\n Created a new Sale Order. ID: %s. Processing order lines ..", new_sale_order.id)
                         for line in unprocessed_dispensed_order:
                             self._process_orders(new_sale_order, unprocessed_dispensed_order, line)
@@ -223,23 +216,7 @@ class OrderSaveService(models.Model):
                         if not sale_order_to_process:
                             # create new sale order
                             _logger.debug("\n Post unlinking of order lines. Could not find  a sale order to append dispensed lines. Creating .. ")
-                            sales_order_obj = {'partner_id': cus_id.id,
-                                               'location_id': location_id,
-                                               'warehouse_id': warehouse_id,
-                                               'care_setting': care_setting,
-                                               'provider_name': provider_name,
-                                               'date_order': datetime.strftime(datetime.now(), DTF),
-                                               'pricelist_id': cus_id.property_product_pricelist and cus_id.property_product_pricelist.id or False,
-                                               'payment_term_id': shop_obj.payment_default_id.id,
-                                               'project_id': shop_obj.project_id.id if shop_obj.project_id else False,
-                                               'picking_policy': 'direct',
-                                               'state': 'draft',
-                                               'shop_id': shop_id,
-                                               'origin': 'API FEED SYNC'}
-
-                            if shop_obj.pricelist_id:
-                                sales_order_obj.update({'pricelist_id': shop_obj.pricelist_id.id})
-                            sale_order_to_process = self.env['sale.order'].create(sales_order_obj)
+                            sale_order_to_process = self.env['sale.order'].create(default_sale_order_vals)
                             _logger.info("\n DEBUG: Created a new Sale Order. ID: %s", sale_order_to_process.id)
 
                         _logger.debug("\n Processing dispensed lines. Appending to Order ID %s", sale_order_to_process.id)
