@@ -32,7 +32,6 @@ class RestFullService(http.Controller):
                      "status":417,
                      'error': 'Expectation Failed: ' + str(e)
                    }
-
     @http.route('/api/bahmni-customer', type="json", auth="user", methods=["POST","OPTIONS"], csrf=True, cors='*')
     def bahmni_customer_feed(self, **kw):
         """  API customer feed from bahmin to Odoo """

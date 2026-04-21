@@ -326,10 +326,10 @@ class OrderSaveService(models.Model):
             product_id = product_id[0]
 
         # Delegate core query (non-expired, lotted, qty > 0) to shared helper.
-        # check_reserved=False because we apply encounter-level allocation deductions below.
+        # Using get_non_expired_quants_raw because we apply encounter-level allocation deductions below.
         inventory_service = self.env['product.inventory.service']
-        non_expired_quants = inventory_service._get_non_expired_available_quants(
-            product_id, location_id=shop_location_id, check_reserved=False
+        non_expired_quants = inventory_service.get_non_expired_quants_raw(
+            product_id, location_id=shop_location_id
         )
 
         # Track the allocated quantities for batches within the same encounter
@@ -365,7 +365,7 @@ class OrderSaveService(models.Model):
             sale_order_line_obj = self.env['sale.order.line']
             # Get available batches
             prod_lots = self.get_available_batch_details(prod_id, sale_order)
-            sorted_batches = sorted(prod_lots, key=lambda x: x.lot_id.expiration_date)
+            sorted_batches = sorted(prod_lots, key=lambda x: x.lot_id.expiration_date or datetime.max)
             actual_quantity = order['quantity']
             default_quantity_total = self.env['res.config.settings'].group_default_quantity
             _logger.info(f"default_quantity_total: {default_quantity_total}")

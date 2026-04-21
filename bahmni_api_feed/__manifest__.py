@@ -10,7 +10,7 @@ Bahmni API Feed
     'category': 'Technical',
     'website': '',
     'images': [],
-    'depends': ['base','product','bahmni_sale','bahmni_stock','bahmni_product','restful_api'],
+    'depends': ['base','product','bahmni_sale','bahmni_stock','bahmni_product'],
     'data': [
         'security/ir.model.access.csv',
         'views/event_records_view.xml',
