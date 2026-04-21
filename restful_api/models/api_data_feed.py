@@ -110,3 +110,16 @@ class RestFullService(http.Controller):
                      "status":417,
                      'error': 'Expectation Failed: ' + str(e)
                    }
+
+    @http.route('/api/get-available-batches', type="http", auth="user", methods=["GET", "OPTIONS"], csrf=False, cors='*')
+    def get_available_batches(self, **kw):
+        try:
+            product_uuid = kw.get('product_uuid')
+            if not product_uuid:
+                return invalid_response("bad_request", "product_uuid is required", status=400)
+            batches = request.env['product.inventory.service'].get_available_batches(product_uuid)
+            if batches is None:
+                return invalid_response("not_found", "No product found with UUID: %s" % product_uuid, status=404)
+            return valid_response(batches)
+        except Exception as e:
+            return invalid_response("error", str(e), status=500)
