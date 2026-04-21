@@ -5,3 +5,4 @@ access_order_type,access_order_type,model_order_type,,1,1,1,1
 access_syncable_units_mapping,access_syncable_units_mapping,model_syncable_units_mapping,,1,1,1,1
 access_order_save_service,access_order_save_service,model_order_save_service,,1,1,1,1
 access_product_uom_service,access_product_uom_service,model_product_uom_service,,1,1,1,1
+access_product_inventory_service,access_product_inventory_service,model_product_inventory_service,,1,1,1,1
