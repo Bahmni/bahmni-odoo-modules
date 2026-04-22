@@ -91,10 +91,7 @@ class ProductInventoryService(models.AbstractModel):
         for quant in quants:
             available_qty = quant.quantity - quant.reserved_quantity
             result.append({
-                'product_name': quant.product_id.name,
-                'product_uuid': quant.product_id.uuid,
-                'location_name': quant.location_id.complete_name,
-                'company_name': quant.company_id.name,
+                'location_name': quant.location_id.name,
                 'batch_number': quant.lot_id.name,
                 'expiry_date': quant.lot_id.expiration_date.isoformat() + 'Z' if quant.lot_id.expiration_date else None,
                 'available_quantity': available_qty,
