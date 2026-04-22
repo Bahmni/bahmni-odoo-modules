@@ -10,12 +10,14 @@ class ProductInventoryService(models.AbstractModel):
     _description = 'Product Inventory Service'
 
     @api.model
-    def _build_quant_domain(self, product_id, location_id=None):
+    def _build_quant_domain(self, product_id, location_id=None, company_id=None):
         """Build the base stock.quant search domain for a product.
 
         :param product_id: ID of the product.product record
         :param location_id: Optional ID of a specific stock.location.
                             If None, searches all internal locations.
+        :param company_id: Optional ID of a res.company record.
+                           If provided, filters quants by company (indexed column).
         :returns: list of domain tuples
         """
         domain = [
@@ -23,6 +25,8 @@ class ProductInventoryService(models.AbstractModel):
             ('quantity', '>', 0),
             ('lot_id', '!=', False),
         ]
+        if company_id:
+            domain.append(('company_id', '=', company_id))
         if location_id:
             domain.append(('location_id', '=', location_id))
         else:
@@ -30,7 +34,7 @@ class ProductInventoryService(models.AbstractModel):
         return domain
 
     @api.model
-    def get_non_expired_available_quants(self, product_id, location_id=None):
+    def get_non_expired_available_quants(self, product_id, location_id=None, company_id=None):
         """Return stock.quant recordset of non-expired lots with truly available stock > 0.
 
         Applies the reservation filter: only quants where quantity - reserved_quantity > 0
@@ -39,9 +43,11 @@ class ProductInventoryService(models.AbstractModel):
         :param product_id: ID of the product.product record
         :param location_id: Optional ID of a specific stock.location.
                             If None, searches all internal locations.
+        :param company_id: Optional ID of a res.company record.
+                           If provided, filters quants by company.
         :returns: Filtered stock.quant recordset
         """
-        domain = self._build_quant_domain(product_id, location_id)
+        domain = self._build_quant_domain(product_id, location_id, company_id=company_id)
         quants = self.env['stock.quant'].search(domain)
         now = fields.Datetime.now()
 
@@ -71,15 +77,20 @@ class ProductInventoryService(models.AbstractModel):
         )
 
     @api.model
-    def get_available_batches(self, product_uuid):
-        """Return non-expired, available-stock lot/batch data for the given product UUID."""
+    def get_available_batches(self, product_uuid, company_id=None):
+        """Return non-expired, available-stock lot/batch data for the given product UUID.
+
+        :param product_uuid: UUID of the product.product record
+        :param company_id: Optional ID of a res.company record.
+                           If provided, filters quants by company for efficient querying.
+        """
         product = self.env['product.product'].search(
             [('uuid', '=', product_uuid)], limit=1
         )
         if not product:
             return None
 
-        quants = self.get_non_expired_available_quants(product.id)
+        quants = self.get_non_expired_available_quants(product.id, company_id=company_id)
 
         # Prime the prefetch cache to avoid N+1 ORM reads
         quants.mapped('lot_id')
