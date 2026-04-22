@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_company_location_mapping_tree" model="ir.ui.view">
+        <field name="name">company.location.mapping.tree</field>
+        <field name="model">company.location.mapping</field>
+        <field name="arch" type="xml">
+            <tree string="Company External Identifiers">
+                <field name="company_id"/>
+                <field name="location_uuid"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_company_location_mapping_form" model="ir.ui.view">
+        <field name="name">company.location.mapping.form</field>
+        <field name="model">company.location.mapping</field>
+        <field name="arch" type="xml">
+            <form string="Company External Identifier">
+                <sheet>
+                    <group>
+                        <field name="company_id"/>
+                        <field name="location_uuid"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_company_location_mapping_search" model="ir.ui.view">
+        <field name="name">company.location.mapping.search</field>
+        <field name="model">company.location.mapping</field>
+        <field name="arch" type="xml">
+            <search string="Search Company External Identifiers">
+                <field name="company_id"/>
+                <field name="location_uuid"/>
+                <filter string="Company" name="group_by_company" context="{'group_by': 'company_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_company_location_mapping" model="ir.actions.act_window">
+        <field name="name">Company External Identifiers</field>
+        <field name="res_model">company.location.mapping</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Company External Identifier mapping
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_company_location_mapping"
+              name="Company Location Mappings"
+              parent="bahmni_sale.menu_bahmni_masters"
+              action="action_company_location_mapping"
+              sequence="1"/>
+</odoo>

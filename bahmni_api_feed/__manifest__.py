@@ -19,6 +19,7 @@ Bahmni API Feed
         'views/syncable_units_mapping_view.xml',
         'views/order_type_shop_map_view.xml',
         'views/res_users_view.xml',
+        'views/company_location_mapping_view.xml',
         'data/mrs_person_attributes_data.xml',
         'views/menus.xml'
     ],
