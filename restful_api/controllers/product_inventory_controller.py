@@ -12,9 +12,9 @@ _logger = logging.getLogger(__name__)
 
 class ProductInventoryController(http.Controller):
 
-    @http.route('/api/get-available-batches', type="http", auth="user", methods=["GET", "OPTIONS"], csrf=True, cors='*')
-    def get_available_batches(self, **kw):
-        """GET endpoint returning non-expired, available-stock batch data for a given product UUID."""
+    @http.route('/api/get-available-stocks', type="http", auth="user", methods=["GET", "OPTIONS"], csrf=True, cors='*')
+    def get_available_stocks(self, **kw):
+        """GET endpoint returning available stock data for a given product UUID."""
         try:
             product_uuid = kw.get('product_uuid')
             if not product_uuid:

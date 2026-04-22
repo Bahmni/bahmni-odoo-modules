@@ -23,7 +23,6 @@ class ProductInventoryService(models.AbstractModel):
         domain = [
             ('product_id', '=', product_id),
             ('quantity', '>', 0),
-            ('lot_id', '!=', False),
         ]
         if company_id:
             domain.append(('company_id', '=', company_id))
@@ -52,7 +51,7 @@ class ProductInventoryService(models.AbstractModel):
         now = fields.Datetime.now()
 
         return quants.filtered(
-            lambda q: (not q.lot_id.expiration_date or q.lot_id.expiration_date > now)
+            lambda q: (not q.lot_id or not q.lot_id.expiration_date or q.lot_id.expiration_date > now)
                       and (q.quantity - q.reserved_quantity) > 0
         )
 
@@ -73,7 +72,7 @@ class ProductInventoryService(models.AbstractModel):
         now = fields.Datetime.now()
 
         return quants.filtered(
-            lambda q: not q.lot_id.expiration_date or q.lot_id.expiration_date > now
+            lambda q: not q.lot_id or not q.lot_id.expiration_date or q.lot_id.expiration_date > now
         )
 
     @api.model
@@ -101,11 +100,14 @@ class ProductInventoryService(models.AbstractModel):
         result = []
         for quant in quants:
             available_qty = quant.quantity - quant.reserved_quantity
-            result.append({
+            entry = {
                 'location_name': quant.location_id.name,
-                'batch_number': quant.lot_id.name,
-                'expiry_date': quant.lot_id.expiration_date.isoformat() + 'Z' if quant.lot_id.expiration_date else None,
                 'available_quantity': available_qty,
-            })
+            }
+            if quant.lot_id:
+                entry['batch_number'] = quant.lot_id.name
+                if quant.lot_id.expiration_date:
+                    entry['expiry_date'] = quant.lot_id.expiration_date.isoformat() + 'Z'
+            result.append(entry)
 
         return result
