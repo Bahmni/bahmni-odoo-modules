@@ -12,7 +12,7 @@ _logger = logging.getLogger(__name__)
 
 class ProductInventoryController(http.Controller):
 
-    @http.route('/api/get-available-stocks', type="http", auth="user", methods=["GET", "OPTIONS"], csrf=True, cors='*')
+    @http.route('/api/get-available-stocks', type="http", auth="user", methods=["GET", "OPTIONS"])
     def get_available_stocks(self, **kw):
         """GET endpoint returning available stock data for a given product UUID."""
         try:
