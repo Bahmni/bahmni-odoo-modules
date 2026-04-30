@@ -101,7 +101,7 @@ class ProductInventoryService(models.AbstractModel):
         for quant in quants:
             available_qty = quant.quantity - quant.reserved_quantity
             entry = {
-                'location_name': quant.location_id.name,
+                'stock_location_name': quant.location_id.name,
                 'available_quantity': available_qty,
             }
             if quant.lot_id:
