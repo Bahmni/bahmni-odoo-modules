@@ -102,7 +102,7 @@ class ProductInventoryService(models.AbstractModel):
                 'stock_location_name': quant.location_id.name,
                 'available_quantity': quant.available_quantity,
                 'on_hand_quantity': quant.quantity,
-                'product_uom': quant.product_uom_id.name if quant.product_uom_id else None,
+                'unit': quant.product_uom_id.name if quant.product_uom_id else None,
             }
             if quant.lot_id:
                 entry['batch_number'] = quant.lot_id.name
