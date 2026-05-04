@@ -10,7 +10,7 @@ Bahmni API Feed
     'category': 'Technical',
     'website': '',
     'images': [],
-    'depends': ['base','product','bahmni_sale','bahmni_stock','bahmni_product'],
+    'depends': ['base','product','bahmni_sale','bahmni_stock','bahmni_product','bahmni_base'],
     'data': [
         'security/ir.model.access.csv',
         'views/event_records_view.xml',
@@ -19,7 +19,6 @@ Bahmni API Feed
         'views/syncable_units_mapping_view.xml',
         'views/order_type_shop_map_view.xml',
         'views/res_users_view.xml',
-        'views/company_location_mapping_view.xml',
         'data/mrs_person_attributes_data.xml',
         'views/menus.xml'
     ],

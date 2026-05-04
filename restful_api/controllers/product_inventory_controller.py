@@ -22,7 +22,11 @@ class ProductInventoryController(http.Controller):
 
             location_uuid = kw.get('location_uuid')
             company_id = None
-            if location_uuid:
+            companies = request.env['res.company'].search([])
+
+            if len(companies) == 1:
+                company_id = companies.id
+            elif location_uuid:
                 company = request.env['company.location.mapping'].get_company_by_location_uuid(location_uuid)
                 if not company:
                     return invalid_response("bad_request", "No company mapping found for location_uuid: %s" % location_uuid, status=400)

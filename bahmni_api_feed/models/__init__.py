@@ -9,4 +9,3 @@ from . import order_type
 from . import syncable_units_mapping
 from . import order_save_service
 from . import order_type_shop_map
-from . import company_location_mapping

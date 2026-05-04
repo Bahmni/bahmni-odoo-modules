@@ -22,7 +22,7 @@ class ProductInventoryService(models.AbstractModel):
         """
         domain = [
             ('product_id', '=', product_id),
-            ('quantity', '>', 0),
+            ('available_quantity', '>', 0),
         ]
         if company_id:
             domain.append(('company_id', '=', company_id))
@@ -34,10 +34,10 @@ class ProductInventoryService(models.AbstractModel):
 
     @api.model
     def get_non_expired_available_quants(self, product_id, location_id=None, company_id=None):
-        """Return stock.quant recordset of non-expired lots with truly available stock > 0.
+        """Return stock.quant recordset of non-expired lots with available stock > 0.
 
-        Applies the reservation filter: only quants where quantity - reserved_quantity > 0
-        are returned. Use this for the public batch-availability API.
+        Availability filtering (available_quantity > 0) is handled at the domain/DB level.
+        This method additionally filters out expired lots. Use for the public batch-availability API.
 
         :param product_id: ID of the product.product record
         :param location_id: Optional ID of a specific stock.location.
@@ -51,8 +51,7 @@ class ProductInventoryService(models.AbstractModel):
         now = fields.Datetime.now()
 
         return quants.filtered(
-            lambda q: (not q.lot_id or not q.lot_id.expiration_date or q.lot_id.expiration_date > now)
-                      and (q.quantity - q.reserved_quantity) > 0
+            lambda q: not q.lot_id or not q.lot_id.expiration_date or q.lot_id.expiration_date > now
         )
 
     @api.model
@@ -99,10 +98,11 @@ class ProductInventoryService(models.AbstractModel):
 
         result = []
         for quant in quants:
-            available_qty = quant.quantity - quant.reserved_quantity
             entry = {
                 'stock_location_name': quant.location_id.name,
-                'available_quantity': available_qty,
+                'available_quantity': quant.available_quantity,
+                'on_hand_quantity': quant.quantity,
+                'product_uom': quant.product_uom_id.name if quant.product_uom_id else None,
             }
             if quant.lot_id:
                 entry['batch_number'] = quant.lot_id.name
