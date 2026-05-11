@@ -15,7 +15,7 @@ class CompanyLocationMapping(models.Model):
     )
     
     location_uuid = fields.Char(
-        string='Bahmni Location UUID2',
+        string='Bahmni Location UUID',
         required=True
     )
     
