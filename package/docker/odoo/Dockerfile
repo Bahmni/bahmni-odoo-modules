@@ -9,6 +9,7 @@ RUN chown -R odoo:odoo /etc/odoo
 COPY bahmni_account ${ADDON_PATH}/bahmni_account/
 COPY bahmni_address_mapping ${ADDON_PATH}/bahmni_address_mapping/
 COPY bahmni_api_feed ${ADDON_PATH}/bahmni_api_feed/
+COPY bahmni_base ${ADDON_PATH}/bahmni_base/
 COPY bahmni_initializer ${ADDON_PATH}/bahmni_initializer/
 COPY bahmni_product ${ADDON_PATH}/bahmni_product/
 COPY bahmni_purchase ${ADDON_PATH}/bahmni_purchase/
