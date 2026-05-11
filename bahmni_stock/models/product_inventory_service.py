@@ -86,7 +86,7 @@ class ProductInventoryService(models.AbstractModel):
             [('uuid', '=', product_uuid)], limit=1
         )
         if not product:
-            return None
+            raise ValueError("No product found for UUID: %s" % product_uuid)
 
         quants = self.get_non_expired_available_quants(product.id, company_id=company_id)
 
