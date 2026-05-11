@@ -320,38 +320,33 @@ class OrderSaveService(models.Model):
         return product_default_uom.id
     @api.model
     def get_available_batch_details(self, product_id, sale_order):
-        context = self._context.copy() or {}
         sale_order = self.env['sale.order'].browse(sale_order)
-        context['location_id'] = sale_order.location_id and sale_order.location_id.id or False
-        context['search_in_child'] = True
         shop_location_id = sale_order.shop_id.location_id.id if sale_order.shop_id.location_id.id else self.order_id.shop_id.location_id.id
         if isinstance(product_id, list):
             product_id = product_id[0]
-        stock_quant_lot = self.env['stock.quant'].search([
-            ('product_id', '=', product_id),
-            ('location_id', '=', shop_location_id),
-            ('quantity', '>', 0)
-        ])
-        already_used_batch_ids = [line.lot_id.id for line in sale_order.order_line if line.lot_id]
-        available_batches = []
+
+        # Delegate core query (non-expired, lotted, qty > 0) to shared helper.
+        # Using get_non_expired_quants_raw because we apply encounter-level allocation deductions below.
+        inventory_service = self.env['product.inventory.service']
+        non_expired_quants = inventory_service.get_non_expired_quants_raw(
+            product_id, location_id=shop_location_id
+        )
+
         # Track the allocated quantities for batches within the same encounter
-        allocated_quantities = {prodlot.lot_id.id: prodlot.quantity for prodlot in stock_quant_lot}
+        allocated_quantities = {q.lot_id.id: q.quantity for q in non_expired_quants}
         # Deduct quantities already allocated in the same encounter
         for line in sale_order.order_line:
             if line.lot_id and line.lot_id.id in allocated_quantities:
                 allocated_quantities[line.lot_id.id] -= line.product_uom_qty
-        for prodlot in stock_quant_lot:
-            _logger.info("Checking batch %s with quantity %s and expiration date %s", prodlot.lot_id.name, allocated_quantities[prodlot.lot_id.id], prodlot.lot_id.expiration_date)
-            if allocated_quantities[prodlot.lot_id.id] > 0:
-                if prodlot.lot_id.expiration_date:
-                    date_length = len(str(prodlot.lot_id.expiration_date))
-                    formatted_ts = datetime.strptime(str(prodlot.lot_id.expiration_date), "%Y-%m-%d %H:%M:%S.%f").strftime("%Y-%m-%d %H:%M:%S") if date_length > 20 else datetime.strptime(str(prodlot.lot_id.expiration_date), "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
-                    if formatted_ts and datetime.strptime(str(formatted_ts), "%Y-%m-%d %H:%M:%S") > datetime.today():
-                        _logger.info("Adding batch %s to available_batches", prodlot.lot_id.name)
-                        available_batches.append(prodlot)
-                else:
-                    _logger.info("Adding batch %s to available_batches", prodlot.lot_id.name)
-                    available_batches.append(prodlot)
+
+        available_batches = []
+        for quant in non_expired_quants:
+            _logger.info("Checking batch %s with quantity %s and expiration date %s",
+                         quant.lot_id.name, allocated_quantities[quant.lot_id.id],
+                         quant.lot_id.expiration_date)
+            if allocated_quantities[quant.lot_id.id] > 0:
+                _logger.info("Adding batch %s to available_batches", quant.lot_id.name)
+                available_batches.append(quant)
 
         _logger.info("Available Batches: %s", available_batches)
 
@@ -370,7 +365,7 @@ class OrderSaveService(models.Model):
             sale_order_line_obj = self.env['sale.order.line']
             # Get available batches
             prod_lots = self.get_available_batch_details(prod_id, sale_order)
-            sorted_batches = sorted(prod_lots, key=lambda x: x.lot_id.expiration_date)
+            sorted_batches = sorted(prod_lots, key=lambda x: x.lot_id.expiration_date or datetime.max)
             actual_quantity = order['quantity']
             default_quantity_total = self.env['res.config.settings'].group_default_quantity
             _logger.info(f"default_quantity_total: {default_quantity_total}")
