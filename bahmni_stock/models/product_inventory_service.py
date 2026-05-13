@@ -51,7 +51,7 @@ class ProductInventoryService(models.AbstractModel):
         now = fields.Datetime.now()
 
         return quants.filtered(
-            lambda q: not q.lot_id or not q.lot_id.expiration_date or q.lot_id.expiration_date > now
+            lambda q: q.available_quantity > 0 and (not q.lot_id or not q.lot_id.expiration_date or q.lot_id.expiration_date > now)
         )
 
     @api.model
