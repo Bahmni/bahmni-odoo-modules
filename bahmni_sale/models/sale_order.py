@@ -383,9 +383,10 @@ class SaleOrder(models.Model):
            if line.display_type in ('line_section', 'line_note'):
                continue
            if line.product_uom_qty <=0:
-               raise UserError("Quantity for %s is %s. Please update the quantity or remove the product line."%(line.product_id.name,line.product_uom_qty))
-           if line.product_id.tracking == 'lot' and not line.lot_id:
-               raise UserError("Kindly choose batch no for %s to proceed further."%(line.product_id.name))
+                raise UserError("Quantity for %s is %s. Please update the quantity or remove the product line."%(line.product_id.name,line.product_uom_qty))
+           if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_invoice_automated')):
+               if line.product_id.tracking == 'lot' and not line.lot_id:
+                   raise UserError("Kindly choose batch no for %s to proceed further."%(line.product_id.name))
 
            if 1 < self.order_line.search_count([('lot_id', '=', line.lot_id.id),('order_id', '=', self.id)]) and line.lot_id:
               raise UserError("%s Duplicate batch no is not allowed. Kindly change the batch no to proceed further."%(line.lot_id.name))
