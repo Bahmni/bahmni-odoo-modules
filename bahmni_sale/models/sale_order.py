@@ -384,7 +384,7 @@ class SaleOrder(models.Model):
                continue
            if line.product_uom_qty <=0:
                 raise UserError("Quantity for %s is %s. Please update the quantity or remove the product line."%(line.product_id.name,line.product_uom_qty))
-           if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_invoice_automated')):
+           if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_delivery_automated')):
                if line.product_id.tracking == 'lot' and not line.lot_id:
                    raise UserError("Kindly choose batch no for %s to proceed further."%(line.product_id.name))
 
