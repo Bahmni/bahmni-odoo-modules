@@ -423,25 +423,9 @@ class OrderSaveService(models.Model):
     def _create_single_order_line(self, sale_order, prod_id, prod_obj, sorted_batches, actual_quantity, order_line_uom, description, order_line_dispensed, order):
         sale_order_line_obj = self.env['sale.order.line']
 
-        if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_delivery_automated')):
-            nearest_batch = sorted_batches[0] if sorted_batches else None
-            if nearest_batch:
-                self._create_order_line(sale_order_line_obj, sale_order, prod_id, prod_obj, nearest_batch, actual_quantity, order_line_uom, description, order_line_dispensed, order)
-        else:
-            # Create order line without batch/lot when delivery is not automated
-            sale_line_vals = {
-                'product_id': prod_id[0],
-                'price_unit': prod_obj.list_price,
-                'product_uom_qty': actual_quantity,
-                'product_uom': order_line_uom,
-                'order_id': sale_order,
-                'external_id': order['encounterId'],
-                'external_order_id': order['orderId'],
-                'name': description,
-                'state': 'draft',
-                'dispensed': order_line_dispensed,
-            }
-            sale_order_line_obj.create(sale_line_vals)
+        nearest_batch = sorted_batches[0] if sorted_batches else None
+        if nearest_batch:
+            self._create_order_line(sale_order_line_obj, sale_order, prod_id, prod_obj, nearest_batch, actual_quantity, order_line_uom, description, order_line_dispensed, order)
 
     def _create_order_line(self, sale_order_line_obj, sale_order, prod_id, prod_obj, lot, qty_to_create, order_line_uom, description, order_line_dispensed, order):
         sale_order_line = {
@@ -455,9 +439,13 @@ class OrderSaveService(models.Model):
             'name': description,
             'state': 'draft',
             'dispensed': order_line_dispensed,
-            'lot_id': lot.lot_id.id,
             'expiry_date': lot.lot_id.expiration_date,
         }
+        if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_delivery_automated')):
+            _logger.info("Assigning Batch Number in Sale Order: %s", sale_order)
+            sale_order_line['lot_id'] = lot.lot_id.id
+        else:
+            _logger.info("Skipping Batch Number pre-population as delivery is not automated for Sale Order: %s", sale_order)
 
         sale_line = sale_order_line_obj.create(sale_order_line)
         sale_line._compute_tax_id()
