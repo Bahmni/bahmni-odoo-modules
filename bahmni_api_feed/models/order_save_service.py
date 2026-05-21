@@ -439,9 +439,13 @@ class OrderSaveService(models.Model):
             'name': description,
             'state': 'draft',
             'dispensed': order_line_dispensed,
-            'lot_id': lot.lot_id.id,
             'expiry_date': lot.lot_id.expiration_date,
         }
+        if bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_sale.is_delivery_automated')):
+            _logger.info("Assigning Batch Number in Sale Order: %s", sale_order)
+            sale_order_line['lot_id'] = lot.lot_id.id
+        else:
+            _logger.info("Skipping Batch Number pre-population as delivery is not automated for Sale Order: %s", sale_order)
 
         sale_line = sale_order_line_obj.create(sale_order_line)
         sale_line._compute_tax_id()
