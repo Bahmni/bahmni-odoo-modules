@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from odoo import fields, models, api
 
@@ -78,6 +79,10 @@ class ProductInventoryService(models.AbstractModel):
     def get_available_batches(self, product_uuid, company_id=None):
         """Return non-expired, available-stock lot/batch data for the given product UUID.
 
+        Batches are sorted by expiry date ascending (soonest expiry first);
+        batches with no expiry date appear at the end.
+        Manufacturer name is included if set on the product.
+
         :param product_uuid: UUID of the product.product record
         :param company_id: Optional ID of a res.company record.
                            If provided, filters quants by company for efficient querying.
@@ -96,8 +101,14 @@ class ProductInventoryService(models.AbstractModel):
         quants.mapped('location_id')
         quants.mapped('company_id')
 
+        # Sort: soonest expiry first; quants with no expiry date go last
+        sorted_quants = sorted(
+            quants,
+            key=lambda q: q.lot_id.expiration_date if (q.lot_id and q.lot_id.expiration_date) else datetime.max
+        )
+        manufacturer = product.product_tmpl_id.manufacturer
         result = []
-        for quant in quants:
+        for quant in sorted_quants:
             entry = {
                 'stock_location_name': quant.location_id.name,
                 'available_quantity': quant.available_quantity,
@@ -108,6 +119,8 @@ class ProductInventoryService(models.AbstractModel):
                 entry['batch_number'] = quant.lot_id.name
                 if quant.lot_id.expiration_date:
                     entry['expiry_date'] = quant.lot_id.expiration_date.isoformat() + 'Z'
+            if manufacturer:
+                entry['manufacturer'] = manufacturer.name
             result.append(entry)
 
         return result
