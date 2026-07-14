@@ -18,7 +18,7 @@ class SaleOrderLine(models.Model):
                               help="This field is used to store encounter ID of bahmni api call")
     external_order_id = fields.Char(string="External Order ID",
                                     help="This field stores the order ID got from api call.",
-                                    index=True)
+                                    index='btree_not_null')
     order_uuid = fields.Char(string="Order UUID",
                              help="Field for generating a random unique ID.")
     dispensed = fields.Boolean(string="Dispensed",
