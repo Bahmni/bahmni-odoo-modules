@@ -1,3 +1,4 @@
+import uuid
 from copy import copy
 from datetime import datetime, date
 
@@ -18,7 +19,7 @@ class ProductProduct(models.Model):
                                   "\nActual stock of product doesn't eliminates the count of expired lots from available quantities.")
     mrp = fields.Float(string="MRP")    # when variants exists for product, then mrp will be defined at variant level.
     uuid = fields.Char(string="UUID", index='btree_not_null')
-    
+
     free_qty = fields.Float(
         'Free To Use Quantity ', search='_search_free_qty',
         digits='Product Unit of Measure', compute_sudo=False,store=True,
@@ -36,19 +37,23 @@ class ProductProduct(models.Model):
         ('unique_uuid', 'UNIQUE(uuid)', 'UUID must be unique'),
     ]
 
-    @api.model
-    def create(self, vals):
-        if self._context.get('create_from_tmpl'):
-            if vals.get('product_tmpl_id') and vals.get('attribute_value_ids'):
-                if not vals.get('attribute_value_ids')[0][2]:
-                    vals.update({'mrp': self.env['product.template'].browse(vals.get('product_tmpl_id')).mrp})
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('uuid'):
+                vals['uuid'] = str(uuid.uuid4())
+            if self.env.context.get('create_from_tmpl'):
+                if vals.get('product_tmpl_id') and vals.get('attribute_value_ids'):
+                    if not vals.get('attribute_value_ids')[0][2]:
+                        vals.update({'mrp': self.env['product.template'].browse(vals.get('product_tmpl_id')).mrp})
+        mrp_val = vals_list[0].get('mrp') if vals_list else False
         product = super(ProductProduct, self.with_context(create_product_product=True,
-                                                          mrp=vals.get('mrp'))).create(vals)
+                                                          mrp=mrp_val)).create(vals_list)
         return product
 
     def write(self, vals):
         res = super(ProductProduct, self).write(vals)
-        if vals.get('mrp') and not self._context.get('write_through_tmpl'):
+        if vals.get('mrp') and not self.env.context.get('write_through_tmpl'):
             if len(self.product_tmpl_id.product_variant_ids) == 1:
                 self.product_tmpl_id.mrp = vals.get('mrp')
         return res
@@ -65,7 +70,7 @@ class ProductProduct(models.Model):
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
-    
+
 
 
 
@@ -77,23 +82,28 @@ class ProductTemplate(models.Model):
     drug = fields.Char(string="Drug Name",
                        help="This field is for assigning Generic name to product")
 
-    actual_stock = fields.Integer(string="Actual Stock", 
+    actual_stock = fields.Integer(string="Actual Stock",
                                   help="Get the actual stock available for product."
                                   "\nActual stock of product doesn't eliminates the count of expired lots from available quantities.")
-    
+
     free_qty = fields.Integer(string="Free Qty",
                                   help="Get the actual stock available for product."
                                   "\nActual stock of product doesn't eliminates the count of expired lots from available quantities.")
-    
+
     dhis2_code = fields.Char(string="DHIS2 Code")
 
 
-    @api.model
-    def create(self, vals):
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('uuid'):
+                vals['uuid'] = str(uuid.uuid4())
         # update mrp value in template, when template is getting created through product_product object
-        if self._context.get('create_product_product'):
-            vals.update({'mrp': self._context.get('mrp')})
-        return super(ProductTemplate, self).create(vals)
+        if self.env.context.get('create_product_product'):
+            mrp_val = self.env.context.get('mrp')
+            for vals in vals_list:
+                vals['mrp'] = mrp_val
+        return super(ProductTemplate, self).create(vals_list)
 
     def write(self, vals):
         '''this method is inherited to set mrp price in product.product record 

@@ -11,20 +11,20 @@
                 <field name="amount_tax" widget='monetary'
                        options="{'currency_field': 'currency_id'}"/>
                 <field name="discount_type" required="1"
-                       attrs="{'invisible': [('amount_untaxed', '=', 0.00)], 'readonly': [('state', '!=', 'draft')]}"/>
+                       invisible="amount_untaxed == 0.00" readonly="state != 'draft'"/>
 
                 <field name="discount_percentage" widget='monetary'
                        options="{'currency_field': 'currency_id'}"
-                       attrs="{'readonly': ['|',('state', '!=', 'draft'),('discount_type', '=', 'fixed')],'invisible': [('discount_type', 'in', ('fixed','none'))]}"/>
+                       readonly="state != 'draft' or discount_type == 'fixed'" invisible="discount_type in ('fixed', 'none')"/>
 
                 <field name="discount" widget='monetary'
                        options="{'currency_field': 'currency_id'}"
-                       attrs="{'readonly': ['|',('state', '!=', 'draft'),('discount_type', '=', 'percentage')],'invisible': [('discount_type', 'in', ('none'))]}"/>
+                       readonly="state != 'draft' or discount_type == 'percentage'" invisible="discount_type in ('percentage', 'none')"/>
 
                 <field name="disc_acc_id"
-                       attrs="{'readonly': [('state', '!=', 'draft')],'required': [('discount', '!=', 0.0)],'invisible': ['|', ('discount_type', '=', 'none'),('discount', '=', 0.0)]}"/>
+                       readonly="state != 'draft'" required="state == 'draft' and discount != 0.0" invisible="discount_type == 'none' or discount == 0.0"/>
 
-                <field name="round_off_amount" widget='monetary' force_save = "1"  readonly="1"
+                <field name="round_off_amount" widget='monetary' force_save="1" readonly="1"
                        options="{'currency_field': 'currency_id'}"/>
 
                 <div class="oe_subtotal_footer_separator oe_inline o_td_label">
@@ -35,6 +35,7 @@
             </xpath>
         </field>
     </record>
+
     <record id="inherit_view_invoice_tree_bahmni" model="ir.ui.view">
         <field name="name">Invoice View Changes</field>
         <field name="model">account.move</field>
@@ -43,16 +44,18 @@
             <xpath expr="//field[@name='name']" position="after">
                 <field name="partner_id"/>
             </xpath>
-            <xpath expr="//field[@name='payment_state']" position="before">
+            <!-- Anchored to invoice_date for Odoo 19 compatibility -->
+            <xpath expr="//field[@name='invoice_date']" position="after">
                 <field name="invoice_total" sum="Total" optional="show"/>
                 <field name="amount_residual" sum="Total" optional="show"/>
             </xpath>
         </field>
     </record>
+
     <record id="account.action_move_out_invoice_type" model="ir.actions.act_window">
         <field name="name">Customer Invoices</field>
         <field name="res_model">account.move</field>
-        <field name="view_mode">tree,kanban,form,pivot,graph</field>
+        <field name="view_mode">list,kanban,form,pivot,graph</field>
         <field eval="False" name="view_id"/>
         <field name="domain">[('move_type','in',('out_invoice', 'out_refund'))]</field>
         <field name="context">{'move_type':'out_invoice', 'journal_type': 'sale','readonly_by_pass': True}</field>

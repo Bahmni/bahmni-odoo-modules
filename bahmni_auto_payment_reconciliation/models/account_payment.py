@@ -1,9 +1,7 @@
-from odoo import _, fields, models
-from odoo.exceptions import ValidationError
+import logging
 from odoo import api, fields, models, SUPERUSER_ID, _
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import float_is_zero
-import logging
 
 _logger = logging.getLogger(__name__)
 
@@ -19,25 +17,22 @@ class AccountPayment(models.Model):
         "account.payment.outstanding.invoice.line",
         "payment_id",
         string="Outstanding Invoice Lines",
-        readonly=True,
-        states={"draft": [("readonly", False)]},
-        help="Matching Outstanding Invoice Lines", )
+        help="Matching Outstanding Invoice Lines",
+    )
 
     credit_invoice_lines = fields.One2many(
         "account.payment.credit.invoice.line",
         "payment_id",
         string="Credit Invoice Lines",
-        readonly=True,
-        states={"draft": [("readonly", False)]},
-        help="Matching Credit Invoice Lines", )
+        help="Matching Credit Invoice Lines",
+    )
 
-    @api.depends('is_internal_transfer')
+    @api.depends('payment_type', 'partner_type', 'partner_id')
     def _compute_is_auto_reconciliation_applicable(self):
+        enabled = bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_auto_payment_reconciliation.enabled'))
         for payment in self:
-            payment.is_auto_reconciliation_applicable = \
-                bool(self.env['ir.config_parameter'].sudo().get_param('bahmni_auto_payment_reconciliation.enabled')) \
-                and not self.is_internal_transfer \
-                and self.env.context.get('default_partner_type') == 'customer'
+            is_customer = payment.partner_type == 'customer' or self.env.context.get('default_partner_type') == 'customer'
+            payment.is_auto_reconciliation_applicable = enabled and is_customer
 
     @api.onchange('partner_id')
     def partner_id_onchange(self):
@@ -48,12 +43,13 @@ class AccountPayment(models.Model):
                 self.current_outstanding = self.total_receivable()
                 self.balance_outstanding = self.total_receivable()
                 self.payment_type = 'outbound' if self.current_outstanding < 0 else 'inbound'
-                outstanding_invoices = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
-                                                                        ("amount_residual", ">", 0.0),
-                                                                        ("state", "=", "posted"),
-                                                                        ("company_id", "=", self.company_id.id),
-                                                                        ("move_type", "=", "out_invoice")
-                                                                        ], order="invoice_date_due,id ASC")
+                outstanding_invoices = self.env["account.move"].search([
+                    ("partner_id", "=", self.partner_id.id),
+                    ("amount_residual", ">", 0.0),
+                    ("state", "=", "posted"),
+                    ("company_id", "=", self.company_id.id),
+                    ("move_type", "=", "out_invoice")
+                ], order="invoice_date_due,id ASC")
 
                 total_credit = self.total_credit()
                 for outstanding_invoice in outstanding_invoices:
@@ -89,13 +85,14 @@ class AccountPayment(models.Model):
             if self.partner_id:
                 self.current_outstanding = self.total_receivable()
                 self.balance_outstanding = self.total_receivable()
-                credit_invoices = self.env["account.move"].search([("partner_id", "=", self.partner_id.id),
-                                                                   ("state", "=", "posted"),
-                                                                   ("company_id", "=", self.company_id.id),
-                                                                   '|', ("amount_residual", "<", 0.0),
-                                                                   '&', ("amount_residual", ">", 0.0),
-                                                                   ("move_type", "=", "out_refund"),
-                                                                   ], order="invoice_date_due,id ASC")
+                credit_invoices = self.env["account.move"].search([
+                    ("partner_id", "=", self.partner_id.id),
+                    ("state", "=", "posted"),
+                    ("company_id", "=", self.company_id.id),
+                    '|', ("amount_residual", "<", 0.0),
+                    '&', ("amount_residual", ">", 0.0),
+                    ("move_type", "=", "out_refund"),
+                ], order="invoice_date_due,id ASC")
 
                 total_outstanding = self.total_outstanding()
                 for credit_invoice in credit_invoices:
@@ -124,18 +121,19 @@ class AccountPayment(models.Model):
                         'remaining_amt': remaining_amt,
                         'allocated_amount': allocated_amount,
                         'selected': selected,
-
                     }))
-            return {'value': {'outstanding_invoice_lines': outstanding_vals,
-                              'credit_invoice_lines': credit_vals}}
+            return {'value': {
+                'outstanding_invoice_lines': outstanding_vals,
+                'credit_invoice_lines': credit_vals
+            }}
 
     @api.onchange('amount')
     def paid_amount_onchange(self):
         if self.amount < 0:
-            raise ValidationError("Payment amount should not be in negative")
+            raise ValidationError(_("Payment amount should not be in negative"))
         if self.is_auto_reconciliation_applicable:
             if self.amount > abs(self.current_outstanding):
-                raise ValidationError("Payment amount should not be greater than current outstanding amount")
+                raise ValidationError(_("Payment amount should not be greater than current outstanding amount"))
             is_refund_payment = self.payment_type == 'outbound'
             self.balance_outstanding = (
                 self.current_outstanding + self.amount if is_refund_payment
@@ -190,9 +188,9 @@ class AccountPayment(models.Model):
     def total_credit(self):
         credit_value = 0.0
         if self.partner_id:
-            self._cr.execute("""select sum(ABS(amount_residual)) from account_move where 
-                          (amount_residual < 0 or (move_type='out_refund' and amount_residual > 0)) and state='posted' and partner_id = %s
-                          """, (self.partner_id.id,))
+            self._cr.execute("""SELECT sum(ABS(amount_residual)) FROM account_move WHERE
+                (amount_residual < 0 OR (move_type='out_refund' AND amount_residual > 0)) AND state='posted' AND partner_id = %s
+                             """, (self.partner_id.id,))
             result = self._cr.fetchall()
             if result[0][0] is not None:
                 credit_value = result[0][0]
@@ -203,9 +201,9 @@ class AccountPayment(models.Model):
     def total_outstanding(self):
         outstanding = 0.0
         if self.partner_id:
-            self._cr.execute("""select sum(amount_residual) from account_move where 
-                              amount_residual > 0 and move_type='out_invoice' and state='posted' and partner_id = %s
-                              """, (self.partner_id.id,))
+            self._cr.execute("""SELECT sum(amount_residual) FROM account_move WHERE
+                amount_residual > 0 AND move_type='out_invoice' AND state='posted' AND partner_id = %s
+                             """, (self.partner_id.id,))
             outstanding_value = self._cr.fetchall()
             if outstanding_value[0][0] is not None:
                 outstanding = outstanding_value[0][0]
@@ -226,8 +224,8 @@ class AccountPayment(models.Model):
                     outstanding_invoice.invoice_id.js_assign_outstanding_line(payment_term_line_id.id)
                     associated_invoices.append(outstanding_invoice.invoice_id.name)
                     if credit_invoice.invoice_id.amount_residual == 0:
-                        _logger.info("Credit Invoice %s assigned to : %s" % (credit_invoice.invoice_id.name,
-                                                                             ', '.join(associated_invoices)))
+                        _logger.info("Credit Invoice %s assigned to : %s" % (
+                            credit_invoice.invoice_id.name, ', '.join(associated_invoices)))
                         break
 
     def get_unprocessed_outstanding_invoices(self):
@@ -237,35 +235,33 @@ class AccountPayment(models.Model):
         return self.credit_invoice_lines.filtered(lambda l: l.selected and l.invoice_id.amount_residual != 0)
 
     def assign_payment_to_open_invoices(self, open_invoices):
-        payment_line_entry = self.env["account.move.line"].search([("partner_id", "=", self.partner_id.id),
-                                                                   ("payment_id", "=", self.id),
-                                                                   ("company_id", "=", self.company_id.id),
-                                                                   ("amount_residual", "<", 0.0)
-                                                                   if self.payment_type == 'inbound'
-                                                                   else ("amount_residual", ">", 0.0)
-                                                                   ])
+        payment_line_entry = self.env["account.move.line"].search([
+            ("partner_id", "=", self.partner_id.id),
+            ("payment_id", "=", self.id),
+            ("company_id", "=", self.company_id.id),
+            ("amount_residual", "<", 0.0) if self.payment_type == 'inbound' else ("amount_residual", ">", 0.0)
+        ], limit=1)
         associated_invoices = []
         for open_invoice in open_invoices:
             open_invoice.invoice_id.js_assign_outstanding_line(payment_line_entry.id)
             associated_invoices.append(open_invoice.invoice_id.name)
             if payment_line_entry.amount_residual == 0:
-                _logger.info("Payment %s assigned to : %s" % (self.name,
-                                                              ', '.join(associated_invoices)))
+                _logger.info("Payment %s assigned to : %s" % (self.name, ', '.join(associated_invoices)))
                 break
 
     def validations(self):
         if self.amount > abs(self.current_outstanding):
-            raise ValidationError("Payment amount should not be greater than current outstanding amount")
+            raise ValidationError(_("Payment amount should not be greater than current outstanding amount"))
         if self.current_outstanding < 0 and self.payment_type == 'inbound':
-            raise ValidationError("Payment type should be Send for refund payments")
+            raise ValidationError(_("Payment type should be Send for refund payments"))
         if self.current_outstanding > 0 and self.payment_type == 'outbound':
-            raise ValidationError("Payment type should be Receive for invoice payments")
+            raise ValidationError(_("Payment type should be Receive for invoice payments"))
 
     def unlink_credit_invoice_associations(self):
         allocated_credit_invoices = self.credit_invoice_lines.filtered(lambda l: l.selected)
         for allocated_credit_invoice in allocated_credit_invoices:
             partial_reconciles, exchange_move_diffs = allocated_credit_invoice.invoice_id._get_reconciled_invoices_partials()
-            _logger.info("Reconciles:" + str(partial_reconciles))
+            _logger.info("Reconciles: " + str(partial_reconciles))
             for (partial_reconcile, amount, move_line) in partial_reconciles:
                 associated_outstanding_invoice = self.outstanding_invoice_lines.filtered(
                     lambda l: l.selected and l.invoice_id == move_line.move_id)
@@ -275,16 +271,15 @@ class AccountPayment(models.Model):
                         amount))
                     associated_outstanding_invoice.invoice_id.js_remove_outstanding_partial(partial_reconcile.id)
 
-    # Support Functions for Receipt Print
     def generate_report_action(self):
         return self.env.ref("bahmni_auto_payment_reconciliation.account_payment_summary_receipt").report_action(self)
 
     def get_latest_invoice_for_date(self, invoice_date):
-        return self.env['account.move'].search([('move_type', '=', 'out_invoice'),
-                                                ('partner_id', '=', self.partner_id.id),
-                                                ('invoice_date', '=', invoice_date)],
-                                               order="id desc",
-                                               limit=1)
+        return self.env['account.move'].search([
+            ('move_type', '=', 'out_invoice'),
+            ('partner_id', '=', self.partner_id.id),
+            ('invoice_date', '=', invoice_date)
+        ], order="id desc", limit=1)
 
     def get_invoice_amount_details_for_print(self):
         invoice = self.get_latest_invoice_for_date(self.move_id.date)
@@ -317,77 +312,42 @@ class AccountPayment(models.Model):
             previous_balance -= line.invoice_amt
         return previous_balance
 
-    ## Entry Deletion ##
     def unlink(self):
-        """ unlink """
         for rec in self:
             if rec.state != 'draft':
-                raise UserError(
-                    _('Warning!, You can not delete this entry !!'))
-            if rec.state == 'draft':
-                models.Model.unlink(rec)
-        return True
+                raise UserError(_('Warning!, You can not delete this entry !!'))
+        return super().unlink()
 
 
 class AccountPaymentOutStandingInvoiceLine(models.Model):
     _name = "account.payment.outstanding.invoice.line"
     _description = "Account Payment Outstanding Invoice Line(s)"
 
-    payment_id = fields.Many2one(
-        "account.payment", string="Payment", required=False, ondelete="cascade")
-
-    invoice_id = fields.Many2one(
-        "account.move", string="Invoice No.")
+    payment_id = fields.Many2one("account.payment", string="Payment", required=False, ondelete="cascade")
+    invoice_id = fields.Many2one("account.move", string="Invoice No.")
     partner_id = fields.Many2one("res.partner", string="Customer", ondelete="restrict")
-
-    move_ids = fields.One2many(
-        "account.move.line",
-        "payment_line_id",
-        string="Journal Entries Created",
-    ),
+    move_ids = fields.Many2many("account.move.line", string="Journal Entries Created")
 
     allocated_amount = fields.Float(string="Allocated Amount")
     remaining_amt = fields.Float(string="Remaining Amount")
     invoice_amt = fields.Float(string="Invoice Balance")
     selected = fields.Boolean(string="Selected")
     date = fields.Date(string='Date')
-    care_setting = fields.Selection([('ipd', 'IPD'),
-                                     ('opd', 'OPD')], string="Care Setting")
-
-    def unlink(self):
-        """ unlink """
-        for rec in self:
-            models.Model.unlink(rec)
-        return True
+    care_setting = fields.Selection([('ipd', 'IPD'), ('opd', 'OPD')], string="Care Setting")
 
 
 class AccountPaymentCreditInvoiceLine(models.Model):
     _name = "account.payment.credit.invoice.line"
     _description = "Account Payment Credit Invoice Line(s)"
 
-    payment_id = fields.Many2one(
-        "account.payment", string="Payment", required=False, ondelete="cascade")
-
-    invoice_id = fields.Many2one(
-        "account.move", string="Invoice No.")
+    payment_id = fields.Many2one("account.payment", string="Payment", required=False, ondelete="cascade")
+    invoice_id = fields.Many2one("account.move", string="Invoice No.")
     partner_id = fields.Many2one("res.partner", string="Customer", ondelete="restrict")
-
-    move_ids = fields.One2many(
-        "account.move.line",
-        "payment_line_id",
-        string="Journal Entries Created",
-    ),
+    move_ids = fields.Many2many("account.move.line", string="Journal Entries Created")
 
     allocated_amount = fields.Float(string="Allocated Amount")
     remaining_amt = fields.Float(string="Remaining Amount")
     invoice_amt = fields.Float(string="Invoice Balance")
     selected = fields.Boolean(string="Selected")
     date = fields.Date(string='Date')
-    care_setting = fields.Selection([('ipd', 'IPD'),
-                                     ('opd', 'OPD')], string="Care Setting")
-
-    def unlink(self):
-        """ unlink """
-        for rec in self:
-            models.Model.unlink(rec)
-        return True
+    care_setting = fields.Selection([('ipd', 'IPD'), ('opd', 'OPD')], string="Care Setting")

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="view_company_location_mapping_tree" model="ir.ui.view">
-        <field name="name">company.location.mapping.tree</field>
+        <field name="name">company.location.mapping.list</field>
         <field name="model">company.location.mapping</field>
         <field name="arch" type="xml">
-            <tree string="Company External Identifiers">
+            <list string="Company External Identifiers">
                 <field name="company_id"/>
                 <field name="location_uuid"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -41,7 +41,7 @@
     <record id="action_company_location_mapping" model="ir.actions.act_window">
         <field name="name">Company External Identifiers</field>
         <field name="res_model">company.location.mapping</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Create a new Company External Identifier mapping

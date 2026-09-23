@@ -5,7 +5,7 @@
 		<field name="model">account.move</field>
 		<field name="inherit_id" ref="account.view_move_form"/>
 		<field name="arch" type="xml">
-			<xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='display_type']" position="after">
+			<xpath expr="//field[@name='invoice_line_ids']/list/field[@name='display_type']" position="after">
 				<field name="lot_id" readonly="1"/>
 				<field name="expiry_date" readonly="1"/>
 			</xpath>

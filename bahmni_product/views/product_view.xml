@@ -10,7 +10,7 @@ actual_stock for a product and quants related to it.-->
 			<xpath expr="//div[@name='button_box']" position="inside">
 				<button type="object"
                     name="action_open_quants"
-                    attrs="{'invisible':[('type', '!=', 'product')]}"
+                    invisible="type != 'consu'"
                     class="oe_stat_button" icon="fa-building-o" context="{'show_actual_stock': 1}">
                     <field name="actual_stock" widget="statinfo" string="Actual Stock"/>
                 </button>
@@ -51,7 +51,7 @@ actual_stock for a product and quants related to it.-->
 			<xpath expr="//div[@name='button_box']" position="inside">
 				<button type="object"
                     name="action_open_quants"
-                    attrs="{'invisible':[('type', '!=', 'product')]}"
+                    invisible="type != 'consu'"
                     class="oe_stat_button" icon="fa-building-o" context="{'show_actual_stock': 1}">
                     <field name="actual_stock" widget="statinfo" string="Actual Stock"/>
                 </button>

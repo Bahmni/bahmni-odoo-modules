@@ -8,19 +8,19 @@
             <field name="arch" type="xml">
                 <form string="Customer Return">
                     <header>
-						<button name="entry_confirm" type="object" string="Confirm" class="oe_highlight" attrs="{'invisible': [('status', 'not in', ['draft'])]}" confirm="Are you sure to proceed?"/>
+						<button name="entry_confirm" type="object" string="Confirm" class="oe_highlight" invisible="status != 'draft'" confirm="Are you sure to proceed?"/>
                     </header>
                     
                     <sheet>
                         <group>
                             <group>
                                 <field name="name" readonly="1"/>
-                                <field name="customer_id" required="1" attrs="{'readonly': [('status', 'not in', ['draft'])]}"/>
-                                <field name="product_ids"  widget="many2many_tags" required="1" attrs="{'readonly': [('status', 'not in', ['draft'])]}"/>
+                                <field name="customer_id" required="1" readonly="status != 'draft'"/>
+                                <field name="product_ids"  widget="many2many_tags" required="1" readonly="status != 'draft'"/>
                             </group>
                             <group>
-                                <field name="entry_date" required="1" attrs="{'readonly': [('status', 'not in', ['draft'])]}"/>
-                                <field name="location_id" required="1" attrs="{'readonly': [('status', 'not in', ['draft'])]}"/>
+                                <field name="entry_date" required="1" readonly="status != 'draft'"/>
+                                <field name="location_id" required="1" readonly="status != 'draft'"/>
                                 <field name="status" readonly="1" invisible="1" />
                                 <field name="currency_id" invisible="1" />
                             </group>
@@ -28,7 +28,7 @@
                         
                         <notebook>
                             <page string="Product Details">
-                                <field name="line_ids" nolabel="1" attrs="{'readonly': [('status', 'not in', ['draft'])]}">
+                                <field name="line_ids" nolabel="1" readonly="status != 'draft'">
                                     <tree string="Details" editable="bottom">
                                         <field name="header_id" invisible="1" />
                                         <field name="product_id" required="1" readonly = "1" force_save="1" options="{'no_create': True}" />

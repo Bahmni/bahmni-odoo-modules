@@ -1,4 +1,3 @@
-
 import uuid
 from odoo import models, fields, api
 
@@ -8,8 +7,9 @@ class ProductCategory(models.Model):
 
     uuid = fields.Char(string="UUID")
 
-    @api.model
-    def create(self, vals):
-        if vals.get('uuid') is None or not vals.get('uuid'):
-            vals.update({'uuid': uuid.uuid4()})
-        return super(ProductCategory, self).create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('uuid'):
+                vals['uuid'] = str(uuid.uuid4())
+        return super(ProductCategory, self).create(vals_list)

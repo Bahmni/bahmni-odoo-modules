@@ -11,7 +11,7 @@ Bahmni Product
     'category': 'Product',
     'website': '',
     'images': [],
-    'depends': ['product', 'product_expiry'],
+    'depends': ['product', 'product_expiry','uom'],
     'data': ['data/product_category.xml',
              'views/res_partner_view.xml',
              'views/product_supplierinfo_view.xml',

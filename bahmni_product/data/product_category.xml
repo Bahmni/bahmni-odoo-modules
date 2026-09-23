@@ -3,15 +3,12 @@
     <data>
         <record id="categ_saleable_drugs" model="product.category">
             <field name="name">Drugs</field>
-            <field name="parent_id" ref="product.product_category_1"/>
         </record>
         <record id="categ_saleable_others" model="product.category">
             <field name="name">Others</field>
-            <field name="parent_id" ref="product.product_category_1"/>
         </record>
         <record id="categ_all_services" model="product.category">
             <field name="name">Services</field>
-            <field name="parent_id" ref="product.product_category_all"/>
         </record>
         <record id="categ_services_lab" model="product.category">
             <field name="name">Lab</field>

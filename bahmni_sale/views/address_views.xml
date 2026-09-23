@@ -4,11 +4,11 @@
         <field name="name">tree.village.village</field>
         <field name="model">village.village</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name"/>
                 <field name="subdistrict_id"/>
                 <field name="district_id"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -31,18 +31,17 @@
     <record id="action_village_village" model="ir.actions.act_window">
         <field name="name">Villages</field>
         <field name="res_model">village.village</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
-
 
     <record id="tree_state_district" model="ir.ui.view">
         <field name="name">tree.state.district</field>
         <field name="model">state.district</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name"/>
                 <field name="state_id"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -63,18 +62,17 @@
     <record id="action_state_district" model="ir.actions.act_window">
         <field name="name">Districts</field>
         <field name="res_model">state.district</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
-
 
     <record id="tree_district_subdistrict" model="ir.ui.view">
         <field name="name">tree.district.subdistrict</field>
         <field name="model">district.subdistrict</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name"/>
                 <field name="district_id"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -96,14 +94,14 @@
     <record id="action_district_subdistrict" model="ir.actions.act_window">
         <field name="name">Sub-Districts</field>
         <field name="res_model">district.subdistrict</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <menuitem
             id="menu_address_config"
             name="Address Configuration"
             parent="bahmni_sale.menu_bahmni_masters"
-            />
+    />
     <menuitem
             id="menu_village_villages"
             name="Villages"
@@ -130,5 +128,3 @@
             action="bahmni_address_mapping.action_address_mapping_table"
             sequence="4"/>
 </odoo>
-
-

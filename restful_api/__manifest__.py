@@ -23,8 +23,6 @@
         'data/ir_config_param.xml',
     ],
     # only loaded in demonstration mode
-    'demo': [
-        'demo/demo.xml',
-    ],
+    'demo': [],
     'license': 'LGPL-3',    
 }
