@@ -6,26 +6,26 @@ USER root
 COPY package/docker/odoo/odoo.conf /etc/odoo/odoo.conf
 RUN chown -R odoo:odoo /etc/odoo
 
-COPY bahmni_account ${ADDON_PATH}/bahmni_account/
-COPY bahmni_address_mapping ${ADDON_PATH}/bahmni_address_mapping/
-COPY bahmni_api_feed ${ADDON_PATH}/bahmni_api_feed/
-COPY bahmni_base ${ADDON_PATH}/bahmni_base/
-COPY bahmni_initializer ${ADDON_PATH}/bahmni_initializer/
-COPY bahmni_product ${ADDON_PATH}/bahmni_product/
-COPY bahmni_purchase ${ADDON_PATH}/bahmni_purchase/
-COPY bahmni_sale ${ADDON_PATH}/bahmni_sale/
-COPY bahmni_stock ${ADDON_PATH}/bahmni_stock/
-COPY restful_api ${ADDON_PATH}/restful_api/
-COPY bahmni_auto_payment_reconciliation ${ADDON_PATH}/bahmni_auto_payment_reconciliation
-COPY openerp7_data_import ${ADDON_PATH}/openerp7_data_import/
-COPY odoo10_data_import ${ADDON_PATH}/odoo10_data_import/
-COPY bahmni_reports ${ADDON_PATH}/bahmni_reports
-COPY bahmni_customer_return ${ADDON_PATH}/bahmni_customer_return
-COPY community_modules ${ADDON_PATH}/community_modules/
-COPY package/resources/data/address.seed.csv ${ADDON_PATH}/bahmni_initializer/data/
-COPY package/resources/data/uom_seed.xml ${ADDON_PATH}/bahmni_initializer/data/
-COPY package/resources/data/order_type.xml ${ADDON_PATH}/bahmni_initializer/data/
-COPY package/resources/data/sale_shop.xml ${ADDON_PATH}/bahmni_initializer/data/
+#COPY bahmni_account ${ADDON_PATH}/bahmni_account/
+#COPY bahmni_address_mapping ${ADDON_PATH}/bahmni_address_mapping/
+#COPY bahmni_api_feed ${ADDON_PATH}/bahmni_api_feed/
+#COPY bahmni_base ${ADDON_PATH}/bahmni_base/
+#COPY bahmni_initializer ${ADDON_PATH}/bahmni_initializer/
+#COPY bahmni_product ${ADDON_PATH}/bahmni_product/
+#COPY bahmni_purchase ${ADDON_PATH}/bahmni_purchase/
+#COPY bahmni_sale ${ADDON_PATH}/bahmni_sale/
+#COPY bahmni_stock ${ADDON_PATH}/bahmni_stock/
+#COPY restful_api ${ADDON_PATH}/restful_api/
+#COPY bahmni_auto_payment_reconciliation ${ADDON_PATH}/bahmni_auto_payment_reconciliation
+#COPY openerp7_data_import ${ADDON_PATH}/openerp7_data_import/
+#COPY odoo10_data_import ${ADDON_PATH}/odoo10_data_import/
+#COPY bahmni_reports ${ADDON_PATH}/bahmni_reports
+#COPY bahmni_customer_return ${ADDON_PATH}/bahmni_customer_return
+#COPY community_modules ${ADDON_PATH}/community_modules/
+#COPY package/resources/data/address.seed.csv ${ADDON_PATH}/bahmni_initializer/data/
+#COPY package/resources/data/uom_seed.xml ${ADDON_PATH}/bahmni_initializer/data/
+#COPY package/resources/data/order_type.xml ${ADDON_PATH}/bahmni_initializer/data/
+#COPY package/resources/data/sale_shop.xml ${ADDON_PATH}/bahmni_initializer/data/
 RUN pip3 install --break-system-packages python-decouple
 
 USER odoo
