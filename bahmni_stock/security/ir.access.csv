@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,operation,domain
+access_stock_picking_validation,access_stock_picking_validation,model_stock_picking_validate_wizard,,crud,

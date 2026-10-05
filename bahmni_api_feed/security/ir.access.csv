@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,operation,domain
+access_order_type_shop_map,access_order_type_shop_map,model_order_type_shop_map,,crud,
+access_event_records,access_event_records,model_event_records,,crud,
+access_order_type,access_order_type,model_order_type,,crud,
+access_syncable_units_mapping,access_syncable_units_mapping,model_syncable_units_mapping,,crud,
+access_order_save_service,access_order_save_service,model_order_save_service,,crud,
+access_product_uom_service,access_product_uom_service,model_product_uom_service,,crud,

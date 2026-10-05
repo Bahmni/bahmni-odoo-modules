@@ -20,7 +20,7 @@ class ResPartner(models.Model):
     # inherited to update display name w.r.t. ref field
     # and hence user can search customer with reference too
     @api.depends('is_company', 'name', 'parent_id.name',
-                 'type', 'company_name', 'ref')
+                 'type', 'ref')
     def _compute_display_name(self):
         diff = dict(show_address=None, show_address_only=None, show_email=None)
         names = dict(self.with_context(**diff).name_get())
@@ -34,7 +34,7 @@ class ResPartner(models.Model):
             name = partner.name or ''
             if partner.ref:
                 name += ' [' + partner.ref + ']'
-            if partner.company_name or partner.parent_id:
+            if partner.commercial_company_name or partner.parent_id:
                 if not name and partner.type in ['invoice', 'delivery', 'other']:
                     name = dict(self.fields_get(['type'])['type']['selection'])[partner.type]
                 if not partner.is_company:

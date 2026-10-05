@@ -1,8 +1,12 @@
 import json
+from urllib.parse import quote
 from odoo import http
-from odoo.http import content_disposition, request
+from odoo.http import request
 from odoo.tools import html_escape
 
+def content_disposition(filename):
+    """Drop-in replacement for removed odoo.http.content_disposition in Odoo 20"""
+    return f"attachment; filename*=UTF-8''{quote(filename)}"
 
 class XLSXReportController(http.Controller):
     """This is used to call the xlsx report function"""

@@ -14,7 +14,7 @@ Bahmni Initializer
     'license': 'LGPL-3',
     'depends': ['base','bahmni_address_mapping','product','bahmni_product','bahmni_api_feed'],
     'data': [
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
         'data/address.seed.csv',
         'data/uom_seed.xml',
         'data/sale_shop.xml',

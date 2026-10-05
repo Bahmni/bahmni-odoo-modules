@@ -1,4 +1,4 @@
-FROM odoo:19
+FROM odoo:20
 
 ENV ADDON_PATH=/opt/bahmni-erp/bahmni-addons
 

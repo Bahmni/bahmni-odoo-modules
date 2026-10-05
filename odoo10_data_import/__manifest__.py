@@ -20,7 +20,7 @@
     },
     'data': [
         'views/db_details_view.xml',
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
     ],
     'installable': True,
     'license': 'LGPL-3',

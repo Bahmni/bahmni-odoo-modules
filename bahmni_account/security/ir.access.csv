@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,operation,domain
+access_account_count_report_account_user,Account Count Report Account User,model_account_count_report,account.group_account_user,cru,
+access_rounding_off,access_rounding_off,model_rounding_off,,crud,
+access_account_report,access_account_report,model_account_report,,crud,

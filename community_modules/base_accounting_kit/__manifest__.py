@@ -52,7 +52,7 @@
     'maintainer': 'Cybrosys Techno Solutions',
     'depends': ['base', 'account', 'sale', 'account_check_printing', 'base_account_budget','analytic'],
     'data': [
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
         'security/security.xml',
         'data/account_financial_report_data.xml',
         'data/cash_flow_data.xml',

@@ -13,7 +13,7 @@
 
     # always loaded
     'data': [
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
         'data/ir_sequence_data.xml',
         'views/bahmni_customer_return_views.xml',
         'views/res_config_inherit.xml',

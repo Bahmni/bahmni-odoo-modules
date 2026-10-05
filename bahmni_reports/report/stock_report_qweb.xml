@@ -15,15 +15,13 @@
         <field name="header_spacing">50</field>
         <field name="dpi">90</field>
     </record>
+
     <record id="bahmni_reports_stock" model="ir.actions.report">
-       <field name="name">Bahmni Reports</field>
-       <field name="model">stock.report</field>
-       <field name="report_type">qweb-pdf</field>
-       <field name="report_name">bahmni_reports.stock_report_template</field>
-       <field name="report_file">bahmni_reports.stock_report_template</field>
-       <field name="print_report_name">'Stock Statement - Summary' if object.report_type == 'summary' else 'Stock Statement - Details'</field>
-       <field name="paperformat_id" ref="paperformat_stock_report_landscape"/>
+        <field name="name">Bahmni Reports</field>
+        <field name="model">stock.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">bahmni_reports.stock_report_template</field>
+        <field name="print_report_name">'Stock Statement - Summary' if object.report_type == 'summary' else 'Stock Statement - Details'</field>
+        <field name="paperformat_id" ref="paperformat_stock_report_landscape"/>
     </record>
-
-
 </odoo>

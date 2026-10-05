@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,operation,domain
+access_state_district,state.district,model_state_district,base.group_user,crud,
+access_district_subdistrict,district.subdistrict,model_district_subdistrict,base.group_user,crud,
+access_village_village,village.village,model_village_village,base.group_user,crud,
+access_address_mapping_table,address.mapping.table,model_address_mapping_table,base.group_user,crud,

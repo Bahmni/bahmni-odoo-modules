@@ -24,7 +24,7 @@
                         <field name="quantity" string="Quantity"/>
                         <field name="balance" string="Balance Quantity"
                                column_invisible="parent.picking_code != 'internal'"/>
-                        <field name="product_uom_id"/>
+
                         <field name="lot_id"
                                column_invisible="parent.picking_code != 'internal'"/>
                         <field name="lot_name" string="Lot/Serial Number"

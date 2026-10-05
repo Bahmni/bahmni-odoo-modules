@@ -4,7 +4,6 @@ from collections import defaultdict
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.fields import Command
-from odoo.osv import expression
 from odoo.tools import float_is_zero, float_compare, float_round
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 

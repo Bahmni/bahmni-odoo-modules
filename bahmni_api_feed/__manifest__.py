@@ -12,7 +12,7 @@ Bahmni API Feed
     'images': [],
     'depends': ['base','product','bahmni_sale','bahmni_stock','bahmni_base'],
     'data': [
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
         'views/event_records_view.xml',
         'views/res_company.xml',
         'views/order_type_view.xml',

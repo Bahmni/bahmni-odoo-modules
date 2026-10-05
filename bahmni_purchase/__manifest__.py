@@ -12,7 +12,7 @@ Bahmni Purchase
     'website': '',
     'images': [],
     'depends': ['purchase', 'bahmni_product', 'bahmni_stock', 'bahmni_sale'],
-    'data': ['security/ir.model.access.csv',
+    'data': ['security/ir.access.csv',
 			 'views/purchase_views.xml',
              'views/product_view.xml',
              'views/res_config_inherit.xml',

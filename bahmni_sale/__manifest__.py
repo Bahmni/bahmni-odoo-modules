@@ -11,7 +11,7 @@ Bahmni Sale
     'website': '',
     'images': [],
     'depends': ['base','sale', 'sale_stock','sales_team','bahmni_address_mapping','bahmni_account','point_of_sale','account'],
-    'data': ['security/ir.model.access.csv',
+    'data': ['security/ir.access.csv',
              'security/security_groups.xml',
              'data/data.xml',
              'data/sale_config_setting.xml',

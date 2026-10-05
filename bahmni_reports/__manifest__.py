@@ -26,7 +26,7 @@
 
     # Always loaded XML data & security
     'data': [
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
         'report/reports_menu_view.xml',
         'report/sale_discount_head_statement_view.xml',
         'report/purchase_order_register_view.xml',

@@ -11,7 +11,6 @@
                         <field name="product_id" />                            
                             <div class="o_row">
                                 <field name="product_qty"/>
-                                <field name="product_uom_id" readonly="1"/>
                             </div>
                         <field name="ref"/>
                     </group>

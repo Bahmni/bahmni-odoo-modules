@@ -9,7 +9,7 @@
     "license": "LGPL-3",
     "depends": ["account","bahmni_sale"],
     "data": [
-        "security/ir.model.access.csv",
+        "security/ir.access.csv",
         'views/account_payment_view_inherit.xml',
         'views/res_config_inherit.xml',
         'views/account_report.xml',

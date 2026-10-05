@@ -14,7 +14,7 @@ such as Company-Location mapping.
     'images': [],
     'depends': ['base', 'bahmni_sale'],
     'data': [
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
         'views/company_location_mapping_view.xml',
     ],
     'demo': [],

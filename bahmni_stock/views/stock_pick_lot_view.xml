@@ -14,10 +14,11 @@
                 <attribute name="force_save">1</attribute>
             </xpath>
             <xpath expr="//field[@name='expiration_date']" position="attributes">
-                <attribute name="column_invisible">not parent.use_expiration_date or parent.picking_code != 'incoming'</attribute>
+                <attribute name="column_invisible">not parent.use_expiration_date or parent.picking_type_code != 'incoming'</attribute>
                 <attribute name="readonly">picking_type_use_existing_lots or existing_lot_id</attribute>
             </xpath>
-            <xpath expr="//list/field[@name='product_uom_id']" position="after">
+            <!-- Odoo 20 Fix: Swapped removed product_uom_id anchor for quantity -->
+            <xpath expr="//list/field[@name='quantity']" position="after">
                 <field name="cost_price" invisible="not context.get('show_lots_text')"/>
                 <field name="sale_price" invisible="not context.get('show_lots_text')"/>
                 <field name="mrp" invisible="not context.get('show_lots_text')"/>
