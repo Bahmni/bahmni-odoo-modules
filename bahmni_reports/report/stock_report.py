@@ -1,9 +1,5 @@
 import time
-import pip
-try:  
-    import pandas as pd
-except ImportError:
-    pip.main(['install', 'pandas'])
+import pandas as pd
 from datetime import datetime,date,timedelta
 
 

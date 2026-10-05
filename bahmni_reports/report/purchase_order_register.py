@@ -1,5 +1,4 @@
 import time
-import pip
 from datetime import datetime,date,timedelta
 
 
