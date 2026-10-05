@@ -1,13 +1,13 @@
-name: Build and Publish Odoo 19
+name: Build and Publish Odoo 20
 on:
   push:
     branches:
-      - migration/odoo-version-19
+      - migration/odoo-version-20
   workflow_dispatch:
 
 jobs:
   docker-build-publish:
-    name: Docker Build & Publish Odoo 19
+    name: Docker Build & Publish Odoo 20
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,4 +37,4 @@ jobs:
           platforms: linux/amd64
           file: package/docker/odoo/Dockerfile
           push: true
-          tags: bahmni/odoo-19:${{env.ARTIFACT_VERSION}},bahmni/odoo-19:latest
+          tags: bahmni/odoo-20:${{env.ARTIFACT_VERSION}},bahmni/odoo-20:latest
