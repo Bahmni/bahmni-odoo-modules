@@ -1,0 +1,255 @@
+{
+  "schema_version": "1.0",
+  "file_type": "transition_migration_rules",
+  "title": "Odoo 16.0 to 17.0 migration investigation",
+  "source_version": "16.0",
+  "target_version": "17.0",
+  "status": "mandatory_manual_notes_plus_source_verification",
+  "important_note": "Every rule/check in this file is mandatory to investigate for the 16→20 migration path. User-reported change descriptions are leads; verify against exact source tags, official docs, edition and owning model before calling a breaking change confirmed or applying a fix.",
+  "required_process": [
+    "Inspect the source-version implementation (16.0) and target-version implementation (17.0) for each finding.",
+    "Check official upgrade/migration notes for the transition.",
+    "Trace affected references in Python, XML, CSV, manifest, JS, tests and dependencies.",
+    "Classify as confirmed incompatibility, likely issue, false positive, or needs investigation.",
+    "Propose a minimal fix and describe behavior/security/data risk.",
+    "Wait for explicit approval before editing."
+  ],
+  "transition_focus": [
+    "API and field removals/renames introduced in this transition",
+    "View syntax and frontend changes",
+    "security, manifest and dependency changes",
+    "Python/controller API changes"
+  ],
+  "required_checks": [
+    {
+      "rule_id": "16-17-CROSSCHECK-001",
+      "title": "Compare every common rule against 16.0 and 17.0 source",
+      "rule_refs": "common.json rules",
+      "required": true
+    },
+    {
+      "rule_id": "16-17-CROSSCHECK-002",
+      "title": "Review XML view syntax, inherited views and action behavior",
+      "rule_refs": [
+        "COMMON-XML-001",
+        "COMMON-XML-002",
+        "COMMON-XML-003",
+        "COMMON-XML-005"
+      ],
+      "required": true
+    },
+    {
+      "rule_id": "16-17-CROSSCHECK-003",
+      "title": "Review model fields, method signatures, imports and dependencies",
+      "rule_refs": [
+        "COMMON-ORM-001",
+        "COMMON-ORM-006",
+        "COMMON-UOM-001",
+        "COMMON-UOM-002",
+        "COMMON-UOM-003"
+      ],
+      "required": true
+    },
+    {
+      "rule_id": "16-17-CROSSCHECK-004",
+      "title": "Review frontend modules and asset conventions",
+      "rule_refs": [
+        "COMMON-JS-001",
+        "COMMON-JS-002",
+        "COMMON-JS-003",
+        "COMMON-JS-004"
+      ],
+      "required": true
+    },
+    {
+      "rule_id": "16-17-CROSSCHECK-005",
+      "title": "Record verified transition-specific changes with citations before adding permanent rules",
+      "required": true
+    },
+    {
+      "rule_id": "16-17-MANUAL-NOTES",
+      "title": "Mandatory user-identified migration notes for this transition",
+      "rule_refs": [
+        "MANUAL-VIEW-001",
+        "MANUAL-ACCOUNT-004",
+        "MANUAL-STOCK-003",
+        "MANUAL-STOCK-004",
+        "MANUAL-STOCK-005",
+        "MANUAL-STOCK-006",
+        "MANUAL-API-001",
+        "MANUAL-API-002",
+        "MANUAL-UOM-002",
+        "MANUAL-SALE-001",
+        "MANUAL-ACCOUNT-005",
+        "MANUAL-MANIFEST-001",
+        "MANUAL-ASSET-001",
+        "MANUAL-JS-001",
+        "MANUAL-JS-002",
+        "MANUAL-JS-003",
+        "MANUAL-JS-004",
+        "MANUAL-VIEW-002",
+        "MANUAL-VIEW-003"
+      ],
+      "required": true,
+      "verification_steps": [
+        "Inspect every referenced rule even if the simple scanner did not match a token.",
+        "For each applicable rule, record applicable/not applicable/false positive/needs investigation and cite exact target source evidence.",
+        "Do not apply edits until the user explicitly approves the proposed patch."
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "MANUAL-VIEW-001",
+      "title": "tree to list view tags",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-ACCOUNT-004",
+      "title": "account.move payment_state xpath anchor",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-STOCK-003",
+      "title": "stock.picking move_ids_without_package rename",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-STOCK-004",
+      "title": "stock move line operation view external ID rename",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-STOCK-005",
+      "title": "stock.move.line package_level_id and qty_done",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-STOCK-006",
+      "title": "stock move line duplicate location xpath index",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-API-001",
+      "title": "html_keep_url removed from odoo.tools",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-API-002",
+      "title": "pickle import migration",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-UOM-002",
+      "title": "sale.order.line product_uom to product_uom_id",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-SALE-001",
+      "title": "sale.order.line product_template_id to product_id view reference",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-ACCOUNT-005",
+      "title": "account.payment is_internal_transfer replacement",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-MANIFEST-001",
+      "title": "Manifest-declared data/demo file existence",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-ASSET-001",
+      "title": "Legacy qweb manifest key and assets dictionary",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-JS-001",
+      "title": "web.framework and web.session imports",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-JS-002",
+      "title": "session.get_file download API",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-JS-003",
+      "title": "framework blockUI/unblockUI migration",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-JS-004",
+      "title": "jQuery Deferred and crash_manager migration",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-VIEW-002",
+      "title": "Odoo 17+ attrs attribute conversion",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect every occurrence, preserve condition semantics, verify against target source, and propose changes only for approval."
+    },
+    {
+      "rule_id": "MANUAL-VIEW-003",
+      "title": "Odoo 17+ states attribute conversion",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect every occurrence, preserve condition semantics, verify against target source, and propose changes only for approval."
+    }
+  ]
+}
