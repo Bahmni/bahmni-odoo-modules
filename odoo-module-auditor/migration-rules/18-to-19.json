@@ -1,0 +1,138 @@
+{
+  "schema_version": "1.0",
+  "file_type": "transition_migration_rules",
+  "title": "Odoo 18.0 to 19.0 migration investigation",
+  "source_version": "18.0",
+  "target_version": "19.0",
+  "status": "mandatory_manual_notes_plus_source_verification",
+  "important_note": "Every rule/check in this file is mandatory to investigate for the 16→20 migration path. User-reported change descriptions are leads; verify against exact source tags, official docs, edition and owning model before calling a breaking change confirmed or applying a fix.",
+  "required_process": [
+    "Inspect the source-version implementation (18.0) and target-version implementation (19.0) for each finding.",
+    "Check official upgrade/migration notes for the transition.",
+    "Trace affected references in Python, XML, CSV, manifest, JS, tests and dependencies.",
+    "Classify as confirmed incompatibility, likely issue, false positive, or needs investigation.",
+    "Propose a minimal fix and describe behavior/security/data risk.",
+    "Wait for explicit approval before editing."
+  ],
+  "transition_focus": [
+    "API and field removals/renames introduced in this transition",
+    "View syntax and frontend changes",
+    "security, manifest and dependency changes",
+    "Python/controller API changes"
+  ],
+  "required_checks": [
+    {
+      "rule_id": "18-19-CROSSCHECK-001",
+      "title": "Compare every common rule against 18.0 and 19.0 source",
+      "rule_refs": "common.json rules",
+      "required": true
+    },
+    {
+      "rule_id": "18-19-CROSSCHECK-002",
+      "title": "Review XML view syntax, inherited views and action behavior",
+      "rule_refs": [
+        "COMMON-XML-001",
+        "COMMON-XML-002",
+        "COMMON-XML-003",
+        "COMMON-XML-005"
+      ],
+      "required": true
+    },
+    {
+      "rule_id": "18-19-CROSSCHECK-003",
+      "title": "Review model fields, method signatures, imports and dependencies",
+      "rule_refs": [
+        "COMMON-ORM-001",
+        "COMMON-ORM-006",
+        "COMMON-UOM-001",
+        "COMMON-UOM-002",
+        "COMMON-UOM-003"
+      ],
+      "required": true
+    },
+    {
+      "rule_id": "18-19-CROSSCHECK-004",
+      "title": "Review frontend modules and asset conventions",
+      "rule_refs": [
+        "COMMON-JS-001",
+        "COMMON-JS-002",
+        "COMMON-JS-003",
+        "COMMON-JS-004"
+      ],
+      "required": true
+    },
+    {
+      "rule_id": "18-19-CROSSCHECK-005",
+      "title": "Record verified transition-specific changes with citations before adding permanent rules",
+      "required": true
+    },
+    {
+      "rule_id": "18-19-MANUAL-NOTES",
+      "title": "Mandatory user-identified migration notes for this transition",
+      "rule_refs": [
+        "MANUAL-UOM-001",
+        "MANUAL-CATEGORY-001",
+        "MANUAL-ORM-002",
+        "MANUAL-PRECISION-001",
+        "MANUAL-GROUP-001",
+        "MANUAL-ACTION-001"
+      ],
+      "required": true,
+      "verification_steps": [
+        "Inspect every referenced rule even if the simple scanner did not match a token.",
+        "For each applicable rule, record applicable/not applicable/false positive/needs investigation and cite exact target source evidence.",
+        "Do not apply edits until the user explicitly approves the proposed patch."
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "MANUAL-UOM-001",
+      "title": "uom.category model removal",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-CATEGORY-001",
+      "title": "Product category root records and removed external IDs",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-ORM-002",
+      "title": "product.category create decorator signature",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-PRECISION-001",
+      "title": "decimal_precision module/API removal",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-GROUP-001",
+      "title": "res.groups category_id removal",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-ACTION-001",
+      "title": "window action target inline removed",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    }
+  ]
+}

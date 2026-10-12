@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Odoo Migration Audit Report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "module",
+    "source_version",
+    "target_version",
+    "status",
+    "findings"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "module": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "module_path": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_version": {
+      "const": "16.0"
+    },
+    "target_version": {
+      "const": "20.0"
+    },
+    "status": {
+      "enum": [
+        "completed",
+        "completed_with_findings",
+        "failed"
+      ]
+    },
+    "command": {
+      "type": "string"
+    },
+    "exit_code": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "output_format": {
+      "const": "json"
+    },
+    "parse_status": {
+      "enum": [
+        "success",
+        "failure"
+      ]
+    },
+    "summary": {
+      "type": "object"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "rule_id",
+          "category",
+          "severity",
+          "message",
+          "classification",
+          "verification",
+          "approval"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "rule_id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ]
+          },
+          "file": {
+            "type": "string"
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "column": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "message": {
+            "type": "string"
+          },
+          "classification": {
+            "enum": [
+              "confirmed_incompatibility",
+              "likely_issue",
+              "false_positive",
+              "needs_investigation"
+            ]
+          },
+          "source_version": {
+            "const": "16.0"
+          },
+          "target_version": {
+            "const": "20.0"
+          },
+          "transition": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "suggested_fix": {
+            "type": "string"
+          },
+          "risk": {
+            "type": "string"
+          },
+          "confidence": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "verification": {
+            "enum": [
+              "verified",
+              "unverified",
+              "not_applicable"
+            ]
+          },
+          "approval": {
+            "enum": [
+              "not_requested",
+              "approved",
+              "rejected",
+              "applied"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "tests_run": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unresolved_risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "database_operations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rule_catalog": {
+      "type": "object",
+      "description": "Status of the five separate migration rule JSON files loaded by the scanner.",
+      "properties": {
+        "directory": {
+          "type": "string"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "common_rule_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "transition_checks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "load_errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "loaded": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "files",
+        "common_rule_count",
+        "transition_checks",
+        "load_errors",
+        "loaded"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
