@@ -1,0 +1,2664 @@
+{
+  "schema_version": "1.0",
+  "file_type": "common_migration_rules",
+  "title": "Common Odoo migration audit rules",
+  "source_version": "16.0",
+  "target_version": "20.0",
+  "purpose": "Shared migration rules plus mandatory checks captured from the user’s manual Odoo 16→20 migration notes. Presence in this catalog requires investigation; it does not by itself prove every reported change applies to every edition/module.",
+  "policy": {
+    "verify_against_exact_target_source": true,
+    "automatically_apply_fixes": false,
+    "approval_required_before_editing": true,
+    "database_operations_in_scope": false,
+    "database_credentials_required": false,
+    "scanner_matches_are_proof_of_incompatibility": false,
+    "preserve_business_and_security_semantics": true,
+    "manual_note_rules_are_mandatory_checks": true,
+    "verify_conflicting_claims_against_target_source": true,
+    "source_evidence_required_for_confirmed_incompatibility": true
+  },
+  "finding_classifications": [
+    "confirmed_incompatibility",
+    "likely_issue",
+    "false_positive",
+    "needs_investigation"
+  ],
+  "rules": [
+    {
+      "rule_id": "COMMON-SEC-001",
+      "category": "security",
+      "title": "Access-control CSV format and model",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "security/ir.model.access.csv",
+        "security/ir.access.csv",
+        "access-control model references"
+      ],
+      "verification_steps": [
+        "Identify the exact source and target Odoo versions and distribution.",
+        "Inspect target-version security model definitions, expected CSV filename, column names, external IDs, and loading conventions.",
+        "Compare each legacy ACL's model, groups, read/write/create/unlink semantics and references."
+      ],
+      "remediation_guidance": "Perform a semantic migration of the access-control records and all associated references only after the target format is verified; do not merely rename a file.",
+      "risk": "security",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-SEC-002",
+      "category": "security",
+      "title": "ACL permission tokens",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "perm_read",
+        "perm_write",
+        "perm_create",
+        "perm_unlink"
+      ],
+      "verification_steps": [
+        "Locate the exact model and file in which each token appears.",
+        "Verify whether the token is valid in that target-version security structure.",
+        "Compare effective permissions before and after any proposed change."
+      ],
+      "remediation_guidance": "Keep, transform, or replace fields only according to verified target-version semantics. Never remove permission flags because a text scanner labels them legacy.",
+      "risk": "security",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-SEC-003",
+      "category": "security",
+      "title": "Record rules and ir.rule references across versions",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "ir.rule references",
+        "record-rule XML IDs",
+        "domain_force",
+        "groups references"
+      ],
+      "verification_steps": [
+        "Resolve the exact source/target version. In versions where ir.rule exists, preserve the domain, groups and per-operation semantics.",
+        "For Odoo 20 migration, explicitly verify the unified ir.access model and convert old ir.rule records semantically if confirmed in the exact target source.",
+        "Never delete record-rule restrictions without representing their effective restrictions in the target access model."
+      ],
+      "remediation_guidance": "For Odoo 20, investigate the ir.access conversion path and preserve record-level restrictions; for earlier versions, retain supported ir.rule semantics.",
+      "risk": "security",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-SEC-004",
+      "category": "security",
+      "title": "Group category and privilege relationships",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "res.groups.category_id",
+        "category_id references in security XML/Python"
+      ],
+      "verification_steps": [
+        "Resolve the model owning category_id; do not rely on token matches.",
+        "Verify the field and group/privilege model in target source.",
+        "Review implied groups and access implications."
+      ],
+      "remediation_guidance": "Change only the model-specific unsupported reference, preserving intended grouping and privilege relationships.",
+      "risk": "security",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-SEC-005",
+      "category": "security",
+      "title": "Security external IDs and load order",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "security XML/CSV references",
+        "manifest data entries"
+      ],
+      "verification_steps": [
+        "Check referenced model IDs, group IDs, external IDs and files exist.",
+        "Check manifest load order and dependencies.",
+        "Review multi-company and group/record-level behavior."
+      ],
+      "remediation_guidance": "Correct missing references and load order while preserving access behavior. Explain any change that broadens or restricts access.",
+      "risk": "security",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-MANIFEST-001",
+      "category": "manifest",
+      "title": "Legacy qweb manifest key",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "'qweb' manifest key"
+      ],
+      "verification_steps": [
+        "Inspect the exact manifest declaration and associated templates/assets.",
+        "Verify whether the key is supported or still required in the target version.",
+        "Check asset bundles and template load order."
+      ],
+      "remediation_guidance": "Remove or migrate the key only when target-version evidence supports the change; preserve required asset/template loading.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-MANIFEST-002",
+      "category": "manifest",
+      "title": "industry_fsl dependency",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "industry_fsl in __manifest__.py or dependency declarations"
+      ],
+      "verification_steps": [
+        "Search the exact target distribution/addons for the dependency.",
+        "Determine which features use it and whether it was renamed, removed or moved.",
+        "Check any proposed replacement's dependencies and behavior."
+      ],
+      "remediation_guidance": "Change dependency declarations only after confirming the replacement and preserving required functionality.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-MANIFEST-003",
+      "category": "manifest",
+      "title": "Manifest-declared file paths",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "XML, CSV, Python, JS, CSS/SCSS, PO, JSON and other manifest file paths"
+      ],
+      "verification_steps": [
+        "Check paths relative to module root and target manifest section.",
+        "Check dynamic manifest expressions manually; static scanning may miss them.",
+        "Verify files are loaded in the correct order."
+      ],
+      "remediation_guidance": "Correct missing or misplaced paths only after checking whether they are intentionally generated or conditionally declared.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-MANIFEST-004",
+      "category": "manifest",
+      "title": "Manifest syntax, dependencies and load order",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "__manifest__.py",
+        "depends",
+        "data",
+        "assets",
+        "external IDs"
+      ],
+      "verification_steps": [
+        "Parse/inspect manifest syntax and dependencies.",
+        "Compare dependencies and asset/data conventions with target source.",
+        "Check referenced modules and records exist."
+      ],
+      "remediation_guidance": "Update only incompatible declarations; preserve dependency and load-order requirements.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-XML-001",
+      "category": "xml_view",
+      "title": "tree to list view migration",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "<tree> and </tree> in XML"
+      ],
+      "verification_steps": [
+        "Determine whether each occurrence is an Odoo list-view declaration rather than unrelated XML/text.",
+        "Verify target-version view syntax and parent/inherited view.",
+        "Find related view_type, external IDs and references."
+      ],
+      "remediation_guidance": "Convert relevant view declarations and related references consistently only when required by target version.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-XML-002",
+      "category": "xml_view",
+      "title": "attrs migration",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "attrs= in XML views"
+      ],
+      "verification_steps": [
+        "Parse the original domain/condition and all referenced fields.",
+        "Translate boolean grouping, operators, negation and precedence to supported target syntax.",
+        "Check behavior for empty, false, null and multi-condition cases."
+      ],
+      "remediation_guidance": "Rewrite expressions with equivalent logic; do not use a blanket textual replacement.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-XML-003",
+      "category": "xml_view",
+      "title": "states attribute",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "states= in XML"
+      ],
+      "verification_steps": [
+        "Identify whether the attribute belongs to a view, button, action or another element.",
+        "Verify target-version behavior and equivalent visibility/availability logic."
+      ],
+      "remediation_guidance": "Migrate only the applicable construct and preserve the original state-dependent behavior.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-XML-004",
+      "category": "assets",
+      "title": "Font Awesome icons",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "fa fa-* classes and icon='fa-*' references"
+      ],
+      "verification_steps": [
+        "Check whether the icon and asset are supported by the target web client.",
+        "Identify a verified replacement where necessary.",
+        "Check appearance and accessibility."
+      ],
+      "remediation_guidance": "Replace only with a supported icon while preserving intent; do not guess Material Symbols names.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-XML-005",
+      "category": "xml_action",
+      "title": "target inline",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "target=\"inline\" or target='inline'"
+      ],
+      "verification_steps": [
+        "Identify the action type and intended navigation behavior.",
+        "Verify supported target values and behavior in target source/docs."
+      ],
+      "remediation_guidance": "Use a supported target only when it preserves the intended interaction.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-XML-006",
+      "category": "reports",
+      "title": "report_file references",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "report_file in XML/Python"
+      ],
+      "verification_steps": [
+        "Resolve the model/field/API represented by the reference.",
+        "Inspect the report action and rendering behavior in target source.",
+        "Check report templates and attachment/download behavior."
+      ],
+      "remediation_guidance": "Change only if the specific field/API is unsupported; preserve report output and download behavior.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-STOCK-001",
+      "category": "stock",
+      "title": "virtual_available references",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "virtual_available in Python/XML/CSV"
+      ],
+      "verification_steps": [
+        "Identify the model and call site; do not assume this field is universally removed.",
+        "Search the exact Odoo 20 source for the field on that model.",
+        "Check forecast/availability semantics and dependent computations."
+      ],
+      "remediation_guidance": "Keep valid references; migrate only model-specific unsupported usages and preserve stock availability semantics.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-STOCK-002",
+      "category": "stock",
+      "title": "move_ids_without_package references",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "move_ids_without_package in Python/XML"
+      ],
+      "verification_steps": [
+        "Identify the parent model and exact field definition in target source.",
+        "Check whether move_ids or another field is the valid replacement in that context.",
+        "Inspect inherited views and all call sites."
+      ],
+      "remediation_guidance": "Update only the verified model-specific reference and keep view behavior intact.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-STOCK-003",
+      "category": "stock",
+      "title": "Legacy stock view external ID",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "stock.view_stock_move_line_operation_list"
+      ],
+      "verification_steps": [
+        "Search exact external ID in target addons source.",
+        "Identify intended view and replacement, if any.",
+        "Check inherited XPath and view architecture."
+      ],
+      "remediation_guidance": "Change the external ID only after finding a verified replacement; adapt XPath only as needed.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-ORM-001",
+      "category": "python_orm",
+      "title": "odoo.osv imports",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "odoo.osv references"
+      ],
+      "verification_steps": [
+        "Identify the imported symbol and its usage.",
+        "Verify availability in target Odoo source and migration notes."
+      ],
+      "remediation_guidance": "Replace only unsupported APIs with supported equivalents while preserving domains, exceptions and behavior.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-CONTROLLER-001",
+      "category": "controllers",
+      "title": "content_disposition",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "content_disposition references/imports"
+      ],
+      "verification_steps": [
+        "Inspect exact import path and response construction.",
+        "Verify target-version response/download API and headers.",
+        "Check filenames, MIME types and authentication."
+      ],
+      "remediation_guidance": "Change only an invalid import/API; preserve download behavior and security headers.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-UOM-001",
+      "category": "uom",
+      "title": "uom.category model",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "uom.category references"
+      ],
+      "verification_steps": [
+        "Identify the model relation and target model definition.",
+        "Verify model availability in the exact Odoo 20 distribution.",
+        "Inspect domains, related fields, views, data and tests."
+      ],
+      "remediation_guidance": "Update model references only when target source confirms a change; preserve unit categories and conversion semantics.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-UOM-002",
+      "category": "uom",
+      "title": "product_uom field",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "product_uom references"
+      ],
+      "verification_steps": [
+        "Resolve the model for each occurrence.",
+        "Check whether the field is custom, inherited or defined by Odoo.",
+        "Verify field availability and expected replacement in target source."
+      ],
+      "remediation_guidance": "Do not globally replace product_uom; update all dependent compute methods, domains, views, reports and tests consistently.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-UOM-003",
+      "category": "uom",
+      "title": "product_uom_id field",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "product_uom_id references"
+      ],
+      "verification_steps": [
+        "Resolve the owning model and field definition.",
+        "Check target source for that model; the name may remain valid on some models.",
+        "Review compute dependencies, conversions, rounding and call sites."
+      ],
+      "remediation_guidance": "Change only when unsupported on the specific model; preserve unit conversion, quantity and rounding behavior.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-UOM-004",
+      "category": "uom",
+      "title": "Unit-of-measure semantic consistency",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "UOM field/model migration changes"
+      ],
+      "verification_steps": [
+        "Check category compatibility, conversion factor, rounding, quantities and business logic.",
+        "Inspect ORM fields, domains, compute/inverse/onchange methods, XML, imports/exports and tests."
+      ],
+      "remediation_guidance": "Ensure all references are migrated consistently and unit conversion behavior remains equivalent.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-ORM-002",
+      "category": "python_orm",
+      "title": "mail.tracking.value references",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "mail.tracking.value in Python/XML/CSV"
+      ],
+      "verification_steps": [
+        "Verify target model definition, access rules and persistence semantics.",
+        "Identify whether code expects historical tracking rows or fields."
+      ],
+      "remediation_guidance": "Adapt only the affected usage and preserve required history and access behavior.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-ORM-003",
+      "category": "python_orm",
+      "title": "account.group references",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "account.group in Python/XML/CSV"
+      ],
+      "verification_steps": [
+        "Verify model and external IDs in target edition and installed addons.",
+        "Check module dependencies and business logic that uses the model."
+      ],
+      "remediation_guidance": "Replace only if source confirms removal/change; do not assume a hierarchy-based replacement.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-ORM-004",
+      "category": "python_orm",
+      "title": "hr.work.entry references",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "hr.work.entry in Python/XML/CSV"
+      ],
+      "verification_steps": [
+        "Verify model availability in target edition and installed modules.",
+        "Check dependencies and expected fields/methods."
+      ],
+      "remediation_guidance": "Update dependencies or model usage only when verified.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-ORM-005",
+      "category": "python_orm",
+      "title": "Model has no table",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "models flagged as having no database table"
+      ],
+      "verification_steps": [
+        "Determine whether model is regular, abstract, transient, delegated or SQL-backed.",
+        "Inspect _name, _inherit, _auto, _abstract and related model design."
+      ],
+      "remediation_guidance": "Do not add _auto=False solely to silence a warning; preserve intended persistence and inheritance.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-ORM-006",
+      "category": "python_orm",
+      "title": "Method signatures, decorators and field behavior",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "overridden methods, decorators, fields, compute/onchange methods"
+      ],
+      "verification_steps": [
+        "Compare override signatures and call patterns with Odoo 20 parent source.",
+        "Check field parameters, compute dependencies, inverse methods, constraints and access checks."
+      ],
+      "remediation_guidance": "Update signatures and field behavior only to match verified target APIs and preserve semantics.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-ORM-007",
+      "category": "python_orm",
+      "title": "Domain and expression APIs",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "legacy domain/expression utilities"
+      ],
+      "verification_steps": [
+        "Identify exact import/API and current behavior.",
+        "Verify target replacement and test boolean composition, context and operators."
+      ],
+      "remediation_guidance": "Use supported target utilities while preserving domain semantics.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-ORM-008",
+      "category": "python_orm",
+      "title": "Selection extension and ondelete policy",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "selection_add in Python field declarations"
+      ],
+      "verification_steps": [
+        "Locate the original selection and every extension of the field.",
+        "Check target-version requirement for ondelete for added values.",
+        "Verify each added value's lifecycle and what happens to records using it if the extension is removed.",
+        "Check other modules extending the same field."
+      ],
+      "remediation_guidance": "Add or revise ondelete only when required and choose behavior that fits business semantics; do not flag every selection_add as an error.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-IMPORT-001",
+      "category": "python_imports",
+      "title": "decimal_precision",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "decimal_precision references"
+      ],
+      "verification_steps": [
+        "Determine whether the match is an import, dependency or identifier.",
+        "Verify target API and precision configuration behavior."
+      ],
+      "remediation_guidance": "Use the supported precision API only after confirming numeric behavior and precision semantics.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-IMPORT-002",
+      "category": "python_imports",
+      "title": "html_keep_url",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "html_keep_url references"
+      ],
+      "verification_steps": [
+        "Verify exact import and target utility availability.",
+        "Check link preservation and sanitization behavior."
+      ],
+      "remediation_guidance": "Replace only with a verified equivalent; preserve safe HTML/link behavior.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-IMPORT-003",
+      "category": "python_imports",
+      "title": "odoo.tools.pickle",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "from odoo.tools import pickle and related imports"
+      ],
+      "verification_steps": [
+        "Verify exact symbol availability and how serialized data is used.",
+        "Review security implications and compatibility of stored serialized values."
+      ],
+      "remediation_guidance": "If unsupported, use a suitable supported API only after reviewing serialization and security implications.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-CONTROLLER-002",
+      "category": "controllers",
+      "title": "Controller route type json",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "type='json' or type=\"json\" in route declarations"
+      ],
+      "verification_steps": [
+        "Confirm the match is a route decorator and identify request/response protocol.",
+        "Verify target-version route types and authentication/CSRF behavior."
+      ],
+      "remediation_guidance": "Update route declaration only when required; preserve client protocol, authentication and response shape.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-JS-001",
+      "category": "javascript",
+      "title": "web.framework and web.session",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "web.framework",
+        "web.session"
+      ],
+      "verification_steps": [
+        "Inspect imports and actual usage.",
+        "Verify target web-client modules, services and registries."
+      ],
+      "remediation_guidance": "Replace unsupported modules with verified target APIs; preserve loading, session and error behavior.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-JS-002",
+      "category": "javascript",
+      "title": "session.get_file",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "session.get_file"
+      ],
+      "verification_steps": [
+        "Inspect download parameters, authentication, error handling and call sites.",
+        "Verify target-version download API."
+      ],
+      "remediation_guidance": "Use supported download APIs only after matching parameters and behavior.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-JS-003",
+      "category": "javascript",
+      "title": "blockUI and unblockUI",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "framework.blockUI",
+        "framework.unblockUI"
+      ],
+      "verification_steps": [
+        "Identify all start/stop paths, exceptions and asynchronous callbacks.",
+        "Verify supported target UI service and lifecycle."
+      ],
+      "remediation_guidance": "Migrate to supported UI behavior and ensure cleanup on success, failure and cancellation.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-JS-004",
+      "category": "javascript",
+      "title": "Owl components, registries and frontend assets",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "legacy frontend imports, component APIs, registries, templates and assets"
+      ],
+      "verification_steps": [
+        "Compare imports, lifecycle methods, services, event handling, templates and asset bundles with target web client."
+      ],
+      "remediation_guidance": "Migrate only verified incompatibilities; validate frontend build and runtime behavior.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-COMPAT-001",
+      "category": "compatibility",
+      "title": "External IDs, dependencies and inherited methods",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "external IDs, module dependencies, inherited methods"
+      ],
+      "verification_steps": [
+        "Search exact target source for IDs, models, methods and dependencies.",
+        "Check override signatures and dependencies."
+      ],
+      "remediation_guidance": "Update references consistently and report any change outside the target module before making it.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-TEST-001",
+      "category": "validation",
+      "title": "Syntax, XML, tests and dependency validation",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "Python, XML, CSV, JS/SCSS, manifests and tests"
+      ],
+      "verification_steps": [
+        "Run safe static validation where available.",
+        "Run module tests or installation checks only in an authorized environment.",
+        "Capture commands, exit codes and relevant logs."
+      ],
+      "remediation_guidance": "Report only checks actually run. A successful text scan is not proof of Odoo 20 compatibility.",
+      "risk": "functional_or_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "COMMON-DB-001",
+      "category": "scope",
+      "title": "Database and runtime operations are out of scope by default",
+      "severity": "info",
+      "applies_to": [
+        "16.0->17.0",
+        "17.0->18.0",
+        "18.0->19.0",
+        "19.0->20.0"
+      ],
+      "detection": [
+        "database reset, drop/recreate, migration, Docker volumes or runtime installation"
+      ],
+      "verification_steps": [
+        "Keep source migration separate from database migration.",
+        "Do not connect to live instances or require database credentials for local source scanning.",
+        "Obtain explicit approval before any requested destructive operation, naming exact target and data-loss impact."
+      ],
+      "remediation_guidance": "Do not perform database operations by default. The user may start Odoo manually and provide logs for follow-up.",
+      "risk": "data_loss",
+      "automated_fix_allowed": false,
+      "verification_status": "must_verify_against_target_source",
+      "references": []
+    },
+    {
+      "rule_id": "MANUAL-SEC-001",
+      "category": "security",
+      "title": "Odoo 20 unified access model and security CSV",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "security/ir.model.access.csv; ir.model.access; ir.rule; ir.access",
+      "verification_steps": [
+        "Inspect legacy security CSV filename, header, XML records, model names and manifest references. Verify target Odoo 20 expects ir.access and security/ir.access.csv; do not preserve the old filename merely because a note says to. Translate ACL and record-rule semantics together.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Security-critical. Source evidence indicates ir.model.access and ir.rule are replaced by ir.access; the CSV filename/header also change.",
+      "risk": "security",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "ir\\.model\\.access|ir\\.rule|ir\\.access",
+        "globs": [
+          "security/**/*",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.py"
+        ],
+        "path_pattern": "security/ir.model.access.csv"
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0",
+      "failure_signatures": [
+        "KeyError: 'ir.model.access'",
+        "loading bahmni_address_mapping/security/ir.model.access.csv",
+        "Failed to load registry"
+      ],
+      "required_module_example": "bahmni_address_mapping"
+    },
+    {
+      "rule_id": "MANUAL-UI-001",
+      "category": "assets_templates",
+      "title": "Font Awesome to Material Symbols review",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "fa fa-*; icon=\"fa-*\"; Material Symbols",
+      "verification_steps": [
+        "Search XML views, QWeb templates, reports and frontend assets for Font Awesome classes and icon attributes; map each icon to a supported Material Symbol only after confirming target asset syntax.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Mandatory review; do not perform a blind class rename.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bfa\\s+fa-[A-Za-z0-9_-]+|icon\\s*=\\s*[\\'\\\"]fa-",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-ACCOUNT-001",
+      "category": "python_orm",
+      "title": "Account group hierarchy migration",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "account.group; account.account.parent_id; account code",
+      "verification_steps": [
+        "Inspect references to account.group, group XML IDs and account hierarchy assumptions. Verify target account.account parent-child hierarchy and whether codes may be optional in the target edition.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Check account data and reporting behavior.",
+      "risk": "accounting_data",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\baccount\\.group\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-ACCOUNT-002",
+      "category": "python_orm",
+      "title": "Asset model to depreciation model migration",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "account asset models; depreciation models",
+      "verification_steps": [
+        "Search for asset model names, external IDs, fields and methods. Verify the target accounting model and migrate relations/workflows semantically.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Manual review required; avoid broad substring matches.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\baccount\\.asset\\b|asset_model_id|asset_model",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-ACCOUNT-003",
+      "category": "python_orm",
+      "title": "Bank transaction restrictions",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "bank journal; bank transactions; manual entries",
+      "verification_steps": [
+        "Review custom code creating account.move/account.move.line entries directly against bank accounts. Verify target restrictions and use supported bank transaction/reconciliation flow.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Review accounting invariants; do not rewrite automatically.",
+      "risk": "accounting_data",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\baccount\\.move\\.create\\b|\\baccount\\.move\\.line\\.create\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-MODULE-001",
+      "category": "manifest_dependencies",
+      "title": "Field Service dependency merge",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "industry_fsl; planning",
+      "verification_steps": [
+        "Check manifest dependencies and imports for industry_fsl. Verify whether the target distribution still provides it and whether Planning is the correct replacement for the used features.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Do not simply replace dependency without tracing feature usage.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bindustry_fsl\\b",
+        "globs": [
+          "__manifest__.py",
+          "**/*.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-HR-001",
+      "category": "python_orm",
+      "title": "HR work entry model restructuring",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "hr.work.entry; Time Off Types",
+      "verification_steps": [
+        "Trace hr.work.entry model, field, XML ID and dependency usage. Verify target model availability and any Time Off Type replacement semantics.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Check payroll/HR workflows.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bhr\\.work\\.entry\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-HR-002",
+      "category": "python_orm",
+      "title": "Remote work fields on employee records",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "remote work; hr.employee",
+      "verification_steps": [
+        "Search remote-work model/field/XML ID references and verify whether target data is integrated into hr.employee. Review views, access rights and dependencies.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Names vary by edition; use model-aware review.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "remote.?work|work.?location",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-MAIL-001",
+      "category": "python_orm",
+      "title": "Mail tracking value persistence/API",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "mail.tracking.value; tracking_value_ids",
+      "verification_steps": [
+        "Find direct reads/writes, domains, joins and imports involving mail.tracking.value or tracking_value_ids. Verify target storage/query semantics and supported mail tracking APIs.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Do not assume all references are invalid; inspect target implementation.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bmail\\.tracking\\.value\\b|\\btracking_value_ids\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-PUSH-001",
+      "category": "assets_templates",
+      "title": "Push notification backend migration",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "Firebase; push notifications; internal channels",
+      "verification_steps": [
+        "Search for Firebase SDK, service workers, push controllers and notification backend integrations. Verify target architecture and migrate behavior only if custom code depends on removed integration.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Manual source and runtime design review required.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "firebase|push.?notification",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-OWL-001",
+      "category": "javascript_owl",
+      "title": "OWL 3 frontend compatibility",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "OWL 3; component lifecycle; registries; services",
+      "verification_steps": [
+        "Review custom OWL components, hooks, lifecycle methods, registries, services, templates and asset bundles against the exact Odoo 20 frontend source.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Treat as a broad compatibility review, not a single token replacement.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "owl|@web/|web\\.assets_backend",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-SEC-002",
+      "category": "security",
+      "title": "Security CSV permission-column migration",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "perm_read; perm_write; perm_create; perm_unlink; operation; domain",
+      "verification_steps": [
+        "Inspect old ACL columns and map model/group/operation/domain into the target access record format. Confirm effective model access and record restrictions.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "The user note about retaining the old filename/permission columns conflicts with Odoo 20 migration evidence; verify source before edits.",
+      "risk": "security",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "perm_(?:read|write|create|unlink)|\\boperation\\b|\\bdomain_force\\b",
+        "globs": [
+          "security/**/*",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-CONTROLLER-001",
+      "category": "controllers_api",
+      "title": "content_disposition removal/import migration",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "content_disposition; odoo.http.Stream",
+      "verification_steps": [
+        "Locate imports and download-response usage. Verify exact Odoo 20 API and response headers; use supported Stream/response behavior where required.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Do not replace with hand-built headers without preserving filename encoding, disposition and streaming behavior.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bcontent_disposition\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-REPORT-001",
+      "category": "python_orm",
+      "title": "ir.actions.report report_file removal",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "report_file; report_name",
+      "verification_steps": [
+        "Find report_file in Python, XML and report definitions. Verify target ir.actions.report fields and keep report_name/template references consistent.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\breport_file\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-STOCK-001",
+      "category": "xml_view",
+      "title": "Forecasted quantity view inheritance",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "virtual_available; stock.view_template_property_form",
+      "verification_steps": [
+        "Find virtual_available in fields and inherited views. Verify the actual parent view and field exposure in Odoo 20; do not assume the field is globally removed.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "View-specific mandatory check.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bvirtual_available\\b|stock\\.view_template_property_form",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-STOCK-002",
+      "category": "python_orm",
+      "title": "stock.lot product_uom_id removal",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "stock.lot; product_uom_id; product_id",
+      "verification_steps": [
+        "For each product_uom_id occurrence, determine owning model. Specifically inspect stock.lot usage and use product_id/product UOM semantics if the target field is absent.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Do not globally rename product_uom_id; it remains model-dependent.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bproduct_uom_id\\b|\\bstock\\.lot\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-ORM-001",
+      "category": "python_orm",
+      "title": "odoo.osv.expression API migration",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "odoo.osv; odoo.osv.expression",
+      "verification_steps": [
+        "Find imports and domain-composition calls. Verify target source and replace with supported domain APIs while preserving AND/OR/NOT semantics.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bodoo\\.osv(?:\\.expression)?\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-VIEW-001",
+      "category": "xml_view",
+      "title": "tree to list view tags",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "<tree>; <list>; embedded x2many views",
+      "verification_steps": [
+        "Check tree tags in view XML, including embedded One2many/Many2many views, and update only view architecture that requires list syntax. Check related view references.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "<\\s*tree(?:\\s|>)",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0",
+      "reported_module_file": "bahmni_address_mapping/views/address_mapping_table_view.xml"
+    },
+    {
+      "rule_id": "MANUAL-UOM-001",
+      "category": "python_orm",
+      "title": "uom.category model removal",
+      "severity": "warning",
+      "applies_to": [
+        "18.0->19.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "uom.category; product_uom.py",
+      "verification_steps": [
+        "Find model references, relations, domains, XML IDs and imports of uom.category. Verify target UOM model structure and remove/replace dependencies consistently.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\buom\\.category\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "18.0->19.0",
+      "reported_module_file": "bahmni_product/models/product_uom.py"
+    },
+    {
+      "rule_id": "MANUAL-CATEGORY-001",
+      "category": "data",
+      "title": "Product category root records and removed external IDs",
+      "severity": "warning",
+      "applies_to": [
+        "18.0->19.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "product_category_1; product_category_all; parent_id",
+      "verification_steps": [
+        "Inspect product.category data and references to product_category_1/product_category_all. Verify target seed data and omit parent_id on root categories only when correct.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Do not remove parent_id from child categories.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "product_category_(?:1|all)|<field\\s+name=[\\'\\\"]parent_id",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "18.0->19.0",
+      "reported_module_file": "bahmni_product/data/product_category.xml"
+    },
+    {
+      "rule_id": "MANUAL-ORM-002",
+      "category": "python_orm",
+      "title": "product.category create decorator signature",
+      "severity": "warning",
+      "applies_to": [
+        "18.0->19.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "product.category; @api.model_create_multi",
+      "verification_steps": [
+        "Inspect overrides of create on product.category and ensure the signature/decorator matches target ORM expectations and supports batch create values.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "@api\\.model_create_multi|def\\s+create\\s*\\(",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "18.0->19.0"
+    },
+    {
+      "rule_id": "MANUAL-ACCOUNT-004",
+      "category": "xml_view",
+      "title": "account.move payment_state xpath anchor",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "account.move; payment_state; xpath",
+      "verification_steps": [
+        "Inspect inherited account.move list views using payment_state as an xpath anchor. Verify the target parent architecture and use a stable existing anchor.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "accounting_data",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "payment_state|account\\.view_move_tree|account\\.view_move_list",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-PRECISION-001",
+      "category": "python_orm",
+      "title": "decimal_precision module/API removal",
+      "severity": "warning",
+      "applies_to": [
+        "18.0->19.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "decimal_precision; digits string keys",
+      "verification_steps": [
+        "Find imports, dependencies and calls to decimal_precision. Verify target precision APIs and field digits semantics before replacing with named precision keys.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bdecimal_precision\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "18.0->19.0"
+    },
+    {
+      "rule_id": "MANUAL-ORM-003",
+      "category": "python_orm",
+      "title": "selection_add requires correct ondelete policy",
+      "severity": "warning",
+      "applies_to": [
+        "17.0->18.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "selection_add; required selection fields; ondelete",
+      "verification_steps": [
+        "For every selection_add extension, inspect the base field required status in the target version and define a valid lifecycle policy for each added key. Test uninstall/module upgrade behavior.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Must not apply one universal ondelete policy; preserve business data.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "selection_add\\s*=|ondelete\\s*=",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "17.0->18.0"
+    },
+    {
+      "rule_id": "MANUAL-STOCK-003",
+      "category": "xml_view",
+      "title": "stock.picking move_ids_without_package rename",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "move_ids_without_package; move_ids",
+      "verification_steps": [
+        "Find stock.picking field references and inherited-view xpaths; verify target stock.view_picking_form architecture and field semantics.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bmove_ids_without_package\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-STOCK-004",
+      "category": "xml_view",
+      "title": "stock move line operation view external ID rename",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "stock.view_stock_move_line_operation_list; stock.view_stock_move_line_detailed_operation_tree",
+      "verification_steps": [
+        "Verify old external ID exists in target source and update view inheritance only after identifying correct replacement.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "stock\\.view_stock_move_line_operation_list",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-STOCK-005",
+      "category": "python_orm",
+      "title": "stock.move.line package_level_id and qty_done",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "package_level_id; qty_done; quantity; package_id; result_package_id",
+      "verification_steps": [
+        "Trace stock.move.line fields and package flow. Verify target replacements and quantity semantics in Python, XML, domains, compute dependencies and tests.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bpackage_level_id\\b|\\bqty_done\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-STOCK-006",
+      "category": "xml_view",
+      "title": "stock move line duplicate location xpath index",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "location_id[2]; location_dest_id[2]",
+      "verification_steps": [
+        "Inspect positional xpath selectors for duplicate location fields in detailed operation views. Verify target architecture and replace brittle positional selectors with a stable anchor.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "location_(?:dest_)?id\\s*\\[\\s*2\\s*\\]",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-API-001",
+      "category": "python_orm",
+      "title": "html_keep_url removed from odoo.tools",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "html_keep_url",
+      "verification_steps": [
+        "Find import and call sites; verify target API and preserve URL sanitization/HTML behavior with supported alternatives.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bhtml_keep_url\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0",
+      "reported_module_file": "bahmni_sale/models/sale_order.py"
+    },
+    {
+      "rule_id": "MANUAL-API-002",
+      "category": "python_orm",
+      "title": "pickle import migration",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "odoo.tools.pickle; Python pickle",
+      "verification_steps": [
+        "Find imports from odoo.tools for pickle. Use Python standard library only after reviewing serialization format and trust/security boundaries.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Never unpickle untrusted data.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "odoo\\.tools\\.pickle|from\\s+odoo\\.tools\\s+import[^\\n]*\\bpickle\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-UOM-002",
+      "category": "python_orm",
+      "title": "sale.order.line product_uom to product_uom_id",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "sale.order.line; product_uom; product_uom_id; api.depends",
+      "verification_steps": [
+        "Inspect sale.order.line fields and all depends, related, compute, domain, view and test references. Verify the target field on that specific model.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Do not globally rename product_uom; other models may use different names.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "product_uom|@api\\.depends",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-GROUP-001",
+      "category": "security",
+      "title": "res.groups category_id removal",
+      "severity": "warning",
+      "applies_to": [
+        "18.0->19.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "res.groups; category_id",
+      "verification_steps": [
+        "For XML/Python records on res.groups, verify whether category_id is supported by the target group/privilege model. Distinguish unrelated category_id fields.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "security",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "category_id",
+        "globs": [
+          "security/**/*",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "18.0->19.0"
+    },
+    {
+      "rule_id": "MANUAL-SALE-001",
+      "category": "xml_view",
+      "title": "sale.order.line product_template_id to product_id view reference",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "sale.order.line; product_template_id; product_id",
+      "verification_steps": [
+        "Inspect sale.order.line list/form views and xpaths referencing product_template_id. Verify target parent view field and semantic relation before replacement.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bproduct_template_id\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-ACTION-001",
+      "category": "xml_view",
+      "title": "window action target inline removed",
+      "severity": "warning",
+      "applies_to": [
+        "18.0->19.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "target=\"inline\"; current; new",
+      "verification_steps": [
+        "Find window action targets using inline. Verify target allowed values and preserve intended navigation behavior when migrating to current/new.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "target\\s*=\\s*[\\'\\\"]inline[\\'\\\"]",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "18.0->19.0"
+    },
+    {
+      "rule_id": "MANUAL-ACCOUNT-005",
+      "category": "python_orm",
+      "title": "account.payment is_internal_transfer replacement",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "is_internal_transfer; destination_journal_id; api.depends",
+      "verification_steps": [
+        "Inspect account.payment field definitions, depends, compute logic and reconciliation behavior. Verify target destination_journal_id semantics before replacing references.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "accounting_data",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bis_internal_transfer\\b",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0",
+      "reported_module_example": "bahmni_auto_payment_reconciliation"
+    },
+    {
+      "rule_id": "MANUAL-MANIFEST-001",
+      "category": "manifest_dependencies",
+      "title": "Manifest-declared data/demo file existence",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "__manifest__.py data/demo paths; translations",
+      "verification_steps": [
+        "Verify every manifest-declared file physically exists, including demo files, against target loader/translation behavior. Do not remove a demo entry without understanding intended installation behavior.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "['\\\"](?:data|demo)['\\\"]\\s*:",
+        "globs": [
+          "__manifest__.py",
+          "**/*.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0",
+      "reported_module_context": "legacy demo file declarations and Odoo translation/file indexing"
+    },
+    {
+      "rule_id": "MANUAL-ASSET-001",
+      "category": "manifest_dependencies",
+      "title": "Legacy qweb manifest key and assets dictionary",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "qweb; assets; web.assets_backend",
+      "verification_steps": [
+        "Find legacy qweb manifest keys and verify frontend templates/JS/SCSS are declared under the supported target assets bundle with correct order.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "['\\\"]qweb['\\\"]\\s*:|web\\.assets_backend",
+        "globs": [
+          "__manifest__.py",
+          "**/*.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-JS-001",
+      "category": "javascript_owl",
+      "title": "web.framework and web.session imports",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "web.framework; web.session",
+      "verification_steps": [
+        "Find old JS module imports and trace each use to the target frontend API, service or registry.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "web\\.(?:framework|session)",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-JS-002",
+      "category": "javascript_owl",
+      "title": "session.get_file download API",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "session.get_file; @web/core/network/download",
+      "verification_steps": [
+        "Verify download helper usage, authentication, payload and error handling against target frontend source.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "session\\.get_file",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-JS-003",
+      "category": "javascript_owl",
+      "title": "framework blockUI/unblockUI migration",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "framework.blockUI; framework.unblockUI; ui service",
+      "verification_steps": [
+        "Trace UI blocking calls and verify target service lifecycle, including cleanup on failures.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "framework\\.(?:blockUI|unblockUI)",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-JS-004",
+      "category": "javascript_owl",
+      "title": "jQuery Deferred and crash_manager migration",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "$.Deferred; crash_manager; async/await; notification/dialog",
+      "verification_steps": [
+        "Review legacy asynchronous/error APIs and migrate only after preserving error handling and user notifications.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "Propose the smallest behavior-preserving change only after source verification.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\$\\.Deferred|crash_manager",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "16.0->17.0"
+    },
+    {
+      "rule_id": "MANUAL-CONTROLLER-002",
+      "category": "controllers_api",
+      "title": "route type json to jsonrpc",
+      "severity": "warning",
+      "applies_to": [
+        "19.0->20.0"
+      ],
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "@route(type=\"json\"); jsonrpc",
+      "verification_steps": [
+        "Find actual route decorators with type=json and verify the Odoo 20 route type. Update to jsonrpc only after checking request/response semantics and callers.",
+        "Inspect the exact owning model/view/API in the source and target versions, including inherited views, manifest, dependencies, tests and callers where applicable.",
+        "Record source URL/path and relevant symbol/lines; classify as confirmed, likely, false positive, or needs investigation."
+      ],
+      "remediation_guidance": "The warning may be deprecation rather than removal; preserve RPC behavior.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "type\\s*=\\s*['\\\"]json['\\\"]",
+        "globs": [
+          "**/*.py",
+          "**/*.xml",
+          "**/*.csv",
+          "**/*.js",
+          "**/*.mjs",
+          "**/*.ts",
+          "**/*.scss",
+          "**/*.html",
+          "__manifest__.py"
+        ]
+      },
+      "references": [],
+      "reported_transition": "19.0->20.0"
+    },
+    {
+      "rule_id": "MANUAL-VIEW-002",
+      "category": "xml_view",
+      "title": "Odoo 17+ attrs attribute conversion",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "reported_transition": "16.0->17.0",
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "Legacy attrs dictionaries must be converted to inline Python expressions for target view syntax where applicable.",
+      "verification_steps": [
+        "Find every attrs attribute in XML views and determine the exact field conditions, boolean grouping, operators and referenced fields.",
+        "Convert to supported inline expressions only after checking target-version view semantics.",
+        "Record applicable/not applicable status and verify inherited-view behavior."
+      ],
+      "remediation_guidance": "Translate each attrs condition to inline expressions while preserving logic; do not perform regex-only conversion of nested domain syntax.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\battrs\\s*=",
+        "globs": [
+          "**/*.xml"
+        ]
+      },
+      "references": []
+    },
+    {
+      "rule_id": "MANUAL-VIEW-003",
+      "category": "xml_view",
+      "title": "Odoo 17+ states attribute conversion",
+      "severity": "warning",
+      "applies_to": [
+        "16.0->17.0"
+      ],
+      "reported_transition": "16.0->17.0",
+      "mandatory_audit_check": true,
+      "origin": "user_manual_migration_notes",
+      "reported_change": "Legacy states='draft,sent' declarations must be converted to equivalent inline visibility logic where applicable.",
+      "verification_steps": [
+        "Find every states attribute and determine the original visibility/state behavior.",
+        "Convert to supported inline expressions, checking allowed states and interactions with invisible/readonly/required.",
+        "Validate inherited views and representative workflow states."
+      ],
+      "remediation_guidance": "Use an equivalent inline expression such as state not in (...) only after confirming the original semantics and quoting.",
+      "risk": "behavioral_compatibility",
+      "automated_fix_allowed": false,
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "scanner": {
+        "pattern": "\\bstates\\s*=",
+        "globs": [
+          "**/*.xml"
+        ]
+      },
+      "references": []
+    }
+  ]
+}

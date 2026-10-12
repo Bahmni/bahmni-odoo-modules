@@ -1,0 +1,260 @@
+{
+  "schema_version": "1.0",
+  "file_type": "transition_migration_rules",
+  "title": "Odoo 19.0 to 20.0 migration investigation",
+  "source_version": "19.0",
+  "target_version": "20.0",
+  "status": "mandatory_manual_notes_plus_source_verification",
+  "important_note": "Every rule/check in this file is mandatory to investigate for the 16→20 migration path. User-reported change descriptions are leads; verify against exact source tags, official docs, edition and owning model before calling a breaking change confirmed or applying a fix.",
+  "required_process": [
+    "Inspect the source-version implementation (19.0) and target-version implementation (20.0) for each finding.",
+    "Check official upgrade/migration notes for the transition.",
+    "Trace affected references in Python, XML, CSV, manifest, JS, tests and dependencies.",
+    "Classify as confirmed incompatibility, likely issue, false positive, or needs investigation.",
+    "Propose a minimal fix and describe behavior/security/data risk.",
+    "Wait for explicit approval before editing."
+  ],
+  "transition_focus": [
+    "Security model and access-control file structure",
+    "API and field removals/renames introduced in this transition",
+    "view syntax, stock references and frontend changes",
+    "UOM field/model semantics and selection_add ondelete behavior",
+    "manifest and dependency changes"
+  ],
+  "required_checks": [
+    {
+      "rule_id": "19-20-SEC-001",
+      "title": "Verify target security model and ACL CSV format",
+      "rule_refs": [
+        "COMMON-SEC-001",
+        "COMMON-SEC-002",
+        "COMMON-SEC-003",
+        "COMMON-SEC-004",
+        "COMMON-SEC-005"
+      ],
+      "required": true,
+      "verification_steps": [
+        "Inspect Odoo 19 security definitions and Odoo 20 target source.",
+        "Verify whether access-control model/file/columns changed in the exact distribution.",
+        "Map ACL permissions and record-rule domains semantically; do not perform filename-only renames.",
+        "Validate XML IDs, manifest entries, group implications and effective access behavior."
+      ]
+    },
+    {
+      "rule_id": "19-20-UOM-001",
+      "title": "Verify UOM models and fields per owning model",
+      "rule_refs": [
+        "COMMON-UOM-001",
+        "COMMON-UOM-002",
+        "COMMON-UOM-003",
+        "COMMON-UOM-004"
+      ],
+      "required": true
+    },
+    {
+      "rule_id": "19-20-SELECTION-001",
+      "title": "Verify selection_add ondelete requirements and lifecycle",
+      "rule_refs": [
+        "COMMON-ORM-008"
+      ],
+      "required": true
+    },
+    {
+      "rule_id": "19-20-STOCK-001",
+      "title": "Verify stock availability fields and stock view external IDs",
+      "rule_refs": [
+        "COMMON-STOCK-001",
+        "COMMON-STOCK-002",
+        "COMMON-STOCK-003"
+      ],
+      "required": true
+    },
+    {
+      "rule_id": "19-20-API-001",
+      "title": "Verify all Python, controller, frontend, manifest and report API changes",
+      "rule_refs": "common.json rules",
+      "required": true
+    },
+    {
+      "rule_id": "19-20-CROSSCHECK-001",
+      "title": "Only mark a rule as a confirmed 19-to-20 incompatibility when exact target evidence is recorded",
+      "required": true
+    },
+    {
+      "rule_id": "19-20-MANUAL-NOTES",
+      "title": "Mandatory user-identified migration notes for this transition",
+      "rule_refs": [
+        "MANUAL-SEC-001",
+        "MANUAL-UI-001",
+        "MANUAL-ACCOUNT-001",
+        "MANUAL-ACCOUNT-002",
+        "MANUAL-ACCOUNT-003",
+        "MANUAL-MODULE-001",
+        "MANUAL-HR-001",
+        "MANUAL-HR-002",
+        "MANUAL-MAIL-001",
+        "MANUAL-PUSH-001",
+        "MANUAL-OWL-001",
+        "MANUAL-SEC-002",
+        "MANUAL-CONTROLLER-001",
+        "MANUAL-REPORT-001",
+        "MANUAL-STOCK-001",
+        "MANUAL-STOCK-002",
+        "MANUAL-ORM-001",
+        "MANUAL-CONTROLLER-002"
+      ],
+      "required": true,
+      "verification_steps": [
+        "Inspect every referenced rule even if the simple scanner did not match a token.",
+        "For each applicable rule, record applicable/not applicable/false positive/needs investigation and cite exact target source evidence.",
+        "Do not apply edits until the user explicitly approves the proposed patch."
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "MANUAL-SEC-001",
+      "title": "Odoo 20 unified access model and security CSV",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-UI-001",
+      "title": "Font Awesome to Material Symbols review",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-ACCOUNT-001",
+      "title": "Account group hierarchy migration",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-ACCOUNT-002",
+      "title": "Asset model to depreciation model migration",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-ACCOUNT-003",
+      "title": "Bank transaction restrictions",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-MODULE-001",
+      "title": "Field Service dependency merge",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-HR-001",
+      "title": "HR work entry model restructuring",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-HR-002",
+      "title": "Remote work fields on employee records",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-MAIL-001",
+      "title": "Mail tracking value persistence/API",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-PUSH-001",
+      "title": "Push notification backend migration",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-OWL-001",
+      "title": "OWL 3 frontend compatibility",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-SEC-002",
+      "title": "Security CSV permission-column migration",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-CONTROLLER-001",
+      "title": "content_disposition removal/import migration",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-REPORT-001",
+      "title": "ir.actions.report report_file removal",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-STOCK-001",
+      "title": "Forecasted quantity view inheritance",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-STOCK-002",
+      "title": "stock.lot product_uom_id removal",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-ORM-001",
+      "title": "odoo.osv.expression API migration",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    },
+    {
+      "rule_id": "MANUAL-CONTROLLER-002",
+      "title": "route type json to jsonrpc",
+      "mandatory": true,
+      "source": "common.json",
+      "verification_status": "mandatory_check_user_reported_requires_exact_source_verification",
+      "required_action": "Inspect module references and verify target behavior; report evidence and propose a behavior-preserving fix if applicable."
+    }
+  ]
+}
