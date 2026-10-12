@@ -11,7 +11,7 @@ Bahmni Address Mapping
     'website': '',
     'images': [],
     'depends': [],
-    'data': ['security/ir.model.access.csv',
+    'data': ['security/ir.access.csv',
              'data/data.xml',
              'views/res_partner_address_extension.xml',
              'views/address_mapping_table_view.xml'],

@@ -5,17 +5,17 @@
 		<field name="name">tree.address.mapping.table</field>
 		<field name="model">address.mapping.table</field>
 		<field name="arch" type="xml">
-			<tree editable="bottom">
+			<list editable="bottom">
 				<field name="odoo_address_field" required="1"/>
 				<field name="openmrs_address_field" required="1"/>
-			</tree>
+			</list>
 		</field>
 	</record>
 
 	<record id="action_address_mapping_table" model="ir.actions.act_window">
 		<field name="name">Address Mapping Table</field>
 		<field name="res_model">address.mapping.table</field>
-		<field name="view_mode">tree,form</field>
+		<field name="view_mode">list,form</field>
 	</record>
 
 
