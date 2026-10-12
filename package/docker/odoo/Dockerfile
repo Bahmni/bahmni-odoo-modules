@@ -28,5 +28,6 @@ RUN chown -R odoo:odoo /etc/odoo
 #COPY package/resources/data/sale_shop.xml ${ADDON_PATH}/bahmni_initializer/data/
 RUN pip3 install --break-system-packages python-decouple
 
+
 USER odoo
 CMD ["odoo", "-u", "all", "-i", "sale_management,purchase,stock,point_of_sale,l10n_generic_coa", "--without-demo", "-d odoo"]
