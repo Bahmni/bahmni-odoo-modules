@@ -29,4 +29,4 @@ RUN chown -R odoo:odoo /etc/odoo
 RUN pip3 install --break-system-packages python-decouple
 
 USER odoo
-CMD ["odoo", "-u", "all", "-i", "sale_management,purchase,stock,point_of_sale,l10n_generic_coa,bahmni_account,bahmni_product,bahmni_api_feed,bahmni_stock,bahmni_purchase,bahmni_address_mapping,bahmni_sale,restful_api,bahmni_reports,bahmni_auto_payment_reconciliation", "--without-demo", "-d odoo"]
+CMD ["odoo", "-u", "all", "-i", "sale_management,purchase,stock,point_of_sale,l10n_generic_coa", "--without-demo", "-d odoo"]
