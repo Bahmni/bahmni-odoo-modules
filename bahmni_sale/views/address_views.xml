@@ -102,7 +102,7 @@
     <menuitem
             id="menu_address_config"
             name="Address Configuration"
-            parent="bahmni_sale.menu_bahmni_masters"
+            parent="bahmni_base.menu_bahmni_masters"
             />
     <menuitem
             id="menu_village_villages"

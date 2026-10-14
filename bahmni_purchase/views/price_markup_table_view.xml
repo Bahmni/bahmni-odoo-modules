@@ -22,7 +22,7 @@
 	<menuitem
         id="menu_price_markup_table"
         name="Sale Price Markup Rule"
-        parent="bahmni_base.menu_bahmni_master_data"
+        parent="bahmni_base.menu_bahmni_masters"
         action="action_price_markup_table"
         sequence="14"/>
 

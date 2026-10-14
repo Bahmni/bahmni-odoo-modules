@@ -51,7 +51,7 @@
 
     <menuitem id="menu_company_location_mapping"
               name="Company Location Mappings"
-              parent="bahmni_sale.menu_bahmni_masters"
+              parent="bahmni_base.menu_bahmni_masters"
               action="action_company_location_mapping"
               sequence="1"/>
 </odoo>

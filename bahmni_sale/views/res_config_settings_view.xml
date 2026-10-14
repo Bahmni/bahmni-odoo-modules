@@ -1,61 +1,59 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
+   <!-- Inject Sale Configurations into Bahmni settings block -->
    <record id="res_config_settings_view_form_i" model="ir.ui.view">
      <field name="name">res.config.settings.view.form.inherit.bahmni.sale</field>
      <field name="model">res.config.settings</field>
-     <field name="priority" eval="1"/>
-     <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+     <field name="priority" eval="10"/>
+     <field name="inherit_id" ref="bahmni_base.res_config_settings_view_bahmni_base"/>
      <field name="arch" type="xml">
-         <xpath expr="//div[hasclass('settings')]" position="inside">
-             <div class="app_settings_block" data-string="Bahmni" string="Bahmni" data-key="bahmni_sale" name="bahmni-custom-configs">
-                 <div class="row mt16 o_settings_container" name="bahmni_sale_configurations">
-                     <h2 style="text-align: center;">Sale Configurations</h2>
-                        <div class="col-12 col-lg-6 o_setting_box" id="variant_options">
-                            <div class="o_setting_left_pane">
-                                <field name="is_delivery_automated"/>
+         <xpath expr="//div[@name='bahmni_settings_container']" position="inside">
+             <div class="row mt16 o_settings_container" name="bahmni_sale_configurations">
+                 <h2 style="text-align: center;">Sale Configurations</h2>
+                    <div class="col-12 col-lg-6 o_setting_box" id="sale_auto_delivery">
+                        <div class="o_setting_left_pane">
+                            <field name="is_delivery_automated"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="is_delivery_automated"/>
+                            <div class="text-muted">
+                                On sale order confirm action delivery order will be auto confirmed.
                             </div>
-                            <div class="o_setting_right_pane">
-                                <label for="is_delivery_automated"/>
-                                <div class="text-muted">
-                                    On sale order confirm action delivery order will be auto confirmed.
-                                </div>
-                            </div>
-
+                        </div>
                     </div>
-                    <div class="col-12 col-lg-6 o_setting_box" id="variant_options">
-                            <div class="o_setting_left_pane">
-                                <field name="sale_price_markup"/>
+                    
+                    <div class="col-12 col-lg-6 o_setting_box" id="sale_price_markup_option">
+                        <div class="o_setting_left_pane">
+                            <field name="sale_price_markup"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="sale_price_markup" string="Sale Price Markup Rule"/>
+                            <div class="text-muted">
+                                Determine sale price based on cost price markup
                             </div>
-                            <div class="o_setting_right_pane">
-                                <label for="sale_price_markup" string="Sale Price Markup Rule"/>
-                                <div class="text-muted">
-                                    Determine sale price based on cost price markup
-                                </div>
-                            </div>
-
+                        </div>
                     </div>
-                    <div class="col-12 col-lg-6 o_setting_box" id="variant_options">
-                            <div class="o_setting_left_pane">
-                                <field name="is_invoice_automated"/>
+                    
+                    <div class="col-12 col-lg-6 o_setting_box" id="sale_auto_invoice">
+                        <div class="o_setting_left_pane">
+                            <field name="is_invoice_automated"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="is_invoice_automated"/>
+                            <div class="text-muted">
+                                On sale order confirm action invoice will be auto confirmed.
                             </div>
-                            <div class="o_setting_right_pane">
-                                <label for="is_invoice_automated"/>
-                                <div class="text-muted">
-                                    On sale order confirm action invoice will be auto confirmed.
-                                </div>
-                            </div>
-
+                        </div>
                     </div>
 
-                        <div class="col-12 col-lg-6 o_setting_box" id="variant_options">
-                            <div class="o_setting_left_pane">
-                                <field name="allocate_quantity_from_multiple_batches"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <label for="allocate_quantity_from_multiple_batches" string="Allocate quantity from multiple batches"/>
-                                <div class="text-muted">
-                                    Quotation should select product from multiple batches if the nearest expiry batch does not have sufficient quantity when order syncs from Bahmni.
-                                </div>
+                    <div class="col-12 col-lg-6 o_setting_box" id="sale_multi_batch_allocation">
+                        <div class="o_setting_left_pane">
+                            <field name="allocate_quantity_from_multiple_batches"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="allocate_quantity_from_multiple_batches" string="Allocate quantity from multiple batches"/>
+                            <div class="text-muted">
+                                Quotation should select product from multiple batches if the nearest expiry batch does not have sufficient quantity when order syncs from Bahmni.
                             </div>
                         </div>
                     </div>

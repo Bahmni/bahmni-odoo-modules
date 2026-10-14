@@ -1,22 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Shared Bahmni menu structure for cross-module access -->
+    <!-- Shared Bahmni menu structure (preserves original Bahmni app location) -->
+    
+    <menuitem id="bahmni_menu_root"
+              name="Bahmni"
+              web_icon="crm,static/description/icon.svg"
+              sequence="30"/>
     
     <menuitem id="menu_bahmni_masters"
               name="Bahmni Masters"
-              parent="base.menu_administration"
-              sequence="99"
-              groups="base.group_system"/>
-    
-    <menuitem id="menu_bahmni_configuration"
-              name="Configuration"
-              parent="menu_bahmni_masters"
-              sequence="10"
-              groups="base.group_system"/>
-    
-    <menuitem id="menu_bahmni_master_data"
-              name="Master Data"
-              parent="menu_bahmni_masters"
-              sequence="20"
-              groups="base.group_system"/>
+              parent="bahmni_menu_root"
+              sequence="1"/>
 </odoo>

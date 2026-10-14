@@ -1,27 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <!-- Purchase configuration using Odoo 16 pattern -->
+    <!-- Inject Purchase Configurations into Bahmni settings block -->
     
     <record id="res_config_settings_view_purchase_bahmni" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.purchase.bahmni</field>
         <field name="model">res.config.settings</field>
-        <field name="priority" eval="100"/>
-        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="priority" eval="20"/>
+        <field name="inherit_id" ref="bahmni_base.res_config_settings_view_bahmni_base"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[hasclass('settings')]" position="inside">
-                <div class="app_settings_block" data-string="Purchase" string="Purchase Configuration" 
-                     data-key="bahmni_purchase" groups="base.group_system">
-                    <h2>Purchase Configuration</h2>
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box" id="purchase_price_update">
-                            <div class="o_setting_left_pane">
-                                <field name="update_product_prices_on_po_confirmation"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <label for="update_product_prices_on_po_confirmation"/>
-                                <div class="text-muted">
-                                    Update product cost price, sale price, and MRP from PO on confirmation
-                                </div>
+            <xpath expr="//div[@name='bahmni_settings_container']" position="inside">
+                <div class="row mt16 o_settings_container" name="bahmni_purchase_configurations">
+                    <h2 style="text-align: center;">Purchase Configurations</h2>
+                    <div class="col-12 col-lg-6 o_setting_box" id="purchase_price_update">
+                        <div class="o_setting_left_pane">
+                            <field name="update_product_prices_on_po_confirmation"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="update_product_prices_on_po_confirmation"/>
+                            <div class="text-muted">
+                                Enabling this config will update the Cost, Sale Price, MRP of the product from the PO on confirmation
                             </div>
                         </div>
                     </div>

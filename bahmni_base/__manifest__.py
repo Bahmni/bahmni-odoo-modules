@@ -17,6 +17,7 @@ such as Company-Location mapping.
         'security/ir.model.access.csv',
         'views/company_location_mapping_view.xml',
         'views/menus.xml',
+        'views/res_config_settings_view.xml',
     ],
     'demo': [],
     'qweb': [],

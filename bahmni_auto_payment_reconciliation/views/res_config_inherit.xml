@@ -1,28 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <!-- Auto payment reconciliation config using Odoo 16 pattern -->
+    <!-- Inject Payment Configurations into Bahmni settings block -->
     
     <record id="res_config_settings_view_auto_payment_bahmni" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.auto.payment.bahmni</field>
         <field name="model">res.config.settings</field>
-        <field name="priority" eval="100"/>
-        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="priority" eval="15"/>
+        <field name="inherit_id" ref="bahmni_base.res_config_settings_view_bahmni_base"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[hasclass('settings')]" position="inside">
-                <div class="app_settings_block" data-string="Payment Reconciliation" 
-                     string="Payment Reconciliation" data-key="bahmni_auto_payment" 
-                     groups="account.group_account_manager">
-                    <h2>Auto Payment Reconciliation</h2>
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box" id="auto_payment_allocation">
-                            <div class="o_setting_left_pane">
-                                <field name="is_auto_payment_allocation_enabled"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <label for="is_auto_payment_allocation_enabled"/>
-                                <div class="text-muted">
-                                    Automatically allocate payments to outstanding invoices when payment is posted
-                                </div>
+            <xpath expr="//div[@name='bahmni_settings_container']" position="inside">
+                <div class="row mt16 o_settings_container" name="bahmni_payment_configurations">
+                    <h2 style="text-align: center;">Payment Configurations</h2>
+                    <div class="col-12 col-lg-6 o_setting_box" id="auto_payment_allocation">
+                        <div class="o_setting_left_pane">
+                            <field name="is_auto_payment_allocation_enabled"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="is_auto_payment_allocation_enabled"/>
+                            <div class="text-muted">
+                                When a payment is posted, enabling this config will automatically allocate any credit invoice and the payment to outstanding invoices.
                             </div>
                         </div>
                     </div>
