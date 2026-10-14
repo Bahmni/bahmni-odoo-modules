@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Shared Bahmni menu structure (preserves original Bahmni app location) -->
+    
+    <menuitem id="bahmni_menu_root"
+              name="Bahmni"
+              web_icon="crm,static/description/icon.svg"
+              sequence="30"/>
+    
+    <menuitem id="menu_bahmni_masters"
+              name="Bahmni Masters"
+              parent="bahmni_menu_root"
+              sequence="1"/>
+</odoo>
