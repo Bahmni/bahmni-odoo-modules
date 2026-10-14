@@ -10,10 +10,11 @@ Bahmni Account
     'category': 'Account',
     'website': '',
     'images': [],
-    'depends': ['account','account_payment','sale'],
+    'depends': ['base', 'account', 'account_payment', 'sale', 'stock'],
     'data': [
              'views/account_invoice_view.xml',
              'views/company_view.xml',
+             'views/account_invoice_line_batch.xml',
              ],
     'demo': [],
     'qweb': [],

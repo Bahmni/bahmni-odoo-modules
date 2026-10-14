@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-	<record id="inherit_invoice_form_expiry_date" model="ir.ui.view">
-		<field name="name">inherit.invoice.form</field>
+	<!-- Invoice line batch tracking (moved from bahmni_stock for proper layering) -->
+	
+	<record id="view_account_move_line_form_batch_bahmni" model="ir.ui.view">
+		<field name="name">account.move.line.form.batch.bahmni</field>
 		<field name="model">account.move</field>
 		<field name="inherit_id" ref="account.view_move_form"/>
 		<field name="arch" type="xml">
@@ -12,4 +14,4 @@
 		</field>
 	</record>
 </odoo>
-	
+

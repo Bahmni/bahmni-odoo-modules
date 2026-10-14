@@ -12,10 +12,11 @@ such as Company-Location mapping.
     'category': 'Technical',
     'website': '',
     'images': [],
-    'depends': ['base', 'bahmni_sale'],
+    'depends': ['base'],
     'data': [
         'security/ir.model.access.csv',
         'views/company_location_mapping_view.xml',
+        'views/menus.xml',
     ],
     'demo': [],
     'qweb': [],
