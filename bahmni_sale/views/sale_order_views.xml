@@ -289,7 +289,7 @@ as discount fields are readonly in case of chargable amount is editable-->
 	<menuitem
         id="menu_action_shop_forms"
         name="Shop"
-        parent="bahmni_sale.menu_bahmni_masters"
+        parent="bahmni_base.menu_bahmni_masters"
         action="action_shop_form"
         sequence="4"/>
 

@@ -7,7 +7,7 @@
     "website": "https://www.bahmni.org/",
     "category": "Accounting",
     "license": "LGPL-3",
-    "depends": ["account","bahmni_sale"],
+    "depends": ["account", "bahmni_base"],
     "data": [
         "security/ir.model.access.csv",
         'views/account_payment_view_inherit.xml',

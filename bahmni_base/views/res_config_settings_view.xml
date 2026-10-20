@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Base Bahmni Settings Container - All Bahmni modules inject their configs here -->
+    <record id="res_config_settings_view_bahmni_base" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.bahmni.base</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="1"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('settings')]" position="inside">
+                <div class="app_settings_block" data-string="Bahmni" string="Bahmni" 
+                     data-key="bahmni_base" name="bahmni_settings_block" groups="base.group_system">
+                    <h2>Bahmni Configurations</h2>
+                    <div name="bahmni_settings_container">
+                        <!-- Other Bahmni modules will inject their configuration sections here -->
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
