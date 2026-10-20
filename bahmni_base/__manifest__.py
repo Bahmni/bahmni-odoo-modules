@@ -15,8 +15,8 @@ such as Company-Location mapping.
     'depends': ['base'],
     'data': [
         'security/ir.model.access.csv',
-        'views/company_location_mapping_view.xml',
         'views/menus.xml',
+        'views/company_location_mapping_view.xml',
         'views/res_config_settings_view.xml',
     ],
     'demo': [],
