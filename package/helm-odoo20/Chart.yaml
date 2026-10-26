@@ -1,5 +1,0 @@
-apiVersion: v2
-name: odoo20
-description: Helm chart for Odoo 20
-type: application
-version: 1.1.0
