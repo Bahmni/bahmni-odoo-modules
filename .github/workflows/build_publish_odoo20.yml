@@ -16,7 +16,7 @@ jobs:
     name: Docker Build & Publish Odoo 20
     runs-on: ubuntu-latest
     env:
-      HELM_CHART_PATH: package/helm/
+      HELM_CHART_PATH: package/helm-odoo20/
     steps:
       - uses: actions/checkout@v4
 
